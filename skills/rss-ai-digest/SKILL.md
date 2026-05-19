@@ -68,4 +68,4 @@ For automation, prefer `--format json` and pass the result to the next tool or n
 - Read `references/feed-registry.md` when creating or modifying registry, seen-state, or source-health files.
 - Read `references/scoring.md` when tuning article scores or source quality recommendations.
 - Read `references/automation.md` when setting up cron, GitHub Actions, Codex automation, Claude plugin wrappers, n8n, or another scheduler.
-- Use `references/example-feeds.opml` as a small OPML fixture or starter example.
+- Use `references/base-feeds.opml` as the curated starter OPML for AI, engineering, security, product, and general technical sources.

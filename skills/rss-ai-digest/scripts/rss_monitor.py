@@ -114,25 +114,32 @@ def parse_opml(opml_text: str) -> list[dict[str, Any]]:
     root = ET.fromstring(opml_text)
     feeds: list[dict[str, Any]] = []
     seen_urls: set[str] = set()
-    for outline in descendants(root, "outline"):
+    body = next((node for node in root.iter() if local_name(node.tag) == "body"), root)
+
+    def walk(outline: ET.Element, categories: list[str]) -> None:
         url = outline.attrib.get("xmlUrl") or outline.attrib.get("xmlurl")
-        if not url or url in seen_urls:
-            continue
-        title = outline.attrib.get("title") or outline.attrib.get("text") or url
-        feed_id = slugify(title)
-        feeds.append(
-            {
-                "id": feed_id,
-                "title": title,
-                "url": url,
-                "category": [],
-                "language": "",
-                "base_score": 5,
-                "tags": [],
-                "enabled": True,
-            }
-        )
-        seen_urls.add(url)
+        title = outline.attrib.get("title") or outline.attrib.get("text") or url or ""
+        if url and url not in seen_urls:
+            feed_id = slugify(title)
+            feeds.append(
+                {
+                    "id": feed_id,
+                    "title": title,
+                    "url": url,
+                    "category": categories,
+                    "language": "",
+                    "base_score": 5,
+                    "tags": [],
+                    "enabled": True,
+                }
+            )
+            seen_urls.add(url)
+        child_categories = categories if url else categories + ([title] if title else [])
+        for child in [node for node in list(outline) if local_name(node.tag) == "outline"]:
+            walk(child, child_categories)
+
+    for outline in [node for node in list(body) if local_name(node.tag) == "outline"]:
+        walk(outline, [])
     return feeds
 
 

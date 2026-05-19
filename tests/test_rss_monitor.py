@@ -70,7 +70,20 @@ class RssMonitorTests(unittest.TestCase):
         self.assertEqual(len(feeds), 1)
         self.assertEqual(feeds[0]["title"], "Simon Willison")
         self.assertEqual(feeds[0]["url"], "https://simonwillison.net/atom/everything/")
+        self.assertEqual(feeds[0]["category"], ["AI"])
         self.assertEqual(feeds[0]["enabled"], True)
+
+    def test_base_opml_imports_curated_feeds(self):
+        base_opml = Path(__file__).resolve().parents[1] / "skills" / "rss-ai-digest" / "references" / "base-feeds.opml"
+
+        feeds = self.mod.parse_opml(base_opml.read_text(encoding="utf-8"))
+        by_title = {feed["title"]: feed for feed in feeds}
+
+        self.assertGreaterEqual(len(feeds), 90)
+        self.assertIn("simonwillison.net", by_title)
+        self.assertEqual(by_title["simonwillison.net"]["category"], ["AI, Research, and High-Signal Analysis"])
+        self.assertIn("krebsonsecurity.com", by_title)
+        self.assertEqual(by_title["krebsonsecurity.com"]["category"], ["Security and Risk"])
 
     def test_parse_rss_and_atom_entries(self):
         rss_entries = self.mod.parse_feed_xml(RSS, feed_id="rss", feed_title="Example RSS")

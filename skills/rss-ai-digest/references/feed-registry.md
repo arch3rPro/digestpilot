@@ -2,6 +2,8 @@
 
 Use JSON for the MVP because every Agent runtime can parse it without optional dependencies.
 
+Use `base-feeds.opml` as the starter OPML when the user wants a ready-made AI and technical source list. Its outline groups are preserved as feed `category` values during `import-opml`.
+
 ## Feed Registry
 
 ```json

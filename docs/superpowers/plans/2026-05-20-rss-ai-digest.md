@@ -18,7 +18,7 @@
 - Create `skills/rss-ai-digest/references/feed-registry.md`: registry and state schema reference.
 - Create `skills/rss-ai-digest/references/scoring.md`: article and source scoring guidance.
 - Create `skills/rss-ai-digest/references/automation.md`: platform-neutral automation recipes.
-- Create `skills/rss-ai-digest/references/example-feeds.opml`: small example OPML.
+- Create `skills/rss-ai-digest/references/base-feeds.opml`: curated starter OPML for AI and technical sources.
 - Create `tests/test_rss_monitor.py`: local regression tests for the script.
 
 ### Task 1: Initialize Skill Package
@@ -57,7 +57,7 @@
 - Create: `skills/rss-ai-digest/references/feed-registry.md`
 - Create: `skills/rss-ai-digest/references/scoring.md`
 - Create: `skills/rss-ai-digest/references/automation.md`
-- Create: `skills/rss-ai-digest/references/example-feeds.opml`
+- Create: `skills/rss-ai-digest/references/base-feeds.opml`
 
 - [ ] Document feed registry, state, scoring, and automation recipes.
 - [ ] Keep references platform-neutral and avoid Codex-only or Claude-only assumptions.

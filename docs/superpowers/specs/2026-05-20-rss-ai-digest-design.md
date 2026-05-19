@@ -58,7 +58,7 @@ skills/rss-ai-digest/
     ├── feed-registry.md
     ├── scoring.md
     ├── automation.md
-    └── example-feeds.opml
+    └── base-feeds.opml
 ```
 
 `SKILL.md` is the only required entrypoint. It should stay concise and focus on task routing, workflow selection, and script usage. Detailed schemas, scoring rules, and automation recipes belong in `references/`.
@@ -275,6 +275,8 @@ Borrow ideas, not implementation:
 
 - `rookie-ricardo/erduo-skills`: simple skill structure, RSS digest workflow, OPML-backed feed list.
 - `ginobefun/BestBlogs`: high-quality content aggregation, OPML sharing, category filtering, score-based reading experience.
+
+The starter OPML should be maintained as `references/base-feeds.opml`, using grouped outlines for AI, engineering, security, product/technology culture, and general technical blogs.
 
 ## Acceptance Criteria
 
