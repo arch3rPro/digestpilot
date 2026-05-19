@@ -144,6 +144,7 @@ Fetch-based commands support `--timeout` and `--max-workers` so scheduled runs c
 - Automation recipes: [`skills/rss-ai-digest/references/automation.md`](./skills/rss-ai-digest/references/automation.md)
 - Design spec: [`docs/superpowers/specs/2026-05-20-rss-ai-digest-design.md`](./docs/superpowers/specs/2026-05-20-rss-ai-digest-design.md)
 - Optimization design: [`docs/superpowers/specs/2026-05-20-rss-ai-digest-optimization-design.md`](./docs/superpowers/specs/2026-05-20-rss-ai-digest-optimization-design.md)
+- Post-optimization validation: [`docs/superpowers/specs/2026-05-20-rss-ai-digest-post-optimization-validation.md`](./docs/superpowers/specs/2026-05-20-rss-ai-digest-post-optimization-validation.md)
 - Implementation plan: [`docs/superpowers/plans/2026-05-20-rss-ai-digest.md`](./docs/superpowers/plans/2026-05-20-rss-ai-digest.md)
 - Remaining optimization plan: [`docs/superpowers/plans/2026-05-20-rss-ai-digest-remaining-optimizations.md`](./docs/superpowers/plans/2026-05-20-rss-ai-digest-remaining-optimizations.md)
 - Agent instructions: [`AGENTS.md`](./AGENTS.md)
