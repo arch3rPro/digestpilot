@@ -6,6 +6,16 @@ All notable project changes are recorded here. This repository follows a practic
 
 ### Added
 
+- Added `docs/superpowers/specs/2026-05-20-rss-ai-digest-optimization-design.md`, a detailed optimization design based on the daily digest test retrospective.
+
+### Documentation
+
+- Added README navigation for the optimization design.
+
+## 2026-05-20 Agent Instructions
+
+### Added
+
 - Added `AGENTS.md` as the shared coding-agent instruction file for repository layout, development commands, coding conventions, documentation rules, testing expectations, security guidance, and Git workflow.
 - Added `CLAUDE.md` for Claude Code, importing `AGENTS.md` and keeping Claude-specific guidance short.
 - Added `CLAUDE.local.md` to `.gitignore` for private local Claude Code preferences.
