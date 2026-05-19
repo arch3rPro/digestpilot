@@ -6,6 +6,18 @@ All notable project changes are recorded here. This repository follows a practic
 
 ### Added
 
+- Added `AGENTS.md` as the shared coding-agent instruction file for repository layout, development commands, coding conventions, documentation rules, testing expectations, security guidance, and Git workflow.
+- Added `CLAUDE.md` for Claude Code, importing `AGENTS.md` and keeping Claude-specific guidance short.
+- Added `CLAUDE.local.md` to `.gitignore` for private local Claude Code preferences.
+
+### Documentation
+
+- Added README links for agent instruction files.
+
+## 2026-05-20 Initial Repository Setup
+
+### Added
+
 - Initialized `rss-agent-skills` as a portable RSS Skill repository for general Agent ecosystems.
 - Added the first Skill: `skills/rss-ai-digest`.
 - Added `rss-ai-digest` Skill metadata, workflow instructions, and OpenAI/Codex UI metadata.

@@ -121,6 +121,8 @@ Local runtime artifacts such as `feeds.json`, `seen.json`, `source-health.json`,
 - Automation recipes: [`skills/rss-ai-digest/references/automation.md`](./skills/rss-ai-digest/references/automation.md)
 - Design spec: [`docs/superpowers/specs/2026-05-20-rss-ai-digest-design.md`](./docs/superpowers/specs/2026-05-20-rss-ai-digest-design.md)
 - Implementation plan: [`docs/superpowers/plans/2026-05-20-rss-ai-digest.md`](./docs/superpowers/plans/2026-05-20-rss-ai-digest.md)
+- Agent instructions: [`AGENTS.md`](./AGENTS.md)
+- Claude Code instructions: [`CLAUDE.md`](./CLAUDE.md)
 - Change log: [`CHANGELOG.md`](./CHANGELOG.md)
 
 ## Development

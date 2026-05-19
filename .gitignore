@@ -10,6 +10,7 @@ Thumbs.db
 *.swp
 *.swo
 *~
+CLAUDE.local.md
 
 # Python cache and test artifacts
 __pycache__/
