@@ -11,6 +11,7 @@ Positive signals:
 - AI, LLM, Agent, RAG, model, inference, evaluation, benchmark, or infrastructure relevance.
 - Engineering depth: implementation notes, system design, incident review, benchmark, code, architecture, or production lessons.
 - Trusted source: high `base_score` or `must-read` tag.
+- Keyword match in the title, especially for specific AI, engineering, security, or project terms.
 - Fresh publication date within the requested window.
 - Specific technical language rather than generic commentary.
 
@@ -18,10 +19,22 @@ Negative signals:
 
 - Marketing-heavy announcement, sponsor content, thin listicle, or reposted news.
 - Job posts, hiring posts, webinars, coupons, events, or press releases.
+- Weak keyword matches that appear only in summaries.
 - Missing title, link, date, author, or malformed feed metadata.
 - Duplicate item already present in the seen state.
 
 Return score reasons with the entry so the user can judge why it was selected.
+
+## Keyword Matching
+
+Single-word keywords use token-aware matching. For example, `ai` should match the standalone token `AI`, but not unrelated substrings inside longer words. Multi-word keywords use phrase matching so terms such as `vector database`, `model context protocol`, and `language model` still match naturally.
+
+Filtered entries include:
+
+- `matched_keywords`: keywords that matched the entry.
+- `matched_keyword_locations`: where the match appeared, such as `title` or `summary`.
+
+Title matches receive a small scoring boost. Summary-only matches receive a small penalty so broad feed descriptions do not outrank specific article titles.
 
 ## Source Score
 
@@ -41,4 +54,11 @@ Signals:
 - Originality: low duplicate or repost rate.
 - Manual tags: `must-read` boosts; `noisy` and `deprecated` penalize.
 
-When reporting source quality, include both the recommendation and the reason. Do not silently delete or disable feeds.
+Source status semantics:
+
+- `healthy`: recent successful fetch observations exist.
+- `degraded`: useful source with repeated or recent issues.
+- `failing`: recent or repeated fetch failures dominate.
+- `unknown`: no persisted health data exists yet.
+
+When reporting source quality, include both `recommendation` and `recommendation_reason`. Include `last_error` for failing sources. Do not silently delete or disable feeds.

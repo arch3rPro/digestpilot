@@ -6,6 +6,13 @@ All notable project changes are recorded here. This repository follows a practic
 
 ### Added
 
+- Completed the remaining RSS AI Digest optimization phases:
+  - Fetch-based commands now support `--timeout` and `--max-workers` with deterministic output ordering after concurrent fetches.
+  - Keyword filtering is token-aware for single words and phrase-aware for multi-word terms.
+  - Filtered entries now include `matched_keywords` and `matched_keyword_locations`.
+  - `import-opml` can apply curated source priors with `--metadata`.
+  - Added `skills/rss-ai-digest/references/source-metadata.json` as starter metadata for selected base feeds.
+  - `evaluate-sources` now reports `status`, `success_count`, `recommendation_reason`, and `last_error`.
 - Implemented Phase 1 observability for `rss-ai-digest`:
   - `digest` and `check-new` can persist source health with `--health`.
   - `digest --format json` now returns an envelope with `entries`, `failures`, `health`, `stats`, and `generated_at`.
@@ -14,11 +21,20 @@ All notable project changes are recorded here. This repository follows a practic
 
 ### Changed
 
+- Article ranking now rewards title keyword matches and lightly penalizes summary-only matches.
+- Missing source health is treated as `unknown/watch` instead of being collapsed into low quality.
 - Default digest/check-new seen-state behavior now marks only reported entries, so low-scoring filtered items are not hidden before the user sees them.
+
+### Documentation
+
+- Added `docs/superpowers/plans/2026-05-20-rss-ai-digest-remaining-optimizations.md`.
+- Updated README and Skill references for source metadata, fetch controls, keyword matching, and source governance fields.
 
 ### Validation
 
 - `python3 -m unittest tests/test_rss_monitor.py -v`
+- `quick_validate.py skills/rss-ai-digest`
+- `git diff --check`
 
 ## 2026-05-20 Optimization Design
 
@@ -76,5 +92,5 @@ All notable project changes are recorded here. This repository follows a practic
 ## Repository Notes
 
 - GitHub repository: `arch3rPro/rss-agent-skills`
-- Current visibility: private
+- Current visibility: public
 - Default branch: `main`

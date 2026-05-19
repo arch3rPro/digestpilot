@@ -1,0 +1,57 @@
+{
+  "antirez-com": {
+    "base_score": 8,
+    "language": "en",
+    "tags": ["engineering", "systems"]
+  },
+  "daringfireball-net": {
+    "base_score": 5,
+    "language": "en",
+    "tags": ["apple", "commentary"]
+  },
+  "dwarkesh-com": {
+    "base_score": 8,
+    "language": "en",
+    "tags": ["ai", "research", "interviews"]
+  },
+  "garymarcus-substack-com": {
+    "base_score": 7,
+    "language": "en",
+    "tags": ["ai", "analysis"]
+  },
+  "geoffreylitt-com": {
+    "base_score": 8,
+    "language": "en",
+    "tags": ["ai", "interfaces", "engineering"]
+  },
+  "geohot-github-io": {
+    "base_score": 7,
+    "language": "en",
+    "tags": ["ai", "systems"]
+  },
+  "gwern-net": {
+    "base_score": 8,
+    "language": "en",
+    "tags": ["ai", "research", "longform"]
+  },
+  "krebsonsecurity-com": {
+    "base_score": 8,
+    "language": "en",
+    "tags": ["security", "risk"]
+  },
+  "minimaxir-com": {
+    "base_score": 8,
+    "language": "en",
+    "tags": ["ai", "data", "experiments"]
+  },
+  "simonwillison-net": {
+    "base_score": 9,
+    "language": "en",
+    "tags": ["must-read", "llm", "engineering"]
+  },
+  "wheresyoured-at": {
+    "base_score": 5,
+    "language": "en",
+    "tags": ["commentary", "business"]
+  }
+}

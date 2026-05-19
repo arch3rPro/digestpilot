@@ -4,8 +4,10 @@
 from __future__ import annotations
 
 import argparse
+import concurrent.futures
 import hashlib
 import json
+import re
 import sys
 import urllib.request
 from copy import deepcopy
@@ -110,6 +112,25 @@ def parse_keyword_csv(value: str | None) -> list[str]:
     return [item.strip().lower() for item in value.split(",") if item.strip()]
 
 
+def text_tokens(value: str) -> set[str]:
+    return set(re.findall(r"[a-z0-9]+", value.lower()))
+
+
+def keyword_locations(entry: dict[str, Any], keyword: str) -> list[str]:
+    keyword = keyword.lower().strip()
+    if not keyword:
+        return []
+    locations = []
+    for field in ("title", "summary"):
+        text = entry.get(field, "").lower()
+        if " " in keyword:
+            if keyword in text:
+                locations.append(field)
+        elif keyword in text_tokens(text):
+            locations.append(field)
+    return locations
+
+
 def parse_opml(opml_text: str) -> list[dict[str, Any]]:
     root = ET.fromstring(opml_text)
     feeds: list[dict[str, Any]] = []
@@ -141,6 +162,18 @@ def parse_opml(opml_text: str) -> list[dict[str, Any]]:
     for outline in [node for node in list(body) if local_name(node.tag) == "outline"]:
         walk(outline, [])
     return feeds
+
+
+def apply_source_metadata(feeds: list[dict[str, Any]], metadata: dict[str, Any]) -> list[dict[str, Any]]:
+    enriched = []
+    for feed in feeds:
+        item = dict(feed)
+        overrides = metadata.get(item.get("id"), {})
+        for key in ("base_score", "language", "tags"):
+            if key in overrides:
+                item[key] = overrides[key]
+        enriched.append(item)
+    return enriched
 
 
 def parse_feed_xml(xml_text: str, feed_id: str, feed_title: str = "") -> list[dict[str, Any]]:
@@ -295,8 +328,12 @@ def filter_entries(
     results = []
     for entry in entries:
         feed = feed_lookup.get(entry.get("feed_id", ""), {})
-        haystack = f"{entry.get('title', '')} {entry.get('summary', '')}".lower()
-        matched_keywords = [keyword for keyword in normalized_keywords if keyword in haystack]
+        matched_locations = {
+            keyword: locations
+            for keyword in normalized_keywords
+            if (locations := keyword_locations(entry, keyword))
+        }
+        matched_keywords = list(matched_locations.keys())
         if normalized_keywords and not matched_keywords:
             continue
         if author_filter and author_filter not in entry.get("author", "").lower():
@@ -312,6 +349,7 @@ def filter_entries(
             continue
         item = dict(entry)
         item["matched_keywords"] = matched_keywords
+        item["matched_keyword_locations"] = matched_locations
         results.append(item)
     return results
 
@@ -335,6 +373,13 @@ def score_entry(entry: dict[str, Any], feed: dict[str, Any] | None = None) -> di
     if any(tag == "must-read" for tag in feed.get("tags", [])):
         score += 1
         reasons.append("trusted_source")
+    locations = entry.get("matched_keyword_locations", {})
+    if any("title" in fields for fields in locations.values()):
+        score += 1
+        reasons.append("title_keyword_match")
+    elif locations and all("summary" in fields and "title" not in fields for fields in locations.values()):
+        score -= 1
+        reasons.append("summary_only_keyword_match")
     if parse_datetime(entry.get("published_at")):
         score += 1
         reasons.append("has_publication_date")
@@ -361,7 +406,9 @@ def evaluate_sources(registry: dict[str, Any], health: dict[str, Any] | None = N
         item_health = health.get(feed_id, {})
         base_score = int(feed.get("base_score", 5) or 5)
         score = base_score
+        has_health = feed_id in health
         failure_count = int(item_health.get("failure_count", 0) or 0)
+        success_count = int(item_health.get("success_count", 0) or 0)
         quality_avg = float(item_health.get("quality_avg", base_score) or base_score)
         score += round((quality_avg - 5) * 0.7)
         score -= min(4, failure_count)
@@ -373,26 +420,52 @@ def evaluate_sources(registry: dict[str, Any], health: dict[str, Any] | None = N
         if "deprecated" in tags:
             score -= 4
         final_score = max(0, min(10, int(score)))
-        if final_score >= 8 and failure_count <= 1:
-            recommendation = "keep"
-        elif final_score >= 6:
+        last_error = item_health.get("last_error") or item_health.get("error", "")
+        if not has_health:
+            status = "unknown"
             recommendation = "watch"
-        elif final_score >= 4:
+            recommendation_reason = "No health data yet; observe this source before changing priority."
+        elif failure_count >= 3 and success_count == 0:
+            status = "failing"
+            recommendation = "remove" if final_score < 5 else "lower-priority"
+            recommendation_reason = "Repeated failures without successful fetches."
+        elif failure_count > success_count and failure_count >= 2:
+            status = "degraded"
             recommendation = "lower-priority"
+            recommendation_reason = "More failures than successful fetches."
+        elif final_score >= 8 and failure_count <= 1:
+            status = "healthy"
+            recommendation = "keep"
+            recommendation_reason = "High quality and currently healthy."
+        elif final_score >= 6:
+            status = "healthy" if failure_count == 0 else "degraded"
+            recommendation = "watch"
+            recommendation_reason = "Useful source with moderate quality or limited history."
+        elif final_score >= 4:
+            status = "degraded" if failure_count else "healthy"
+            recommendation = "lower-priority"
+            recommendation_reason = "Relevant but noisy, low-priority, or inconsistent."
         else:
+            status = "degraded" if failure_count else "healthy"
             recommendation = "remove"
+            recommendation_reason = "Consistently low source score."
         results.append(
             {
                 "id": feed_id,
                 "title": feed.get("title", feed_id),
                 "url": feed.get("url", ""),
+                "enabled": feed.get("enabled", True),
                 "score": final_score,
+                "status": status,
                 "failure_count": failure_count,
+                "success_count": success_count,
                 "quality_avg": quality_avg,
                 "recommendation": recommendation,
+                "recommendation_reason": recommendation_reason,
+                "last_error": last_error,
             }
         )
-    return sorted(results, key=lambda item: item["score"], reverse=True)
+    return sorted(results, key=lambda item: (-int(item["score"]), item["id"]))
 
 
 def build_failures(health: dict[str, Any], registry: dict[str, Any]) -> list[dict[str, Any]]:
@@ -557,30 +630,72 @@ def fetch_url(url: str, timeout: int = 20) -> str:
         return response.read().decode(response.headers.get_content_charset() or "utf-8", errors="replace")
 
 
-def fetch_entries(registry: dict[str, Any]) -> tuple[list[dict[str, Any]], dict[str, Any]]:
-    entries: list[dict[str, Any]] = []
-    health: dict[str, Any] = {}
-    for feed in registry.get("feeds", []):
-        if not feed.get("enabled", True):
-            continue
-        feed_id = feed.get("id") or slugify(feed.get("title", feed.get("url", "feed")))
-        try:
-            xml_text = fetch_url(feed["url"])
-            feed_entries = parse_feed_xml(xml_text, feed_id=feed_id, feed_title=feed.get("title", feed_id))
-            entries.extend(feed_entries)
-            last_item_at = max((entry.get("published_at", "") for entry in feed_entries), default="")
-            health[feed_id] = {
+def fetch_one_feed(feed: dict[str, Any], timeout: int = 20) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    feed_id = feed.get("id") or slugify(feed.get("title", feed.get("url", "feed")))
+    try:
+        xml_text = fetch_url(feed["url"], timeout=timeout)
+        feed_entries = parse_feed_xml(xml_text, feed_id=feed_id, feed_title=feed.get("title", feed_id))
+        last_item_at = max((entry.get("published_at", "") for entry in feed_entries), default="")
+        return feed_entries, {
+            feed_id: {
                 "last_success_at": datetime.now(timezone.utc).isoformat(),
                 "failure_count": 0,
                 "last_item_at": last_item_at,
             }
-        except Exception as exc:  # noqa: BLE001 - CLI should report per-feed failures.
-            health[feed_id] = {
+        }
+    except Exception as exc:  # noqa: BLE001 - CLI should report per-feed failures.
+        return [], {
+            feed_id: {
                 "last_error_at": datetime.now(timezone.utc).isoformat(),
                 "failure_count": 1,
                 "error": str(exc),
             }
-    return entries, health
+        }
+
+
+def fetch_entries(registry: dict[str, Any], timeout: int = 20, max_workers: int = 8) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    entries: list[dict[str, Any]] = []
+    health: dict[str, Any] = {}
+    enabled_feeds = [feed for feed in registry.get("feeds", []) if feed.get("enabled", True)]
+    worker_count = max(1, int(max_workers or 1))
+    if worker_count == 1 or len(enabled_feeds) <= 1:
+        for feed in enabled_feeds:
+            feed_entries, feed_health = fetch_one_feed(feed, timeout=timeout)
+            entries.extend(feed_entries)
+            health.update(feed_health)
+        return sort_entries(entries), dict(sorted(health.items()))
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=worker_count) as executor:
+        futures = [executor.submit(fetch_one_feed, feed, timeout) for feed in enabled_feeds]
+        for future in concurrent.futures.as_completed(futures):
+            feed_entries, feed_health = future.result()
+            entries.extend(feed_entries)
+            health.update(feed_health)
+    return sort_entries(entries), dict(sorted(health.items()))
+
+
+def sort_entries(entries: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return sorted(
+        entries,
+        key=lambda entry: (
+            entry.get("feed_id", ""),
+            parse_datetime(entry.get("published_at")) or datetime.min.replace(tzinfo=timezone.utc),
+            entry.get("title", ""),
+            entry.get("link", ""),
+        ),
+    )
+
+
+def sort_scored_entries(entries: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return sorted(
+        entries,
+        key=lambda entry: (
+            -int(entry.get("score", 0) or 0),
+            -(parse_datetime(entry.get("published_at")) or datetime.min.replace(tzinfo=timezone.utc)).timestamp(),
+            entry.get("feed_id", ""),
+            entry.get("title", ""),
+        ),
+    )
 
 
 def score_entries(entries: list[dict[str, Any]], registry: dict[str, Any]) -> list[dict[str, Any]]:
@@ -590,6 +705,8 @@ def score_entries(entries: list[dict[str, Any]], registry: dict[str, Any]) -> li
 
 def command_import_opml(args: argparse.Namespace) -> int:
     feeds = parse_opml(Path(args.opml).read_text(encoding="utf-8"))
+    if getattr(args, "metadata", None):
+        feeds = apply_source_metadata(feeds, load_json(args.metadata, {}))
     registry = {"feeds": feeds}
     save_json(args.registry, registry)
     print(render_json(registry), end="")
@@ -598,7 +715,7 @@ def command_import_opml(args: argparse.Namespace) -> int:
 
 def command_fetch(args: argparse.Namespace) -> int:
     registry = load_registry(args.registry)
-    entries, health = fetch_entries(registry)
+    entries, health = fetch_entries(registry, timeout=args.timeout, max_workers=args.max_workers)
     payload = {"entries": entries, "health": health}
     print(render_json(payload) if args.format == "json" else render_markdown_digest(entries, "Fetched RSS Entries"), end="")
     return 0
@@ -607,7 +724,11 @@ def command_fetch(args: argparse.Namespace) -> int:
 def command_digest(args: argparse.Namespace) -> int:
     registry = load_registry(args.registry)
     state = load_seen_state(args.state)
-    entries, current_health = fetch_entries(registry)
+    entries, current_health = fetch_entries(
+        registry,
+        timeout=getattr(args, "timeout", 20),
+        max_workers=getattr(args, "max_workers", 8),
+    )
     health = current_health
     if getattr(args, "health", None):
         previous_health = load_json(args.health, {})
@@ -624,7 +745,7 @@ def command_digest(args: argparse.Namespace) -> int:
         feed_lookup=feed_lookup,
     )
     new_entries = [entry for entry in filtered if not is_seen(state, entry)]
-    scored = [entry for entry in score_entries(new_entries, registry) if entry.get("score", 0) >= args.min_score]
+    scored = sort_scored_entries([entry for entry in score_entries(new_entries, registry) if entry.get("score", 0) >= args.min_score])
     entries_to_mark = select_entries_to_mark(new_entries, scored, getattr(args, "mark_seen", "reported-only"))
     mark_seen(state, entries_to_mark)
     save_json(args.state, state)
@@ -655,11 +776,14 @@ def build_parser() -> argparse.ArgumentParser:
     import_opml = subparsers.add_parser("import-opml", help="Import OPML subscriptions into a registry JSON file.")
     import_opml.add_argument("--opml", required=True)
     import_opml.add_argument("--registry", required=True)
+    import_opml.add_argument("--metadata")
     import_opml.set_defaults(func=command_import_opml)
 
     fetch = subparsers.add_parser("fetch", help="Fetch enabled feeds and output raw normalized entries.")
     fetch.add_argument("--registry", required=True)
     fetch.add_argument("--format", choices=["json", "markdown"], default="json")
+    fetch.add_argument("--timeout", type=int, default=20)
+    fetch.add_argument("--max-workers", type=int, default=8)
     fetch.set_defaults(func=command_fetch)
 
     digest = subparsers.add_parser("digest", help="Fetch, filter, score, dedupe, and render a digest.")
@@ -689,6 +813,8 @@ def add_digest_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--language")
     parser.add_argument("--format", choices=["json", "markdown"], default="markdown")
     parser.add_argument("--mark-seen", choices=["reported-only", "all-filtered", "none"], default="reported-only")
+    parser.add_argument("--timeout", type=int, default=20)
+    parser.add_argument("--max-workers", type=int, default=8)
 
 
 def main(argv: list[str] | None = None) -> int:

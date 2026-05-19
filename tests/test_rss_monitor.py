@@ -110,6 +110,70 @@ class RssMonitorTests(unittest.TestCase):
         self.assertEqual(matched[0]["matched_keywords"], ["agents"])
         self.assertEqual(missed, [])
 
+    def test_keyword_matching_is_token_aware_for_short_terms(self):
+        entry = {
+            "title": "Maintaining reliability",
+            "summary": "A practical post about maintainability.",
+            "author": "",
+            "published_at": "2026-05-20T08:00:00+00:00",
+            "feed_id": "test",
+        }
+
+        matched = self.mod.filter_entries([entry], keywords=["ai"])
+
+        self.assertEqual(matched, [])
+
+    def test_phrase_keyword_matching_and_locations(self):
+        entry = {
+            "title": "Reliable systems",
+            "summary": "A post about LLM agents in production.",
+            "author": "",
+            "published_at": "2026-05-20T08:00:00+00:00",
+            "feed_id": "test",
+        }
+
+        matched = self.mod.filter_entries([entry], keywords=["llm agents"])
+
+        self.assertEqual(len(matched), 1)
+        self.assertEqual(matched[0]["matched_keywords"], ["llm agents"])
+        self.assertEqual(matched[0]["matched_keyword_locations"], {"llm agents": ["summary"]})
+
+    def test_title_keyword_match_scores_higher_than_summary_only_match(self):
+        title_match = {
+            "title": "LLM agents in production",
+            "summary": "A practical implementation note.",
+            "published_at": "2026-05-20T08:00:00+00:00",
+            "link": "https://example.com/title",
+            "feed_id": "test",
+            "matched_keywords": ["llm"],
+            "matched_keyword_locations": {"llm": ["title"]},
+        }
+        summary_match = dict(title_match)
+        summary_match["title"] = "Production notes"
+        summary_match["summary"] = "A practical implementation note about LLM systems."
+        summary_match["link"] = "https://example.com/summary"
+        summary_match["matched_keyword_locations"] = {"llm": ["summary"]}
+
+        title_score = self.mod.score_entry(title_match, feed={"base_score": 5})["score"]
+        summary_score = self.mod.score_entry(summary_match, feed={"base_score": 5})["score"]
+
+        self.assertGreater(title_score, summary_score)
+
+    def test_import_opml_applies_source_metadata(self):
+        metadata = {
+            "simon-willison": {
+                "base_score": 9,
+                "language": "en",
+                "tags": ["must-read", "llm"],
+            }
+        }
+
+        feeds = self.mod.apply_source_metadata(self.mod.parse_opml(OPML), metadata)
+
+        self.assertEqual(feeds[0]["base_score"], 9)
+        self.assertEqual(feeds[0]["language"], "en")
+        self.assertEqual(feeds[0]["tags"], ["must-read", "llm"])
+
     def test_entry_key_and_seen_state_dedupe(self):
         entries = self.mod.parse_feed_xml(RSS, feed_id="rss", feed_title="Example RSS")
         key = self.mod.entry_key(entries[0])
@@ -152,6 +216,36 @@ class RssMonitorTests(unittest.TestCase):
         self.assertEqual(by_id["strong"]["recommendation"], "keep")
         self.assertEqual(by_id["dead"]["recommendation"], "remove")
 
+    def test_evaluate_sources_marks_missing_health_as_unknown_watch(self):
+        registry = {"feeds": [{"id": "new", "title": "New", "url": "https://example.com/new", "base_score": 5, "enabled": True}]}
+
+        result = self.mod.evaluate_sources(registry, health={})[0]
+
+        self.assertEqual(result["status"], "unknown")
+        self.assertEqual(result["recommendation"], "watch")
+        self.assertIn("No health data", result["recommendation_reason"])
+
+    def test_evaluate_sources_exposes_failing_status_and_last_error(self):
+        registry = {"feeds": [{"id": "bad", "title": "Bad", "url": "https://example.com/bad", "base_score": 6, "enabled": True}]}
+        health = {"bad": {"failure_count": 4, "success_count": 0, "last_error": "network denied"}}
+
+        result = self.mod.evaluate_sources(registry, health=health)[0]
+
+        self.assertEqual(result["status"], "failing")
+        self.assertIn(result["recommendation"], {"lower-priority", "remove"})
+        self.assertEqual(result["last_error"], "network denied")
+        self.assertIn("Repeated failures", result["recommendation_reason"])
+
+    def test_evaluate_sources_marks_healthy_high_quality_source_keep(self):
+        registry = {"feeds": [{"id": "strong", "title": "Strong", "url": "https://example.com/strong", "base_score": 9, "enabled": True}]}
+        health = {"strong": {"failure_count": 0, "success_count": 5, "quality_avg": 8.5, "status": "healthy"}}
+
+        result = self.mod.evaluate_sources(registry, health=health)[0]
+
+        self.assertEqual(result["status"], "healthy")
+        self.assertEqual(result["recommendation"], "keep")
+        self.assertIn("High quality", result["recommendation_reason"])
+
     def test_render_markdown_digest_orders_by_score(self):
         low = {"title": "Low", "link": "https://example.com/low", "feed_title": "Feed", "score": 5, "score_reasons": []}
         high = {"title": "High", "link": "https://example.com/high", "feed_title": "Feed", "score": 9, "score_reasons": ["ai_or_engineering_relevance"]}
@@ -179,7 +273,7 @@ class RssMonitorTests(unittest.TestCase):
             state_path = Path(tmp) / "seen.json"
             self.mod.save_json(registry_path, registry)
             original_fetch_entries = self.mod.fetch_entries
-            self.mod.fetch_entries = lambda loaded_registry: ([entry], current_health)
+            self.mod.fetch_entries = lambda loaded_registry, timeout=20, max_workers=8: ([entry], current_health)
             try:
                 output = StringIO()
                 with redirect_stdout(output):
@@ -230,7 +324,7 @@ class RssMonitorTests(unittest.TestCase):
             self.mod.save_json(registry_path, registry)
             self.mod.save_json(health_path, {"broken": {"failure_count": 2, "success_count": 0, "last_error": "timeout"}})
             original_fetch_entries = self.mod.fetch_entries
-            self.mod.fetch_entries = lambda loaded_registry: ([entry], current_health)
+            self.mod.fetch_entries = lambda loaded_registry, timeout=20, max_workers=8: ([entry], current_health)
             try:
                 with redirect_stdout(StringIO()):
                     self.mod.command_digest(
@@ -270,7 +364,10 @@ class RssMonitorTests(unittest.TestCase):
             state_path = Path(tmp) / "seen.json"
             self.mod.save_json(registry_path, registry)
             original_fetch_entries = self.mod.fetch_entries
-            self.mod.fetch_entries = lambda loaded_registry: ([high, low], {"rss": {"last_success_at": "2026-05-20T08:00:00+00:00", "failure_count": 0}})
+            self.mod.fetch_entries = lambda loaded_registry, timeout=20, max_workers=8: (
+                [high, low],
+                {"rss": {"last_success_at": "2026-05-20T08:00:00+00:00", "failure_count": 0}},
+            )
             try:
                 with redirect_stdout(StringIO()):
                     self.mod.command_digest(
@@ -304,7 +401,10 @@ class RssMonitorTests(unittest.TestCase):
             state_path = Path(tmp) / "seen.json"
             self.mod.save_json(registry_path, registry)
             original_fetch_entries = self.mod.fetch_entries
-            self.mod.fetch_entries = lambda loaded_registry: ([entry], {"rss": {"last_success_at": "2026-05-20T08:00:00+00:00", "failure_count": 0}})
+            self.mod.fetch_entries = lambda loaded_registry, timeout=20, max_workers=8: (
+                [entry],
+                {"rss": {"last_success_at": "2026-05-20T08:00:00+00:00", "failure_count": 0}},
+            )
             try:
                 with redirect_stdout(StringIO()):
                     self.mod.command_digest(
@@ -351,6 +451,81 @@ class RssMonitorTests(unittest.TestCase):
         self.assertIn("No matching entries found.", markdown)
         self.assertIn("### Failed feeds", markdown)
         self.assertIn("Broken Feed", markdown)
+
+    def test_concurrent_fetch_matches_serial_fetch_for_controlled_feeds(self):
+        registry = {
+            "feeds": [
+                {"id": "b-feed", "title": "B Feed", "url": "https://example.com/b", "enabled": True},
+                {"id": "a-feed", "title": "A Feed", "url": "https://example.com/a", "enabled": True},
+            ]
+        }
+        xml_by_url = {
+            "https://example.com/a": RSS.replace("https://example.com/agents", "https://example.com/a-entry"),
+            "https://example.com/b": RSS.replace("https://example.com/agents", "https://example.com/b-entry"),
+        }
+        original_fetch_url = self.mod.fetch_url
+        self.mod.fetch_url = lambda url, timeout=20: xml_by_url[url]
+        try:
+            serial_entries, serial_health = self.mod.fetch_entries(registry, timeout=5, max_workers=1)
+            concurrent_entries, concurrent_health = self.mod.fetch_entries(registry, timeout=5, max_workers=4)
+        finally:
+            self.mod.fetch_url = original_fetch_url
+
+        self.assertEqual([entry["link"] for entry in serial_entries], [entry["link"] for entry in concurrent_entries])
+        self.assertEqual(set(serial_health.keys()), {"a-feed", "b-feed"})
+        self.assertEqual(set(concurrent_health.keys()), {"a-feed", "b-feed"})
+
+    def test_concurrent_fetch_isolates_feed_failures(self):
+        registry = {
+            "feeds": [
+                {"id": "good", "title": "Good", "url": "https://example.com/good", "enabled": True},
+                {"id": "bad", "title": "Bad", "url": "https://example.com/bad", "enabled": True},
+            ]
+        }
+
+        def fake_fetch_url(url, timeout=20):
+            if url.endswith("/bad"):
+                raise OSError("network denied")
+            return RSS
+
+        original_fetch_url = self.mod.fetch_url
+        self.mod.fetch_url = fake_fetch_url
+        try:
+            entries, health = self.mod.fetch_entries(registry, timeout=5, max_workers=2)
+        finally:
+            self.mod.fetch_url = original_fetch_url
+
+        self.assertEqual(len(entries), 1)
+        self.assertEqual(health["good"]["failure_count"], 0)
+        self.assertEqual(health["bad"]["failure_count"], 1)
+        self.assertIn("network denied", health["bad"]["error"])
+
+    def test_scored_entries_have_deterministic_order(self):
+        older = {
+            "title": "Older",
+            "link": "https://example.com/older",
+            "feed_id": "z-feed",
+            "published_at": "2026-05-19T08:00:00+00:00",
+            "score": 8,
+        }
+        newer = {
+            "title": "Newer",
+            "link": "https://example.com/newer",
+            "feed_id": "z-feed",
+            "published_at": "2026-05-20T08:00:00+00:00",
+            "score": 8,
+        }
+        higher = {
+            "title": "Higher",
+            "link": "https://example.com/higher",
+            "feed_id": "a-feed",
+            "published_at": "2026-05-18T08:00:00+00:00",
+            "score": 9,
+        }
+
+        sorted_entries = self.mod.sort_scored_entries([older, newer, higher])
+
+        self.assertEqual([entry["title"] for entry in sorted_entries], ["Higher", "Newer", "Older"])
 
 
 if __name__ == "__main__":

@@ -25,7 +25,8 @@ skills/rss-ai-digest/
 │   ├── automation.md
 │   ├── base-feeds.opml
 │   ├── feed-registry.md
-│   └── scoring.md
+│   ├── scoring.md
+│   └── source-metadata.json
 └── scripts/rss_monitor.py
 ```
 
@@ -38,6 +39,7 @@ Import the curated base OPML into a feed registry:
 ```bash
 python3 skills/rss-ai-digest/scripts/rss_monitor.py import-opml \
   --opml skills/rss-ai-digest/references/base-feeds.opml \
+  --metadata skills/rss-ai-digest/references/source-metadata.json \
   --registry feeds.json
 ```
 
@@ -52,6 +54,8 @@ python3 skills/rss-ai-digest/scripts/rss_monitor.py digest \
   --keywords "agent,llm,rag,evals" \
   --min-score 7 \
   --mark-seen reported-only \
+  --timeout 20 \
+  --max-workers 8 \
   --format markdown
 ```
 
@@ -64,6 +68,8 @@ python3 skills/rss-ai-digest/scripts/rss_monitor.py check-new \
   --health source-health.json \
   --keywords "inference,agents,benchmark" \
   --mark-seen reported-only \
+  --timeout 20 \
+  --max-workers 8 \
   --format json
 ```
 
@@ -93,6 +99,14 @@ It currently contains 92 sources grouped into:
 
 When imported, OPML outline groups are preserved as feed `category` values in the generated registry.
 
+Optional source priors are stored at:
+
+```text
+skills/rss-ai-digest/references/source-metadata.json
+```
+
+Pass this file with `import-opml --metadata` to enrich matching feed ids with `base_score`, `language`, and `tags`.
+
 ## Output Formats
 
 Use Markdown when a person will read the result:
@@ -111,6 +125,8 @@ Digest JSON output is an envelope with `entries`, `failures`, `health`, `stats`,
 
 Local runtime artifacts such as `feeds.json`, `seen.json`, `source-health.json`, `digest.md`, and `latest.json` are ignored by Git by default.
 
+Fetch-based commands support `--timeout` and `--max-workers` so scheduled runs can balance speed and source politeness. Output ordering remains deterministic after concurrent fetches.
+
 ## Skill Design Principles
 
 - Keep one standard entrypoint per Skill: `skills/<skill-name>/SKILL.md`.
@@ -124,10 +140,12 @@ Local runtime artifacts such as `feeds.json`, `seen.json`, `source-health.json`,
 - Skill entrypoint: [`skills/rss-ai-digest/SKILL.md`](./skills/rss-ai-digest/SKILL.md)
 - Feed registry schema: [`skills/rss-ai-digest/references/feed-registry.md`](./skills/rss-ai-digest/references/feed-registry.md)
 - Scoring rules: [`skills/rss-ai-digest/references/scoring.md`](./skills/rss-ai-digest/references/scoring.md)
+- Source metadata seed: [`skills/rss-ai-digest/references/source-metadata.json`](./skills/rss-ai-digest/references/source-metadata.json)
 - Automation recipes: [`skills/rss-ai-digest/references/automation.md`](./skills/rss-ai-digest/references/automation.md)
 - Design spec: [`docs/superpowers/specs/2026-05-20-rss-ai-digest-design.md`](./docs/superpowers/specs/2026-05-20-rss-ai-digest-design.md)
 - Optimization design: [`docs/superpowers/specs/2026-05-20-rss-ai-digest-optimization-design.md`](./docs/superpowers/specs/2026-05-20-rss-ai-digest-optimization-design.md)
 - Implementation plan: [`docs/superpowers/plans/2026-05-20-rss-ai-digest.md`](./docs/superpowers/plans/2026-05-20-rss-ai-digest.md)
+- Remaining optimization plan: [`docs/superpowers/plans/2026-05-20-rss-ai-digest-remaining-optimizations.md`](./docs/superpowers/plans/2026-05-20-rss-ai-digest-remaining-optimizations.md)
 - Agent instructions: [`AGENTS.md`](./AGENTS.md)
 - Claude Code instructions: [`CLAUDE.md`](./CLAUDE.md)
 - Change log: [`CHANGELOG.md`](./CHANGELOG.md)

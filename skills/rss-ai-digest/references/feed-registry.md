@@ -4,6 +4,8 @@ Use JSON for the MVP because every Agent runtime can parse it without optional d
 
 Use `base-feeds.opml` as the starter OPML when the user wants a ready-made AI and technical source list. Its outline groups are preserved as feed `category` values during `import-opml`.
 
+Use `source-metadata.json` with `import-opml --metadata` when the starter registry should include curated source priors.
+
 ## Feed Registry
 
 ```json
@@ -36,6 +38,28 @@ Recommended fields:
 - `language`: expected language such as `en` or `zh`.
 - `base_score`: source prior from 1 to 10.
 - `tags`: operational labels such as `must-read`, `watch`, `noisy`, or `deprecated`.
+
+## Source Metadata
+
+`source-metadata.json` is a seed file keyed by feed id:
+
+```json
+{
+  "simonwillison-net": {
+    "base_score": 9,
+    "language": "en",
+    "tags": ["must-read", "llm", "engineering"]
+  }
+}
+```
+
+When passed to `import-opml --metadata`, matching feed ids are enriched with:
+
+- `base_score`: curated prior from 1 to 10.
+- `language`: expected source language.
+- `tags`: stable source labels for scoring and source governance.
+
+Keep source metadata conservative. It should express durable source priors, not one-off article judgments.
 
 ## Seen State
 
@@ -80,7 +104,7 @@ Use `--health source-health.json` with `digest` or `check-new` to persist live f
 
 Health fields:
 
-- `status`: current observed state such as `healthy` or `failing`.
+- `status`: current observed state such as `healthy`, `degraded`, `failing`, or `unknown`.
 - `success_count`: number of successful fetch observations.
 - `failure_count`: number of failed fetch observations.
 - `last_success_at`: most recent successful fetch timestamp.
@@ -90,6 +114,35 @@ Health fields:
 - `quality_avg`: optional score trend used by source evaluation.
 
 Use health data to explain source recommendations. Do not remove a source automatically unless the user explicitly asks for cleanup.
+
+## Source Evaluation Output
+
+`evaluate-sources` combines registry priors and persisted health into governance rows:
+
+```json
+{
+  "id": "simonwillison-net",
+  "title": "Simon Willison's Weblog",
+  "url": "https://simonwillison.net/atom/everything/",
+  "enabled": true,
+  "status": "healthy",
+  "score": 9,
+  "recommendation": "keep",
+  "recommendation_reason": "High quality source with recent successful fetches.",
+  "failure_count": 0,
+  "success_count": 4,
+  "last_error": ""
+}
+```
+
+Recommendation semantics:
+
+- `keep`: stable high-quality source.
+- `watch`: useful or unknown source that needs more observations.
+- `lower-priority`: relevant but noisy, low-quality, or intermittently failing.
+- `remove`: repeatedly failing, deprecated, disabled, or clearly low-signal.
+
+Missing health is reported as `status: "unknown"` with `recommendation: "watch"` instead of being treated as low quality.
 
 ## Digest JSON Envelope
 
