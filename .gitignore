@@ -1,4 +1,51 @@
+# OS metadata
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+
+# Editor and local workspace files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Python cache and test artifacts
 __pycache__/
 *.py[cod]
-.DS_Store
+*$py.class
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Python virtual environments
+.venv/
+venv/
+env/
+
+# Build and distribution output
+build/
+dist/
+*.egg-info/
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# RSS AI Digest local runtime data
 .rss-state/
+feeds.json
+seen.json
+source-health.json
+digest.md
+latest.json
+rss-output/
+*.local.json
+*.generated.json

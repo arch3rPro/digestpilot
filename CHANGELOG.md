@@ -1,0 +1,40 @@
+# Change Log
+
+All notable project changes are recorded here. This repository follows a practical change log format rather than a formal release-versioning scheme until packaged releases begin.
+
+## 2026-05-20
+
+### Added
+
+- Initialized `rss-agent-skills` as a portable RSS Skill repository for general Agent ecosystems.
+- Added the first Skill: `skills/rss-ai-digest`.
+- Added `rss-ai-digest` Skill metadata, workflow instructions, and OpenAI/Codex UI metadata.
+- Added `scripts/rss_monitor.py` with support for:
+  - OPML import
+  - RSS 2.0 parsing
+  - Atom parsing
+  - keyword, author, date, category, and language filtering
+  - seen-state deduplication
+  - deterministic article scoring
+  - source quality evaluation
+  - Markdown and JSON output
+- Added `base-feeds.opml` as the curated starter OPML with 92 AI, engineering, security, product, and general technical sources.
+- Added reference documentation for feed registry structure, scoring, and automation recipes.
+- Added design and implementation planning documents under `docs/superpowers/`.
+- Added regression tests for the RSS monitor script.
+
+### Changed
+
+- Preserved OPML parent outline groups as registry `category` values during import.
+- Replaced the minimal example OPML with the curated base OPML.
+
+### Validation
+
+- `python3 -m unittest tests/test_rss_monitor.py -v`
+- `quick_validate.py skills/rss-ai-digest`
+
+## Repository Notes
+
+- GitHub repository: `arch3rPro/rss-agent-skills`
+- Current visibility: private
+- Default branch: `main`

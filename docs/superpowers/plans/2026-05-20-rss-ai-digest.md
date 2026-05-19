@@ -70,7 +70,7 @@
 - Validate: `skills/rss-ai-digest/scripts/rss_monitor.py`
 - Validate: `tests/test_rss_monitor.py`
 
-- [ ] Run `python3 /Users/wangyu19/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/rss-ai-digest`.
+- [ ] Run `python3 /path/to/skill-creator/scripts/quick_validate.py skills/rss-ai-digest`.
 - [ ] Run `python3 -m unittest tests/test_rss_monitor.py -v`.
 - [ ] Run `git status --short`.
 - [ ] Commit the initialized repository if verification passes.
