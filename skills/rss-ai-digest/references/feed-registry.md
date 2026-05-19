@@ -64,12 +64,54 @@ Entry identity is derived from:
 ```json
 {
   "simon-willison": {
-    "last_success_at": "2026-05-20T09:00:00+08:00",
+    "status": "healthy",
+    "success_count": 3,
     "failure_count": 0,
+    "last_success_at": "2026-05-20T09:00:00+08:00",
+    "last_error_at": "",
+    "last_error": "",
     "last_item_at": "2026-05-20T08:35:00+08:00",
     "quality_avg": 8.4
   }
 }
 ```
 
+Use `--health source-health.json` with `digest` or `check-new` to persist live fetch outcomes. The CLI merges current results into existing health data instead of replacing the file with a single run.
+
+Health fields:
+
+- `status`: current observed state such as `healthy` or `failing`.
+- `success_count`: number of successful fetch observations.
+- `failure_count`: number of failed fetch observations.
+- `last_success_at`: most recent successful fetch timestamp.
+- `last_error_at`: most recent failed fetch timestamp.
+- `last_error`: most recent error message.
+- `last_item_at`: newest item timestamp observed from that feed.
+- `quality_avg`: optional score trend used by source evaluation.
+
 Use health data to explain source recommendations. Do not remove a source automatically unless the user explicitly asks for cleanup.
+
+## Digest JSON Envelope
+
+`digest --format json` and `check-new --format json` return an object rather than a raw list:
+
+```json
+{
+  "entries": [],
+  "failures": [],
+  "health": {},
+  "stats": {
+    "feeds_total": 92,
+    "feeds_enabled": 92,
+    "feeds_success": 89,
+    "feeds_failed": 3,
+    "entries_fetched": 420,
+    "entries_filtered": 18,
+    "entries_reported": 9,
+    "entries_marked_seen": 9
+  },
+  "generated_at": "2026-05-20T09:00:00+00:00"
+}
+```
+
+Markdown digest output includes run stats and a `Failed feeds` section when any feed fails during the current run.

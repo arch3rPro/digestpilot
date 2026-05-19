@@ -47,9 +47,11 @@ Create a digest of new AI and technical content:
 python3 skills/rss-ai-digest/scripts/rss_monitor.py digest \
   --registry feeds.json \
   --state seen.json \
+  --health source-health.json \
   --since 24h \
   --keywords "agent,llm,rag,evals" \
   --min-score 7 \
+  --mark-seen reported-only \
   --format markdown
 ```
 
@@ -59,7 +61,9 @@ Check for new matching entries as JSON:
 python3 skills/rss-ai-digest/scripts/rss_monitor.py check-new \
   --registry feeds.json \
   --state seen.json \
+  --health source-health.json \
   --keywords "inference,agents,benchmark" \
+  --mark-seen reported-only \
   --format json
 ```
 
@@ -102,6 +106,8 @@ Use JSON when another agent, scheduler, notification adapter, or workflow engine
 ```bash
 --format json
 ```
+
+Digest JSON output is an envelope with `entries`, `failures`, `health`, `stats`, and `generated_at`. Markdown output includes run stats and a `Failed feeds` section when any feed fails.
 
 Local runtime artifacts such as `feeds.json`, `seen.json`, `source-health.json`, `digest.md`, and `latest.json` are ignored by Git by default.
 

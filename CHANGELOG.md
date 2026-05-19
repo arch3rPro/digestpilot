@@ -6,6 +6,24 @@ All notable project changes are recorded here. This repository follows a practic
 
 ### Added
 
+- Implemented Phase 1 observability for `rss-ai-digest`:
+  - `digest` and `check-new` can persist source health with `--health`.
+  - `digest --format json` now returns an envelope with `entries`, `failures`, `health`, `stats`, and `generated_at`.
+  - Markdown digests include run stats and failed feed reporting.
+  - Seen-state updates are configurable with `--mark-seen reported-only`, `--mark-seen all-filtered`, or `--mark-seen none`.
+
+### Changed
+
+- Default digest/check-new seen-state behavior now marks only reported entries, so low-scoring filtered items are not hidden before the user sees them.
+
+### Validation
+
+- `python3 -m unittest tests/test_rss_monitor.py -v`
+
+## 2026-05-20 Optimization Design
+
+### Added
+
 - Added `docs/superpowers/specs/2026-05-20-rss-ai-digest-optimization-design.md`, a detailed optimization design based on the daily digest test retrospective.
 
 ### Documentation

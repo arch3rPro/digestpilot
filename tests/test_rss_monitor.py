@@ -2,7 +2,10 @@ import importlib.util
 import json
 import tempfile
 import unittest
+from argparse import Namespace
+from contextlib import redirect_stdout
 from datetime import datetime, timezone
+from io import StringIO
 from pathlib import Path
 
 
@@ -157,6 +160,197 @@ class RssMonitorTests(unittest.TestCase):
 
         self.assertLess(markdown.index("High"), markdown.index("Low"))
         self.assertIn("## Test Digest", markdown)
+
+    def test_digest_json_envelope_includes_failures_health_and_stats(self):
+        entry = self.mod.parse_feed_xml(RSS, feed_id="rss", feed_title="Example RSS")[0]
+        registry = {
+            "feeds": [
+                {"id": "rss", "title": "Example RSS", "url": "https://example.com/rss", "base_score": 8, "enabled": True},
+                {"id": "broken", "title": "Broken Feed", "url": "https://example.com/broken", "base_score": 5, "enabled": True},
+            ]
+        }
+        current_health = {
+            "rss": {"last_success_at": "2026-05-20T08:00:00+00:00", "failure_count": 0, "last_item_at": entry["published_at"]},
+            "broken": {"last_error_at": "2026-05-20T08:01:00+00:00", "failure_count": 1, "error": "Operation not permitted"},
+        }
+
+        with tempfile.TemporaryDirectory() as tmp:
+            registry_path = Path(tmp) / "feeds.json"
+            state_path = Path(tmp) / "seen.json"
+            self.mod.save_json(registry_path, registry)
+            original_fetch_entries = self.mod.fetch_entries
+            self.mod.fetch_entries = lambda loaded_registry: ([entry], current_health)
+            try:
+                output = StringIO()
+                with redirect_stdout(output):
+                    self.mod.command_digest(
+                        Namespace(
+                            registry=str(registry_path),
+                            state=str(state_path),
+                            health=None,
+                            since="24h",
+                            keywords="agents",
+                            author=None,
+                            category=None,
+                            language=None,
+                            format="json",
+                            min_score=7,
+                            mark_seen="reported-only",
+                        )
+                    )
+            finally:
+                self.mod.fetch_entries = original_fetch_entries
+
+        payload = json.loads(output.getvalue())
+        self.assertEqual(set(payload.keys()), {"entries", "failures", "generated_at", "health", "stats"})
+        self.assertEqual(len(payload["entries"]), 1)
+        self.assertEqual(payload["failures"][0]["id"], "broken")
+        self.assertEqual(payload["failures"][0]["error"], "Operation not permitted")
+        self.assertEqual(payload["stats"]["feeds_total"], 2)
+        self.assertEqual(payload["stats"]["feeds_failed"], 1)
+        self.assertEqual(payload["stats"]["entries_reported"], 1)
+
+    def test_digest_persists_merged_health_when_health_path_is_set(self):
+        entry = self.mod.parse_feed_xml(RSS, feed_id="rss", feed_title="Example RSS")[0]
+        registry = {
+            "feeds": [
+                {"id": "rss", "title": "Example RSS", "url": "https://example.com/rss", "base_score": 8, "enabled": True},
+                {"id": "broken", "title": "Broken Feed", "url": "https://example.com/broken", "base_score": 5, "enabled": True},
+            ]
+        }
+        current_health = {
+            "rss": {"last_success_at": "2026-05-20T08:00:00+00:00", "failure_count": 0, "last_item_at": entry["published_at"]},
+            "broken": {"last_error_at": "2026-05-20T08:01:00+00:00", "failure_count": 1, "error": "Operation not permitted"},
+        }
+
+        with tempfile.TemporaryDirectory() as tmp:
+            registry_path = Path(tmp) / "feeds.json"
+            state_path = Path(tmp) / "seen.json"
+            health_path = Path(tmp) / "source-health.json"
+            self.mod.save_json(registry_path, registry)
+            self.mod.save_json(health_path, {"broken": {"failure_count": 2, "success_count": 0, "last_error": "timeout"}})
+            original_fetch_entries = self.mod.fetch_entries
+            self.mod.fetch_entries = lambda loaded_registry: ([entry], current_health)
+            try:
+                with redirect_stdout(StringIO()):
+                    self.mod.command_digest(
+                        Namespace(
+                            registry=str(registry_path),
+                            state=str(state_path),
+                            health=str(health_path),
+                            since="24h",
+                            keywords="agents",
+                            author=None,
+                            category=None,
+                            language=None,
+                            format="json",
+                            min_score=7,
+                            mark_seen="reported-only",
+                        )
+                    )
+            finally:
+                self.mod.fetch_entries = original_fetch_entries
+            saved_health = self.mod.load_json(health_path, {})
+
+        self.assertEqual(saved_health["rss"]["success_count"], 1)
+        self.assertEqual(saved_health["rss"]["failure_count"], 0)
+        self.assertEqual(saved_health["broken"]["failure_count"], 3)
+        self.assertEqual(saved_health["broken"]["last_error"], "Operation not permitted")
+
+    def test_reported_only_mark_seen_policy_marks_only_reported_entries(self):
+        high = self.mod.parse_feed_xml(RSS, feed_id="rss", feed_title="Example RSS")[0]
+        low = dict(high)
+        low["title"] = "General notes about teams"
+        low["link"] = "https://example.com/low"
+        low["summary"] = "Light commentary about process."
+        registry = {"feeds": [{"id": "rss", "title": "Example RSS", "url": "https://example.com/rss", "base_score": 5, "enabled": True}]}
+
+        with tempfile.TemporaryDirectory() as tmp:
+            registry_path = Path(tmp) / "feeds.json"
+            state_path = Path(tmp) / "seen.json"
+            self.mod.save_json(registry_path, registry)
+            original_fetch_entries = self.mod.fetch_entries
+            self.mod.fetch_entries = lambda loaded_registry: ([high, low], {"rss": {"last_success_at": "2026-05-20T08:00:00+00:00", "failure_count": 0}})
+            try:
+                with redirect_stdout(StringIO()):
+                    self.mod.command_digest(
+                        Namespace(
+                            registry=str(registry_path),
+                            state=str(state_path),
+                            health=None,
+                            since="24h",
+                            keywords="",
+                            author=None,
+                            category=None,
+                            language=None,
+                            format="json",
+                            min_score=7,
+                            mark_seen="reported-only",
+                        )
+                    )
+            finally:
+                self.mod.fetch_entries = original_fetch_entries
+            state = self.mod.load_seen_state(state_path)
+
+        self.assertIn(self.mod.entry_key(high), state["seen"])
+        self.assertNotIn(self.mod.entry_key(low), state["seen"])
+
+    def test_none_mark_seen_policy_does_not_update_seen_state(self):
+        entry = self.mod.parse_feed_xml(RSS, feed_id="rss", feed_title="Example RSS")[0]
+        registry = {"feeds": [{"id": "rss", "title": "Example RSS", "url": "https://example.com/rss", "base_score": 8, "enabled": True}]}
+
+        with tempfile.TemporaryDirectory() as tmp:
+            registry_path = Path(tmp) / "feeds.json"
+            state_path = Path(tmp) / "seen.json"
+            self.mod.save_json(registry_path, registry)
+            original_fetch_entries = self.mod.fetch_entries
+            self.mod.fetch_entries = lambda loaded_registry: ([entry], {"rss": {"last_success_at": "2026-05-20T08:00:00+00:00", "failure_count": 0}})
+            try:
+                with redirect_stdout(StringIO()):
+                    self.mod.command_digest(
+                        Namespace(
+                            registry=str(registry_path),
+                            state=str(state_path),
+                            health=None,
+                            since="24h",
+                            keywords="agents",
+                            author=None,
+                            category=None,
+                            language=None,
+                            format="json",
+                            min_score=7,
+                            mark_seen="none",
+                        )
+                    )
+            finally:
+                self.mod.fetch_entries = original_fetch_entries
+            state = self.mod.load_seen_state(state_path)
+
+        self.assertEqual(state["seen"], {})
+
+    def test_markdown_digest_result_renders_failed_feeds_section(self):
+        markdown = self.mod.render_markdown_digest_result(
+            {
+                "entries": [],
+                "failures": [
+                    {
+                        "id": "broken",
+                        "title": "Broken Feed",
+                        "url": "https://example.com/broken",
+                        "error": "Operation not permitted",
+                    }
+                ],
+                "health": {},
+                "stats": {"feeds_total": 1, "feeds_success": 0, "feeds_failed": 1, "entries_reported": 0},
+                "generated_at": "2026-05-20T08:00:00+00:00",
+            },
+            title="Test Digest",
+        )
+
+        self.assertIn("## Test Digest", markdown)
+        self.assertIn("No matching entries found.", markdown)
+        self.assertIn("### Failed feeds", markdown)
+        self.assertIn("Broken Feed", markdown)
 
 
 if __name__ == "__main__":

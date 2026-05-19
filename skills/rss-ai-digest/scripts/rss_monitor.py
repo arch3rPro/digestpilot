@@ -395,6 +395,101 @@ def evaluate_sources(registry: dict[str, Any], health: dict[str, Any] | None = N
     return sorted(results, key=lambda item: item["score"], reverse=True)
 
 
+def build_failures(health: dict[str, Any], registry: dict[str, Any]) -> list[dict[str, Any]]:
+    feed_lookup = {feed.get("id"): feed for feed in registry.get("feeds", [])}
+    failures = []
+    for feed_id, item_health in health.items():
+        if int(item_health.get("failure_count", 0) or 0) <= 0:
+            continue
+        feed = feed_lookup.get(feed_id, {})
+        failures.append(
+            {
+                "id": feed_id,
+                "title": feed.get("title", feed_id),
+                "url": feed.get("url", ""),
+                "error": item_health.get("error") or item_health.get("last_error", ""),
+                "last_error_at": item_health.get("last_error_at", ""),
+            }
+        )
+    return sorted(failures, key=lambda item: item["id"])
+
+
+def build_stats(
+    registry: dict[str, Any],
+    entries: list[dict[str, Any]],
+    filtered: list[dict[str, Any]],
+    reported: list[dict[str, Any]],
+    marked: list[dict[str, Any]],
+    health: dict[str, Any],
+) -> dict[str, int]:
+    feeds = registry.get("feeds", [])
+    enabled_feeds = [feed for feed in feeds if feed.get("enabled", True)]
+    failed_ids = {feed_id for feed_id, item in health.items() if int(item.get("failure_count", 0) or 0) > 0}
+    success_ids = set(health) - failed_ids
+    return {
+        "feeds_total": len(feeds),
+        "feeds_enabled": len(enabled_feeds),
+        "feeds_success": len(success_ids),
+        "feeds_failed": len(failed_ids),
+        "entries_fetched": len(entries),
+        "entries_filtered": len(filtered),
+        "entries_reported": len(reported),
+        "entries_marked_seen": len(marked),
+    }
+
+
+def merge_health(previous: dict[str, Any], current: dict[str, Any]) -> dict[str, Any]:
+    merged = deepcopy(previous)
+    for feed_id, item in current.items():
+        prior = dict(merged.get(feed_id, {}))
+        current_failed = int(item.get("failure_count", 0) or 0) > 0
+        if current_failed:
+            prior["failure_count"] = int(prior.get("failure_count", 0) or 0) + int(item.get("failure_count", 1) or 1)
+            prior["success_count"] = int(prior.get("success_count", 0) or 0)
+            prior["last_error_at"] = item.get("last_error_at", prior.get("last_error_at", ""))
+            prior["last_error"] = item.get("error") or item.get("last_error", prior.get("last_error", ""))
+            prior["status"] = "failing"
+        else:
+            prior["success_count"] = int(prior.get("success_count", 0) or 0) + 1
+            prior["failure_count"] = int(prior.get("failure_count", 0) or 0)
+            prior["last_success_at"] = item.get("last_success_at", prior.get("last_success_at", ""))
+            prior["last_item_at"] = item.get("last_item_at", prior.get("last_item_at", ""))
+            prior["status"] = "healthy"
+            prior.setdefault("last_error", "")
+            prior.setdefault("last_error_at", "")
+        merged[feed_id] = prior
+    return merged
+
+
+def build_digest_result(
+    entries: list[dict[str, Any]],
+    failures: list[dict[str, Any]],
+    health: dict[str, Any],
+    stats: dict[str, int],
+) -> dict[str, Any]:
+    return {
+        "entries": entries,
+        "failures": failures,
+        "health": health,
+        "stats": stats,
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+
+def select_entries_to_mark(
+    new_entries: list[dict[str, Any]],
+    reported_entries: list[dict[str, Any]],
+    policy: str,
+) -> list[dict[str, Any]]:
+    if policy == "none":
+        return []
+    if policy == "all-filtered":
+        return new_entries
+    if policy == "reported-only":
+        return reported_entries
+    raise ValueError(f"Unsupported mark-seen policy: {policy}")
+
+
 def render_markdown_digest(entries: list[dict[str, Any]], title: str = "RSS AI Digest") -> str:
     lines = [f"## {title}", ""]
     ranked = sorted(entries, key=lambda item: item.get("score", 0), reverse=True)
@@ -409,6 +504,32 @@ def render_markdown_digest(entries: list[dict[str, Any]], title: str = "RSS AI D
         if entry.get("author"):
             lines.append(f"   - Author: {entry['author']}")
         lines.append(f"   - Reason: {reasons}")
+    return "\n".join(lines) + "\n"
+
+
+def render_markdown_digest_result(result: dict[str, Any], title: str = "RSS AI Digest") -> str:
+    lines = [render_markdown_digest(result.get("entries", []), title).rstrip()]
+    stats = result.get("stats", {})
+    if stats:
+        lines.extend(
+            [
+                "",
+                "### Run stats",
+                "",
+                f"- Feeds: {stats.get('feeds_success', 0)} succeeded, {stats.get('feeds_failed', 0)} failed, {stats.get('feeds_enabled', stats.get('feeds_total', 0))} enabled",
+                f"- Entries: {stats.get('entries_fetched', 0)} fetched, {stats.get('entries_filtered', 0)} filtered, {stats.get('entries_reported', 0)} reported",
+                f"- Seen state: {stats.get('entries_marked_seen', 0)} entries marked seen",
+            ]
+        )
+    failures = result.get("failures", [])
+    if failures:
+        lines.extend(["", "### Failed feeds", ""])
+        for failure in failures:
+            label = failure.get("title") or failure.get("id", "unknown")
+            error = failure.get("error", "")
+            url = failure.get("url", "")
+            suffix = f" ({url})" if url else ""
+            lines.append(f"- {label}{suffix}: {error}")
     return "\n".join(lines) + "\n"
 
 
@@ -486,7 +607,12 @@ def command_fetch(args: argparse.Namespace) -> int:
 def command_digest(args: argparse.Namespace) -> int:
     registry = load_registry(args.registry)
     state = load_seen_state(args.state)
-    entries, _health = fetch_entries(registry)
+    entries, current_health = fetch_entries(registry)
+    health = current_health
+    if getattr(args, "health", None):
+        previous_health = load_json(args.health, {})
+        health = merge_health(previous_health, current_health)
+        save_json(args.health, health)
     feed_lookup = {feed.get("id"): feed for feed in registry.get("feeds", [])}
     filtered = filter_entries(
         entries,
@@ -499,9 +625,13 @@ def command_digest(args: argparse.Namespace) -> int:
     )
     new_entries = [entry for entry in filtered if not is_seen(state, entry)]
     scored = [entry for entry in score_entries(new_entries, registry) if entry.get("score", 0) >= args.min_score]
-    mark_seen(state, new_entries)
+    entries_to_mark = select_entries_to_mark(new_entries, scored, getattr(args, "mark_seen", "reported-only"))
+    mark_seen(state, entries_to_mark)
     save_json(args.state, state)
-    print(render_json(scored) if args.format == "json" else render_markdown_digest(scored), end="")
+    failures = build_failures(current_health, registry)
+    stats = build_stats(registry, entries, filtered, scored, entries_to_mark, current_health)
+    result = build_digest_result(scored, failures, health, stats)
+    print(render_json(result) if args.format == "json" else render_markdown_digest_result(result), end="")
     return 0
 
 
@@ -551,12 +681,14 @@ def build_parser() -> argparse.ArgumentParser:
 def add_digest_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--registry", required=True)
     parser.add_argument("--state", required=True)
+    parser.add_argument("--health")
     parser.add_argument("--since", default="24h")
     parser.add_argument("--keywords", default="")
     parser.add_argument("--author")
     parser.add_argument("--category")
     parser.add_argument("--language")
     parser.add_argument("--format", choices=["json", "markdown"], default="markdown")
+    parser.add_argument("--mark-seen", choices=["reported-only", "all-filtered", "none"], default="reported-only")
 
 
 def main(argv: list[str] | None = None) -> int:
