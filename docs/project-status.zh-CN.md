@@ -53,6 +53,7 @@
 
 - 单词关键词使用 token-aware 匹配，避免 `ai` 误命中无关长词。
 - 多词关键词使用 phrase matching。
+- 支持 `--preset ai-strict`，可一键应用严格 AI digest 默认筛选。
 - 支持 `--require-any-title-keyword`，可过滤 summary-only 的弱匹配。
 - 支持 `--exclude-keywords`，可排除噪声关键词或短语。
 - 支持 `--keyword-mode all`，要求所有关键词都命中。
@@ -258,7 +259,7 @@
 
 优先级最高的两个方向：
 
-1. 继续增强内容质量筛选：扩展噪声源 metadata、must/should/exclude 关键词组和更严格的 AI digest preset。
+1. 继续增强内容质量筛选：扩展噪声源 metadata、must/should/exclude 关键词组和更多 digest preset。
 2. 拆出 `rss-source-curator`：专门处理源评估、失败源治理、OPML/registry 清理和源质量维护。
 
 如果目标是尽快进入可用工作流，建议先做内容质量筛选；如果目标是扩展成 RSS Skills 套件，建议先拆出 `rss-source-curator`。

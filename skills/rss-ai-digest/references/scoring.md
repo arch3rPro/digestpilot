@@ -38,6 +38,7 @@ Title matches receive a small scoring boost. Summary-only matches receive a smal
 
 Strict filtering options:
 
+- `--preset ai-strict`: apply default AI keywords, default noise exclusions, and title-keyword matching.
 - `--require-any-title-keyword`: require at least one included keyword to match the title.
 - `--exclude-keywords`: remove entries matching any noise keyword or phrase in title or summary.
 - `--keyword-mode all`: require every included keyword to match. The default `any` mode keeps the broader discovery behavior.

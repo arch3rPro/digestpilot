@@ -60,6 +60,9 @@ NOISE_TERMS = {
     "press release",
 }
 
+AI_STRICT_KEYWORDS = "agent,llm,rag,ai,model,inference,evals,benchmark"
+AI_STRICT_EXCLUDE_KEYWORDS = "webinar,coupon,sponsor,sponsored,hiring,job,press release"
+
 
 def local_name(tag: str) -> str:
     return tag.rsplit("}", 1)[-1].lower()
@@ -110,6 +113,20 @@ def parse_keyword_csv(value: str | None) -> list[str]:
     if not value:
         return []
     return [item.strip().lower() for item in value.split(",") if item.strip()]
+
+
+def apply_filter_preset(args: argparse.Namespace) -> argparse.Namespace:
+    preset = getattr(args, "preset", "none")
+    if preset == "none":
+        return args
+    if preset != "ai-strict":
+        raise ValueError(f"Unsupported preset: {preset}")
+    if not getattr(args, "keywords", ""):
+        args.keywords = AI_STRICT_KEYWORDS
+    if not getattr(args, "exclude_keywords", ""):
+        args.exclude_keywords = AI_STRICT_EXCLUDE_KEYWORDS
+    args.require_any_title_keyword = True
+    return args
 
 
 def text_tokens(value: str) -> set[str]:
@@ -738,6 +755,7 @@ def command_fetch(args: argparse.Namespace) -> int:
 
 
 def command_digest(args: argparse.Namespace) -> int:
+    apply_filter_preset(args)
     registry = load_registry(args.registry)
     state = load_seen_state(args.state)
     entries, current_health = fetch_entries(
@@ -826,6 +844,7 @@ def add_digest_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--state", required=True)
     parser.add_argument("--health")
     parser.add_argument("--since", default="24h")
+    parser.add_argument("--preset", choices=["none", "ai-strict"], default="none")
     parser.add_argument("--keywords", default="")
     parser.add_argument("--exclude-keywords", default="")
     parser.add_argument("--keyword-mode", choices=["any", "all"], default="any")

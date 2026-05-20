@@ -206,6 +206,35 @@ class RssMonitorTests(unittest.TestCase):
 
         self.assertEqual([entry["title"] for entry in matched], ["LLM agent production notes"])
 
+    def test_ai_strict_preset_sets_filter_defaults(self):
+        args = Namespace(
+            preset="ai-strict",
+            keywords="",
+            exclude_keywords="",
+            require_any_title_keyword=False,
+        )
+
+        self.mod.apply_filter_preset(args)
+
+        self.assertIn("llm", args.keywords)
+        self.assertIn("agent", args.keywords)
+        self.assertIn("webinar", args.exclude_keywords)
+        self.assertTrue(args.require_any_title_keyword)
+
+    def test_ai_strict_preset_preserves_explicit_keywords_and_excludes(self):
+        args = Namespace(
+            preset="ai-strict",
+            keywords="kubernetes",
+            exclude_keywords="sponsored",
+            require_any_title_keyword=False,
+        )
+
+        self.mod.apply_filter_preset(args)
+
+        self.assertEqual(args.keywords, "kubernetes")
+        self.assertEqual(args.exclude_keywords, "sponsored")
+        self.assertTrue(args.require_any_title_keyword)
+
     def test_title_keyword_match_scores_higher_than_summary_only_match(self):
         title_match = {
             "title": "LLM agents in production",

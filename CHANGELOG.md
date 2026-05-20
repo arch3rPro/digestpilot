@@ -7,6 +7,7 @@ All notable project changes are recorded here. This repository follows a practic
 ### Added
 
 - Added stricter content-quality filters for `digest` and `check-new`:
+  - `--preset ai-strict` applies default AI keywords, noise exclusions, and title-keyword matching.
   - `--require-any-title-keyword` filters out summary-only keyword matches.
   - `--exclude-keywords` removes entries matching noise keywords or phrases.
   - `--keyword-mode all` requires every included keyword to match.
