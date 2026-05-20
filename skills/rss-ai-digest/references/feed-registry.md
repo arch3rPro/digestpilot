@@ -144,6 +144,42 @@ Recommendation semantics:
 
 Missing health is reported as `status: "unknown"` with `recommendation: "watch"` instead of being treated as low quality.
 
+## Source Curation Output
+
+`curate-sources` turns source evaluation into reviewable maintenance actions. It does not modify the registry.
+
+```json
+{
+  "actions": [
+    {
+      "id": "example-feed",
+      "title": "Example Feed",
+      "action": "disable",
+      "status": "failing",
+      "score": 2,
+      "reason": "Repeated failures without successful fetches.",
+      "registry_patch": {
+        "id": "example-feed",
+        "set": {
+          "enabled": false
+        }
+      }
+    }
+  ],
+  "summary": {
+    "disable": 1
+  }
+}
+```
+
+Curation actions:
+
+- `keep`: no registry change suggested.
+- `watch`: gather more health observations before changing priority.
+- `lower-priority`: source may need a lower `base_score` or `noisy` tag in a future metadata pass.
+- `disable`: repeated failures suggest setting `enabled` to `false` after review.
+- `remove`: source is a removal candidate, but deletion should remain explicit and human/agent-reviewed.
+
 ## Digest JSON Envelope
 
 `digest --format json` and `check-new --format json` return an object rather than a raw list:

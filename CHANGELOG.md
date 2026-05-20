@@ -2,6 +2,13 @@
 
 All notable project changes are recorded here. This repository follows a practical change log format rather than a formal release-versioning scheme until packaged releases begin.
 
+## 2026-05-21
+
+### Added
+
+- Added `curate-sources` to generate reviewable source governance actions and registry patch hints without modifying feed registries.
+- Expanded `source-metadata.json` coverage for selected AI, engineering, security, and commentary sources.
+
 ## 2026-05-20
 
 ### Added

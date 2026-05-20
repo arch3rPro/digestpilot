@@ -501,6 +501,68 @@ def evaluate_sources(registry: dict[str, Any], health: dict[str, Any] | None = N
     return sorted(results, key=lambda item: (-int(item["score"]), item["id"]))
 
 
+def curate_sources(registry: dict[str, Any], health: dict[str, Any] | None = None) -> dict[str, Any]:
+    actions = []
+    for item in evaluate_sources(registry, health):
+        patch: dict[str, Any] = {}
+        if item["status"] == "failing" and item["failure_count"] >= 3 and item["success_count"] == 0:
+            action = "disable"
+            patch = {"id": item["id"], "set": {"enabled": False}}
+        elif item["recommendation"] == "remove":
+            action = "remove"
+            patch = {"id": item["id"], "remove": True}
+        elif item["recommendation"] == "lower-priority":
+            action = "lower-priority"
+        elif item["recommendation"] == "keep":
+            action = "keep"
+        else:
+            action = "watch"
+        actions.append(
+            {
+                "id": item["id"],
+                "title": item["title"],
+                "url": item["url"],
+                "action": action,
+                "status": item["status"],
+                "score": item["score"],
+                "reason": item["recommendation_reason"],
+                "last_error": item["last_error"],
+                "registry_patch": patch,
+            }
+        )
+    summary: dict[str, int] = {}
+    for item in actions:
+        summary[item["action"]] = summary.get(item["action"], 0) + 1
+    return {"actions": actions, "summary": dict(sorted(summary.items()))}
+
+
+def render_markdown_source_curation(curation: dict[str, Any]) -> str:
+    lines = ["## RSS Source Curation", ""]
+    summary = curation.get("summary", {})
+    if summary:
+        lines.append("### Summary")
+        lines.append("")
+        for action, count in sorted(summary.items()):
+            lines.append(f"- {action}: {count}")
+        lines.append("")
+    actions = curation.get("actions", [])
+    if not actions:
+        lines.append("No source curation actions.")
+        return "\n".join(lines) + "\n"
+    lines.append("### Actions")
+    lines.append("")
+    for item in actions:
+        patch = item.get("registry_patch") or {}
+        patch_text = json.dumps(patch, ensure_ascii=False, sort_keys=True) if patch else "{}"
+        lines.append(f"- `{item.get('action')}` `{item.get('id')}` - {item.get('title', '')}")
+        lines.append(f"  - Status: {item.get('status')} / Score: {item.get('score')}/10")
+        lines.append(f"  - Reason: {item.get('reason', '')}")
+        if item.get("last_error"):
+            lines.append(f"  - Last error: {item['last_error']}")
+        lines.append(f"  - Registry patch: `{patch_text}`")
+    return "\n".join(lines) + "\n"
+
+
 def build_failures(health: dict[str, Any], registry: dict[str, Any]) -> list[dict[str, Any]]:
     feed_lookup = {feed.get("id"): feed for feed in registry.get("feeds", [])}
     failures = []
@@ -806,6 +868,14 @@ def command_evaluate_sources(args: argparse.Namespace) -> int:
     return 0
 
 
+def command_curate_sources(args: argparse.Namespace) -> int:
+    registry = load_registry(args.registry)
+    health = load_json(args.health, {}) if args.health else {}
+    curation = curate_sources(registry, health)
+    print(render_json(curation) if args.format == "json" else render_markdown_source_curation(curation), end="")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Monitor and score AI/technical RSS feeds.")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -836,6 +906,12 @@ def build_parser() -> argparse.ArgumentParser:
     evaluate.add_argument("--registry", required=True)
     evaluate.add_argument("--health")
     evaluate.set_defaults(func=command_evaluate_sources)
+
+    curate = subparsers.add_parser("curate-sources", help="Generate reviewable source curation actions without modifying the registry.")
+    curate.add_argument("--registry", required=True)
+    curate.add_argument("--health")
+    curate.add_argument("--format", choices=["json", "markdown"], default="markdown")
+    curate.set_defaults(func=command_curate_sources)
     return parser
 
 

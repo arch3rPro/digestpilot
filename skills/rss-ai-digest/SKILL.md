@@ -15,6 +15,7 @@ Use this skill to turn RSS/Atom feeds and OPML files into high-signal AI and tec
 - For keyword, author, project, or topic monitoring, run `scripts/rss_monitor.py check-new`.
 - For OPML import, run `scripts/rss_monitor.py import-opml`, then evaluate the resulting registry.
 - For source cleanup or feed quality review, run `scripts/rss_monitor.py evaluate-sources`.
+- For reviewable source governance actions, run `scripts/rss_monitor.py curate-sources`.
 - For scheduled checks, read `references/automation.md` and provide a platform-neutral recipe.
 
 ## Core Commands
@@ -66,6 +67,15 @@ python3 skills/rss-ai-digest/scripts/rss_monitor.py evaluate-sources \
   --health source-health.json
 ```
 
+Generate source curation actions without changing the registry:
+
+```bash
+python3 skills/rss-ai-digest/scripts/rss_monitor.py curate-sources \
+  --registry feeds.json \
+  --health source-health.json \
+  --format markdown
+```
+
 ## Output Guidance
 
 For user-facing answers, summarize the ranked entries instead of dumping raw feed data. Include title, link, source, score, and the reason the entry was selected. Mention failed feeds separately so source problems are visible.
@@ -79,6 +89,8 @@ Use `--timeout` and `--max-workers` on fetch-based commands to control slow sour
 Keyword matching is token-aware for single words and phrase-aware for multi-word keywords. Prefer specific keywords such as `agent`, `llm`, `rag`, `evals`, `inference`, `benchmark`, and project names. The script records `matched_keywords` and `matched_keyword_locations` so the agent can explain whether a match came from the title or summary.
 
 For stricter AI digests, prefer `--preset ai-strict`. Use `--require-any-title-keyword` to suppress summary-only matches, `--exclude-keywords` to remove obvious noise, and `--keyword-mode all` when every requested keyword must match.
+
+Use `curate-sources` to produce source maintenance recommendations. It returns reviewable actions and registry patch hints, but it must not be treated as permission to delete or disable feeds automatically.
 
 ## References
 

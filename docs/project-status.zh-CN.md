@@ -38,6 +38,7 @@
 - `digest`：抓取、筛选、评分、去重并输出阅读摘要。
 - `check-new`：检查新增匹配条目，适合监控类工作流。
 - `evaluate-sources`：根据 registry 和 health 数据评估源质量。
+- `curate-sources`：生成可审阅源治理动作和 registry patch 建议，不直接修改源文件。
 
 ### 筛选能力
 
@@ -93,6 +94,8 @@
   - `last_error`
 - 缺少 health 的源会被视为 `unknown/watch`，不会被误判为低质量。
 - 失败源会暴露错误信息，不再被隐藏成“没有匹配条目”。
+- 可通过 `curate-sources` 生成 `keep`、`watch`、`lower-priority`、`disable`、`remove` 等源维护建议。
+- `curate-sources` 只输出建议，不会自动禁用或删除源。
 
 ### 性能与可靠性
 
@@ -165,13 +168,13 @@
 
 ### 自动源清理
 
-`evaluate-sources` 能给出建议，但不会自动修改 registry 或 OPML。
+`evaluate-sources` 和 `curate-sources` 能给出建议，但不会自动修改 registry 或 OPML。
 
 尚未实现：
 
 - 自动禁用失败源。
 - 自动删除低质量源。
-- 生成 registry patch。
+- 自动应用 registry patch。
 - 生成 OPML patch。
 - 基于多次 health 观察的 cleanup command。
 

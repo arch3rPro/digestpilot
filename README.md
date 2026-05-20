@@ -81,6 +81,15 @@ python3 skills/rss-ai-digest/scripts/rss_monitor.py evaluate-sources \
   --health source-health.json
 ```
 
+Generate reviewable source curation actions without modifying the registry:
+
+```bash
+python3 skills/rss-ai-digest/scripts/rss_monitor.py curate-sources \
+  --registry feeds.json \
+  --health source-health.json \
+  --format markdown
+```
+
 ## Curated Base OPML
 
 The starter source list is stored at:
@@ -106,6 +115,7 @@ skills/rss-ai-digest/references/source-metadata.json
 ```
 
 Pass this file with `import-opml --metadata` to enrich matching feed ids with `base_score`, `language`, and `tags`.
+The seed metadata currently covers selected AI, engineering, security, and commentary sources.
 
 ## Output Formats
 

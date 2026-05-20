@@ -4,15 +4,45 @@
     "language": "en",
     "tags": ["engineering", "systems"]
   },
+  "beej-us": {
+    "base_score": 6,
+    "language": "en",
+    "tags": ["engineering", "programming"]
+  },
+  "blog-jim-nielsen-com": {
+    "base_score": 4,
+    "language": "en",
+    "tags": ["design", "commentary", "noisy"]
+  },
+  "buttondown-com-hillelwayne": {
+    "base_score": 8,
+    "language": "en",
+    "tags": ["engineering", "software-design", "must-read"]
+  },
   "daringfireball-net": {
     "base_score": 5,
     "language": "en",
     "tags": ["apple", "commentary"]
   },
+  "devblogs-microsoft-com-oldnewthing": {
+    "base_score": 7,
+    "language": "en",
+    "tags": ["engineering", "windows", "systems"]
+  },
   "dwarkesh-com": {
     "base_score": 8,
     "language": "en",
     "tags": ["ai", "research", "interviews"]
+  },
+  "eli-thegreenplace-net": {
+    "base_score": 8,
+    "language": "en",
+    "tags": ["engineering", "programming", "systems"]
+  },
+  "fabiensanglard-net": {
+    "base_score": 7,
+    "language": "en",
+    "tags": ["engineering", "systems", "graphics"]
   },
   "garymarcus-substack-com": {
     "base_score": 7,
@@ -39,15 +69,60 @@
     "language": "en",
     "tags": ["security", "risk"]
   },
+  "lcamtuf-substack-com": {
+    "base_score": 7,
+    "language": "en",
+    "tags": ["security", "engineering", "risk"]
+  },
+  "lucumr-pocoo-org": {
+    "base_score": 8,
+    "language": "en",
+    "tags": ["engineering", "python", "must-read"]
+  },
+  "matklad-github-io": {
+    "base_score": 8,
+    "language": "en",
+    "tags": ["engineering", "systems", "programming"]
+  },
   "minimaxir-com": {
     "base_score": 8,
     "language": "en",
     "tags": ["ai", "data", "experiments"]
   },
+  "mitchellh-com": {
+    "base_score": 8,
+    "language": "en",
+    "tags": ["engineering", "infrastructure", "systems"]
+  },
+  "overreacted-io": {
+    "base_score": 6,
+    "language": "en",
+    "tags": ["engineering", "frontend", "react"]
+  },
+  "paulgraham-com": {
+    "base_score": 6,
+    "language": "en",
+    "tags": ["startup", "essays", "longform"]
+  },
+  "rachelbythebay-com": {
+    "base_score": 8,
+    "language": "en",
+    "tags": ["engineering", "operations", "must-read"]
+  },
+  "seangoedecke-com": {
+    "base_score": 7,
+    "language": "en",
+    "tags": ["engineering", "software-design"]
+  },
   "simonwillison-net": {
     "base_score": 9,
     "language": "en",
     "tags": ["must-read", "llm", "engineering"]
+  },
+  "troyhunt-com": {
+    "base_score": 7,
+    "language": "en",
+    "tags": ["security", "risk"]
   },
   "wheresyoured-at": {
     "base_score": 5,

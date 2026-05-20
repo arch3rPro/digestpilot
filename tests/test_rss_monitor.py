@@ -343,6 +343,49 @@ class RssMonitorTests(unittest.TestCase):
         self.assertEqual(result["recommendation"], "keep")
         self.assertIn("High quality", result["recommendation_reason"])
 
+    def test_curate_sources_suggests_disable_without_mutating_registry(self):
+        registry = {
+            "feeds": [
+                {"id": "bad", "title": "Bad", "url": "https://example.com/bad", "base_score": 4, "enabled": True},
+                {"id": "strong", "title": "Strong", "url": "https://example.com/strong", "base_score": 9, "enabled": True},
+            ]
+        }
+        original_registry = json.loads(json.dumps(registry))
+        health = {
+            "bad": {"failure_count": 4, "success_count": 0, "last_error": "network denied"},
+            "strong": {"failure_count": 0, "success_count": 3, "quality_avg": 8.5},
+        }
+
+        result = self.mod.curate_sources(registry, health)
+
+        by_id = {item["id"]: item for item in result["actions"]}
+        self.assertEqual(by_id["bad"]["action"], "disable")
+        self.assertEqual(by_id["bad"]["registry_patch"], {"id": "bad", "set": {"enabled": False}})
+        self.assertEqual(by_id["strong"]["action"], "keep")
+        self.assertEqual(registry, original_registry)
+        self.assertEqual(result["summary"]["disable"], 1)
+
+    def test_render_markdown_source_curation_includes_reviewable_actions(self):
+        curation = {
+            "actions": [
+                {
+                    "id": "bad",
+                    "title": "Bad",
+                    "action": "disable",
+                    "reason": "Repeated failures without successful fetches.",
+                    "registry_patch": {"id": "bad", "set": {"enabled": False}},
+                }
+            ],
+            "summary": {"disable": 1},
+        }
+
+        markdown = self.mod.render_markdown_source_curation(curation)
+
+        self.assertIn("## RSS Source Curation", markdown)
+        self.assertIn("disable", markdown)
+        self.assertIn("bad", markdown)
+        self.assertIn("enabled", markdown)
+
     def test_render_markdown_digest_orders_by_score(self):
         low = {"title": "Low", "link": "https://example.com/low", "feed_title": "Feed", "score": 5, "score_reasons": []}
         high = {"title": "High", "link": "https://example.com/high", "feed_title": "Feed", "score": 9, "score_reasons": ["ai_or_engineering_relevance"]}
