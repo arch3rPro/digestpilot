@@ -14,10 +14,12 @@ Keep the repository platform-neutral. Do not make core behavior depend on Codex,
 - `tests/test_rss_monitor.py`: regression tests for the RSS monitor script.
 - `README.md`: human-facing project overview and quick start.
 - `README.zh-CN.md`: Chinese project overview.
+- `VERSION`: current release version.
 - `examples/README.md`: agent-level Skill invocation examples.
 - `CONTRIBUTING.md`: contribution and verification workflow.
 - `CHANGELOG.md`: project change log.
 - `docs/release-checklist.md`: release preparation checklist.
+- `docs/releases/`: release notes.
 - `docs/superpowers/`: design and implementation planning artifacts.
 
 ## Development Commands

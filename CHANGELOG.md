@@ -1,6 +1,22 @@
 # Change Log
 
-All notable project changes are recorded here. This repository follows a practical change log format rather than a formal release-versioning scheme until packaged releases begin.
+All notable project changes are recorded here.
+
+## v0.1.0 - 2026-05-21
+
+### Added
+
+- Published the first stable checkpoint for `rss-agent-skills` before future multi-Skill splits.
+- Stabilized the initial `rss-ai-digest` package contract under `skills/rss-ai-digest/`.
+- Added release notes at `docs/releases/v0.1.0.md`.
+- Added `VERSION` with `0.1.0`.
+
+### Included
+
+- OPML import, RSS 2.0 parsing, Atom parsing, filtering, scoring, dedupe, and source quality evaluation.
+- Curated AI, engineering, security, product, and general technical starter OPML.
+- Source health tracking, failed-feed reporting, source curation, and safe source patch application.
+- English and Chinese README files, examples, contribution guidance, release checklist, and MIT license.
 
 ## 2026-05-21
 

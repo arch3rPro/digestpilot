@@ -14,7 +14,7 @@ This repository starts with `rss-ai-digest`, a Skill for AI and technical conten
 | --- | --- |
 | Current package | `rss-ai-digest` |
 | Runtime contract | Standard Skill layout plus a deterministic Python CLI |
-| Release stage | Pre-release; publish a stable release before splitting into multiple Skills |
+| Release stage | `v0.1.0` stable checkpoint |
 | Dependency model | Python standard library for the current implementation |
 | Platform support | Agent-runtime neutral; wrappers can be added without changing the Skill core |
 
@@ -192,6 +192,7 @@ Primary Skill docs:
 Project and maintenance docs:
 
 - [Project status](./docs/project-status.zh-CN.md)
+- [v0.1.0 release notes](./docs/releases/v0.1.0.md)
 - [Agent instructions](./AGENTS.md)
 - [Claude Code instructions](./CLAUDE.md)
 - [Contributing](./CONTRIBUTING.md)

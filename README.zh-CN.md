@@ -14,7 +14,7 @@
 | --- | --- |
 | 当前 Skill | `rss-ai-digest` |
 | 运行契约 | 标准 Skill 结构 + 确定性 Python CLI |
-| 发布阶段 | Pre-release；拆分多 Skills 前先发布稳定 release |
+| 发布阶段 | `v0.1.0` 稳定检查点 |
 | 依赖模型 | 当前实现仅使用 Python 标准库 |
 | 平台支持 | 运行时中立，可被不同 Agent 或调度器包装 |
 
@@ -144,6 +144,7 @@ python3 skills/rss-ai-digest/scripts/rss_monitor.py digest \
 项目维护文档：
 
 - [项目状态](./docs/project-status.zh-CN.md)
+- [v0.1.0 release notes](./docs/releases/v0.1.0.md)
 - [Agent 指令](./AGENTS.md)
 - [Claude Code 指令](./CLAUDE.md)
 - [贡献说明](./CONTRIBUTING.md)
