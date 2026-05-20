@@ -8,7 +8,7 @@ This document turns the subscription daily digest test retrospective into an opt
 
 Source input:
 
-- `docs/superpowers/specs/2026-05-20-rss-ai-digest-test-retro.md`
+- Local daily digest test retrospective, summarized in this document.
 
 ## Current Behavior Summary
 
