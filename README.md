@@ -6,15 +6,16 @@
 
 Portable RSS-related Skills for agent ecosystems.
 
-This repository starts with `rss-ai-digest`, a Skill for AI and technical content discovery. It is designed for agents that need to import subscriptions, monitor new articles, rank high-signal items, maintain seen-state, and review RSS source quality without depending on one runtime.
+This repository is an RSS Skills suite for agent ecosystems. It is designed for agents that need to import subscriptions, monitor new articles, rank high-signal items, maintain seen-state, and review RSS source quality without depending on one runtime.
 
 ## Status
 
 | Area | Status |
 | --- | --- |
-| Current package | `rss-ai-digest` |
+| Stable release | `v0.1.0` includes `rss-ai-digest` |
+| Current workspace | `rss-ai-digest`, `rss-source-curator` |
 | Runtime contract | Standard Skill layout plus a deterministic Python CLI |
-| Release stage | `v0.1.0` stable checkpoint |
+| Release stage | Phase 2 changes are unreleased |
 | Dependency model | Python standard library for the current implementation |
 | Platform support | Agent-runtime neutral; wrappers can be added without changing the Skill core |
 
@@ -26,12 +27,22 @@ Use `rss-ai-digest` when an agent needs to:
 - Import an OPML file into a structured feed registry.
 - Monitor new entries by keyword, author, date, category, or language.
 - Track seen entries so repeated runs do not report the same item.
+
+Use `rss-source-curator` when an agent needs to:
+
 - Evaluate feed health and source quality over time.
 - Generate reviewable source cleanup actions before changing a registry.
 
 Do not treat this repository as a full RSS reader, notification service, scheduler, or plugin-marketplace package yet. Those layers can wrap the same Skill later.
 
-## Current Skill
+## Current Skills
+
+| Skill | Purpose |
+| --- | --- |
+| `rss-ai-digest` | Discover, filter, score, dedupe, and render high-signal AI/technical reading digests. |
+| `rss-source-curator` | Evaluate RSS source quality, review feed health, generate curation actions, and apply reviewed registry patches. |
+
+## Skill Package Layout
 
 ```text
 skills/rss-ai-digest/
@@ -44,15 +55,23 @@ skills/rss-ai-digest/
 │   ├── scoring.md
 │   └── source-metadata.json
 └── scripts/rss_monitor.py
+
+skills/rss-source-curator/
+├── SKILL.md
+├── agents/openai.yaml
+└── references/
+    ├── registry-maintenance.md
+    └── source-governance.md
 ```
 
-`SKILL.md` is the agent entrypoint. The Python script is the deterministic implementation behind the Skill, not the product surface.
+Each `SKILL.md` is an agent entrypoint. The Python script remains the deterministic shared implementation behind the Skills, not the product surface.
 
 ## Repository Layout
 
 ```text
 .
 ├── skills/rss-ai-digest/        # Portable Skill package
+├── skills/rss-source-curator/   # Source governance Skill package
 ├── examples/                    # Agent and Skill invocation examples
 ├── docs/                        # Project status and design history
 ├── tests/                       # Regression tests for deterministic behavior
@@ -64,9 +83,11 @@ skills/rss-ai-digest/
 
 ## Installation Model
 
-This repository is meant to be consumed as a Skill package:
+This repository is meant to be consumed as one or more Skill packages:
 
-- Agent runtimes should load or copy `skills/rss-ai-digest/` as the Skill directory.
+- Agent runtimes should load or copy the needed directories under `skills/`.
+- Use `skills/rss-ai-digest/` for content discovery and digest generation.
+- Use `skills/rss-source-curator/` for source governance and registry maintenance.
 - Humans and maintainers should treat [`README.md`](./README.md), [`AGENTS.md`](./AGENTS.md), and [`CHANGELOG.md`](./CHANGELOG.md) as project-level documents.
 - Runtime-specific wrappers should live outside the Skill core unless the project explicitly starts a packaging phase.
 
@@ -100,7 +121,7 @@ Digest JSON includes:
 
 ## Agent Workflow
 
-1. Read [`skills/rss-ai-digest/SKILL.md`](./skills/rss-ai-digest/SKILL.md) to choose the right workflow.
+1. Choose the relevant Skill entrypoint: [`rss-ai-digest`](./skills/rss-ai-digest/SKILL.md) for content discovery and digests, or [`rss-source-curator`](./skills/rss-source-curator/SKILL.md) for source governance.
 2. Use [`skills/rss-ai-digest/references/base-feeds.opml`](./skills/rss-ai-digest/references/base-feeds.opml) when a starter source list is needed.
 3. Keep runtime files such as `feeds.json`, `seen.json`, and `source-health.json` outside Git.
 4. Prefer Markdown output for user-facing digests and JSON output for agent pipelines.
@@ -170,7 +191,7 @@ More prompt-level examples are in [examples/README.md](./examples/README.md).
 - Put repeatable behavior in `scripts/`.
 - Put schemas, scoring rules, source lists, and automation recipes in `references/`.
 - Keep runtime wrappers separate from the Skill core.
-- Before splitting stable `rss-ai-digest` behavior into multiple Skills, publish a release version first.
+- Keep additional RSS Skills aligned with the published suite contract.
 
 ## Data And Privacy
 
@@ -183,11 +204,14 @@ More prompt-level examples are in [examples/README.md](./examples/README.md).
 
 Primary Skill docs:
 
-- [Skill entrypoint](./skills/rss-ai-digest/SKILL.md)
-- [Feed registry and state schema](./skills/rss-ai-digest/references/feed-registry.md)
-- [Scoring rules](./skills/rss-ai-digest/references/scoring.md)
-- [Automation recipes](./skills/rss-ai-digest/references/automation.md)
-- [Source metadata seed](./skills/rss-ai-digest/references/source-metadata.json)
+- [`rss-ai-digest` entrypoint](./skills/rss-ai-digest/SKILL.md)
+- [`rss-source-curator` entrypoint](./skills/rss-source-curator/SKILL.md)
+- [`rss-ai-digest` feed registry and state schema](./skills/rss-ai-digest/references/feed-registry.md)
+- [`rss-ai-digest` scoring rules](./skills/rss-ai-digest/references/scoring.md)
+- [`rss-ai-digest` automation recipes](./skills/rss-ai-digest/references/automation.md)
+- [`rss-source-curator` source governance](./skills/rss-source-curator/references/source-governance.md)
+- [`rss-source-curator` registry maintenance](./skills/rss-source-curator/references/registry-maintenance.md)
+- [`rss-ai-digest` source metadata seed](./skills/rss-ai-digest/references/source-metadata.json)
 
 Project and maintenance docs:
 
@@ -214,6 +238,7 @@ Validate the Skill package if the local validator dependencies are available:
 
 ```bash
 python3 /path/to/skill-creator/scripts/quick_validate.py skills/rss-ai-digest
+python3 /path/to/skill-creator/scripts/quick_validate.py skills/rss-source-curator
 ```
 
 Check basic whitespace issues:
@@ -228,9 +253,8 @@ The runtime script uses the Python standard library for the MVP. No project depe
 
 Likely future Skills or plugin modules:
 
-- `rss-source-curator`: source cleanup, ranking, and OPML maintenance.
 - `rss-alert-monitor`: keyword, author, project, and topic monitoring.
 - `rss-digest-publisher`: publishing to email, Feishu, Slack, Obsidian, or webhooks.
 - `rss-feed-discovery`: discovering RSS feeds from sites, GitHub lists, and curated directories.
 
-These should remain separate wrappers or Skills around shared RSS primitives rather than runtime-specific forks of the same workflow. Publish a stable release before starting the split.
+These should remain separate wrappers or Skills around shared RSS primitives rather than runtime-specific forks of the same workflow.

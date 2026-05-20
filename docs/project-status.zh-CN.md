@@ -4,15 +4,22 @@
 
 ## 当前定位
 
-`rss-agent-skills` 是一个面向通用 agent 生态的 RSS Skills 仓库。当前已落地的正式 Skill 是 `rss-ai-digest`，用于 AI 与技术内容发现、订阅源聚合、条目筛选、评分、去重和源质量评估。
+`rss-agent-skills` 是一个面向通用 agent 生态的 RSS Skills 仓库。当前已落地的正式 Skills 是 `rss-ai-digest` 和 `rss-source-curator`。`rss-ai-digest` 用于 AI 与技术内容发现、订阅源聚合、条目筛选、评分和去重；`rss-source-curator` 用于源质量治理和 registry 维护。
 
 项目当前不是完整 RSS 阅读器，也不是独立 SaaS 产品。它更接近一个可被 Codex、Claude、OpenClaw、n8n、GitHub Actions、cron 或其他 agent/runtime 包装调用的可移植 RSS 工作流组件。
 
 ## 已实现功能
 
+### RSS Skills Suite
+
+- 已发布 `v0.1.0` 作为拆分前稳定检查点。
+- Phase 2 开始引入第二个正式 Skill：`rss-source-curator`。
+- `rss-ai-digest` 继续负责内容发现和日报。
+- `rss-source-curator` 负责源质量治理和 registry 维护。
+
 ### 项目与 Skill 基础
 
-- 已建立标准 Skill 结构：`skills/rss-ai-digest/SKILL.md`。
+- 已建立标准 Skill 结构：`skills/rss-ai-digest/SKILL.md` 和 `skills/rss-source-curator/SKILL.md`。
 - 已提供平台中立的 CLI 实现：`skills/rss-ai-digest/scripts/rss_monitor.py`。
 - 已提供 README、CHANGELOG、AGENTS.md、CLAUDE.md 和设计/验证文档。
 - 已保持核心行为与具体运行时解耦，不依赖 Codex、Claude 或特定插件市场。
@@ -134,16 +141,15 @@
 
 ## 尚未实现功能
 
-### 多 Skill 拆分
+### 后续多 Skill 扩展
 
-当前仍只有 `rss-ai-digest` 一个正式 Skill。以下 Roadmap Skill 尚未实现：
+当前已进入 RSS Skills Suite Phase 2，正式 Skills 包括 `rss-ai-digest` 和 `rss-source-curator`。以下 Roadmap Skill 尚未实现：
 
-- `rss-source-curator`：源清理、源排序、OPML 维护。
 - `rss-alert-monitor`：关键词、作者、项目、主题监控。
 - `rss-digest-publisher`：发布到邮件、飞书、Slack、Obsidian 或 webhook。
 - `rss-feed-discovery`：从网站、GitHub 列表和目录发现 RSS 源。
 
-拆分前约束：在将稳定的 `rss-ai-digest` 拆成多个独立 Skills 前，先发布一个 release 版本，作为下游 agent 和用户可固定依赖的稳定检查点。
+拆分前稳定检查点已通过 `v0.1.0` 发布完成。后续新增 Skill 应继续复用共享 RSS primitives，并保持平台中立。
 
 ### 通知渠道集成
 
@@ -264,8 +270,8 @@
 
 优先级最高的两个方向：
 
-1. 准备首个 release：梳理变更、确定版本号、打 tag、发布 release notes。
+1. 完善 `rss-source-curator`：专门处理源评估、失败源治理、OPML/registry 清理和源质量维护。
 2. 继续增强内容质量筛选：扩展噪声源 metadata、must/should/exclude 关键词组和更多 digest preset。
-3. 拆出 `rss-source-curator`：专门处理源评估、失败源治理、OPML/registry 清理和源质量维护。
+3. 规划后续独立 Skills，例如 `rss-alert-monitor`、`rss-digest-publisher` 和 `rss-feed-discovery`。
 
-如果目标是扩展成 RSS Skills 套件，必须先发布当前稳定版本，再拆出 `rss-source-curator`。
+如果目标是继续扩展 RSS Skills 套件，应优先保持共享数据结构、CLI 契约和文档入口一致。

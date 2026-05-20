@@ -1,6 +1,6 @@
 # Examples
 
-These examples show how an agent should invoke `rss-ai-digest` as a Skill. They are written as reusable prompts and workflow recipes rather than as a long command manual.
+These examples show how an agent should invoke the RSS Skills suite. They are written as reusable prompts and workflow recipes rather than as a long command manual.
 
 ## Daily AI Digest
 
@@ -60,6 +60,7 @@ Do not modify the registry yet.
 
 Agent behavior:
 
+- Use `skills/rss-source-curator/SKILL.md` as the workflow entrypoint.
 - Use `evaluate-sources` when the user needs source scoring.
 - Use `curate-sources` when the user needs reviewable maintenance actions.
 - Do not apply registry patches until the user reviews the recommendations.
@@ -75,6 +76,7 @@ Keep the original registry unchanged.
 
 Agent behavior:
 
+- Use `skills/rss-source-curator/SKILL.md` as the workflow entrypoint.
 - Use `apply-source-patch`.
 - Require an explicit output file.
 - Prefer dry-run first unless the user already confirmed the patch.

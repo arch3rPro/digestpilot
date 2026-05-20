@@ -14,7 +14,8 @@ Use this skill to turn RSS/Atom feeds and OPML files into high-signal AI and tec
 - For a daily or weekly reading report, run `scripts/rss_monitor.py digest`.
 - For keyword, author, project, or topic monitoring, run `scripts/rss_monitor.py check-new`.
 - For OPML import, run `scripts/rss_monitor.py import-opml`, then evaluate the resulting registry.
-- For source cleanup or feed quality review, run `scripts/rss_monitor.py evaluate-sources`.
+- For source cleanup or feed quality review, prefer `rss-source-curator`.
+- For backwards compatibility, source-governance commands remain available through `scripts/rss_monitor.py`.
 - For reviewable source governance actions, run `scripts/rss_monitor.py curate-sources`.
 - For safely applying reviewed source governance patches, run `scripts/rss_monitor.py apply-source-patch`.
 - For scheduled checks, read `references/automation.md` and provide a platform-neutral recipe.

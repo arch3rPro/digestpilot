@@ -6,15 +6,16 @@
 
 面向通用 Agent 生态的 RSS 相关 Skills 仓库。
 
-当前仓库从 `rss-ai-digest` 开始，聚焦 AI 与技术内容发现。它帮助 Agent 导入订阅源、监控新文章、筛选高信号内容、维护已读状态，并评估 RSS 源质量，同时保持与具体运行时解耦。
+当前仓库是面向 Agent 生态的 RSS Skills 套件。它帮助 Agent 导入订阅源、监控新文章、筛选高信号内容、维护已读状态，并评估 RSS 源质量，同时保持与具体运行时解耦。
 
 ## 当前状态
 
 | 项目 | 状态 |
 | --- | --- |
-| 当前 Skill | `rss-ai-digest` |
+| 稳定发布 | `v0.1.0` 包含 `rss-ai-digest` |
+| 当前工作区 | `rss-ai-digest`、`rss-source-curator` |
 | 运行契约 | 标准 Skill 结构 + 确定性 Python CLI |
-| 发布阶段 | `v0.1.0` 稳定检查点 |
+| 发布阶段 | Phase 2 变更尚未发布 |
 | 依赖模型 | 当前实现仅使用 Python 标准库 |
 | 平台支持 | 运行时中立，可被不同 Agent 或调度器包装 |
 
@@ -26,12 +27,22 @@
 - 将 OPML 文件导入结构化 feed registry。
 - 按关键词、作者、日期、分类或语言监控新条目。
 - 追踪 seen-state，避免重复报告同一篇文章。
+
+当 Agent 需要以下能力时使用 `rss-source-curator`：
+
 - 长期评估源健康和源质量。
 - 在修改 registry 前生成可审阅的源治理建议。
 
 它目前不是完整 RSS 阅读器、通知中心、后台调度服务或插件市场成品。这些能力后续可以作为 wrapper 或独立 Skill 扩展。
 
-## 当前 Skill
+## 当前 Skills
+
+| Skill | 用途 |
+| --- | --- |
+| `rss-ai-digest` | 发现、筛选、评分、去重并生成高信号 AI/技术阅读摘要。 |
+| `rss-source-curator` | 评估 RSS 源质量、审查源健康、生成源治理动作，并应用已审阅 registry patch。 |
+
+## Skill 包结构
 
 ```text
 skills/rss-ai-digest/
@@ -44,15 +55,23 @@ skills/rss-ai-digest/
 │   ├── scoring.md
 │   └── source-metadata.json
 └── scripts/rss_monitor.py
+
+skills/rss-source-curator/
+├── SKILL.md
+├── agents/openai.yaml
+└── references/
+    ├── registry-maintenance.md
+    └── source-governance.md
 ```
 
-`SKILL.md` 是 Agent 入口。Python 脚本是 Skill 背后的确定性实现，不是项目的主要产品界面。
+每个 `SKILL.md` 都是 Agent 入口。Python 脚本是多个 Skills 背后的共享确定性实现，不是项目的主要产品界面。
 
 ## 仓库结构
 
 ```text
 .
 ├── skills/rss-ai-digest/        # 可移植 Skill 包
+├── skills/rss-source-curator/   # 源治理 Skill 包
 ├── examples/                    # Agent 和 Skill 调用示例
 ├── docs/                        # 项目状态、设计和验证历史
 ├── tests/                       # 行为回归测试
@@ -61,6 +80,16 @@ skills/rss-ai-digest/
 ├── LICENSE                      # MIT License
 └── README.md                    # 英文 README
 ```
+
+## 安装模型
+
+这个仓库应作为一个或多个 Skill 包被使用：
+
+- Agent runtime 应按需加载或复制 `skills/` 下的目录。
+- 使用 `skills/rss-ai-digest/` 进行内容发现和日报生成。
+- 使用 `skills/rss-source-curator/` 进行源治理和 registry 维护。
+- 人类维护者应把 [`README.zh-CN.md`](./README.zh-CN.md)、[`AGENTS.md`](./AGENTS.md) 和 [`CHANGELOG.md`](./CHANGELOG.md) 作为项目级文档。
+- 除非项目明确进入插件打包阶段，否则运行时专用 wrapper 应保持在 Skill core 之外。
 
 ## 能力概览
 
@@ -80,7 +109,7 @@ skills/rss-ai-digest/
 
 ## Agent 工作流
 
-1. 读取 [`skills/rss-ai-digest/SKILL.md`](./skills/rss-ai-digest/SKILL.md) 判断应该使用哪个工作流。
+1. 按任务选择 Skill 入口：内容发现和日报使用 [`rss-ai-digest`](./skills/rss-ai-digest/SKILL.md)，源治理使用 [`rss-source-curator`](./skills/rss-source-curator/SKILL.md)。
 2. 需要初始订阅源时，使用 [`skills/rss-ai-digest/references/base-feeds.opml`](./skills/rss-ai-digest/references/base-feeds.opml)。
 3. 将 `feeds.json`、`seen.json`、`source-health.json` 等运行时文件保留在 Git 之外。
 4. 用户可读日报优先输出 Markdown；自动化管道优先输出 JSON。
@@ -135,11 +164,14 @@ python3 skills/rss-ai-digest/scripts/rss_monitor.py digest \
 
 主要 Skill 文档：
 
-- [Skill 入口](./skills/rss-ai-digest/SKILL.md)
-- [Feed registry 与状态结构](./skills/rss-ai-digest/references/feed-registry.md)
-- [评分规则](./skills/rss-ai-digest/references/scoring.md)
-- [自动化参考](./skills/rss-ai-digest/references/automation.md)
-- [源元数据种子](./skills/rss-ai-digest/references/source-metadata.json)
+- [`rss-ai-digest` 入口](./skills/rss-ai-digest/SKILL.md)
+- [`rss-source-curator` 入口](./skills/rss-source-curator/SKILL.md)
+- [`rss-ai-digest` Feed registry 与状态结构](./skills/rss-ai-digest/references/feed-registry.md)
+- [`rss-ai-digest` 评分规则](./skills/rss-ai-digest/references/scoring.md)
+- [`rss-ai-digest` 自动化参考](./skills/rss-ai-digest/references/automation.md)
+- [`rss-source-curator` 源治理](./skills/rss-source-curator/references/source-governance.md)
+- [`rss-source-curator` registry 维护](./skills/rss-source-curator/references/registry-maintenance.md)
+- [`rss-ai-digest` 源元数据种子](./skills/rss-ai-digest/references/source-metadata.json)
 
 项目维护文档：
 
@@ -172,15 +204,15 @@ git diff --check
 
 ```bash
 python3 /path/to/skill-creator/scripts/quick_validate.py skills/rss-ai-digest
+python3 /path/to/skill-creator/scripts/quick_validate.py skills/rss-source-curator
 ```
 
 ## 路线图
 
 后续可能拆分的 Skills 或插件模块：
 
-- `rss-source-curator`：源清理、排序和 OPML 维护。
 - `rss-alert-monitor`：关键词、作者、项目和主题监控。
 - `rss-digest-publisher`：发布到 Email、飞书、Slack、Obsidian 或 webhook。
 - `rss-feed-discovery`：从网站、GitHub 列表和目录发现 RSS 源。
 
-这些模块应围绕共享 RSS primitives 进行扩展，而不是把同一套流程做成某个运行时专用 fork。拆分前应先发布当前稳定版本。
+这些模块应围绕共享 RSS primitives 进行扩展，而不是把同一套流程做成某个运行时专用 fork。

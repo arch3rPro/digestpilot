@@ -2,6 +2,12 @@
 
 All notable project changes are recorded here.
 
+## Unreleased
+
+### Added
+
+- Added `rss-source-curator` as the first separate RSS suite Skill for source governance and registry maintenance.
+
 ## v0.1.0 - 2026-05-21
 
 ### Added

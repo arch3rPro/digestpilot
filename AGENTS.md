@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-`rss-agent-skills` is a portable collection of RSS-related Skills for agent ecosystems. The current package, `rss-ai-digest`, helps agents import OPML, parse RSS/Atom feeds, monitor new AI and technical content, dedupe seen entries, score articles, evaluate source quality, and apply reviewed source curation patches.
+`rss-agent-skills` is a portable collection of RSS-related Skills for agent ecosystems. The current suite includes `rss-ai-digest` for AI/technical content discovery and `rss-source-curator` for source governance and registry maintenance.
 
 Keep the repository platform-neutral. Do not make core behavior depend on Codex, Claude, Cursor, OpenClaw, n8n, GitHub Actions, or any single runtime.
 
@@ -11,6 +11,8 @@ Keep the repository platform-neutral. Do not make core behavior depend on Codex,
 - `skills/rss-ai-digest/SKILL.md`: main Skill entrypoint and workflow routing.
 - `skills/rss-ai-digest/scripts/rss_monitor.py`: deterministic RSS/Atom/OPML CLI implementation.
 - `skills/rss-ai-digest/references/`: feed registry, scoring, automation, and base OPML references.
+- `skills/rss-source-curator/SKILL.md`: source governance Skill entrypoint.
+- `skills/rss-source-curator/references/`: source governance and registry maintenance references.
 - `tests/test_rss_monitor.py`: regression tests for the RSS monitor script.
 - `README.md`: human-facing project overview and quick start.
 - `README.zh-CN.md`: Chinese project overview.
@@ -80,4 +82,4 @@ git diff --check
 - Before pushing, run the relevant tests and `git diff --check`.
 - Do not stage unrelated local files or generated runtime outputs.
 - If publishing repository metadata, keep naming and descriptions broad enough for multiple future RSS Skills.
-- Before splitting stable `rss-ai-digest` behavior into multiple Skills, publish a release version first.
+- Keep additional RSS Skills aligned with the published suite contract and avoid runtime-specific forks.
