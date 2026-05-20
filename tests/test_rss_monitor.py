@@ -206,6 +206,55 @@ class RssMonitorTests(unittest.TestCase):
 
         self.assertEqual([entry["title"] for entry in matched], ["LLM agent production notes"])
 
+    def test_must_keywords_filter_entries_and_should_keywords_score(self):
+        entry = {
+            "title": "LLM reliability benchmark",
+            "summary": "A practical post about inference reliability.",
+            "author": "",
+            "published_at": "2026-05-20T08:00:00+00:00",
+            "feed_id": "test",
+        }
+
+        matched = self.mod.filter_entries(
+            [entry],
+            must_keywords=["llm"],
+            should_keywords=["benchmark", "inference"],
+        )
+
+        self.assertEqual(len(matched), 1)
+        self.assertEqual(matched[0]["matched_must_keywords"], ["llm"])
+        self.assertEqual(matched[0]["matched_should_keywords"], ["benchmark", "inference"])
+
+    def test_missing_must_keywords_filters_entry(self):
+        entry = {
+            "title": "General engineering notes",
+            "summary": "A practical post about systems.",
+            "author": "",
+            "published_at": "2026-05-20T08:00:00+00:00",
+            "feed_id": "test",
+        }
+
+        matched = self.mod.filter_entries([entry], must_keywords=["llm"])
+
+        self.assertEqual(matched, [])
+
+    def test_title_requirement_applies_to_must_keywords(self):
+        entry = {
+            "title": "Weekly notes",
+            "summary": "A detailed LLM benchmark writeup.",
+            "author": "",
+            "published_at": "2026-05-20T08:00:00+00:00",
+            "feed_id": "test",
+        }
+
+        matched = self.mod.filter_entries(
+            [entry],
+            must_keywords=["llm"],
+            require_any_title_keyword=True,
+        )
+
+        self.assertEqual(matched, [])
+
     def test_ai_strict_preset_sets_filter_defaults(self):
         args = Namespace(
             preset="ai-strict",

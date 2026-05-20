@@ -71,7 +71,7 @@ DIGEST_PRESETS = {
     },
     "ai-research": {
         "keywords": [],
-        "must_keywords": ["llm", "model", "reasoning", "evals", "benchmark"],
+        "must_keywords": ["llm", "model", "reasoning", "evals"],
         "should_keywords": ["benchmark", "inference", "agent", "rag", "alignment", "research"],
         "exclude_keywords": ["webinar", "coupon", "sponsor", "sponsored", "hiring", "job", "press release"],
         "require_any_title_keyword": True,
@@ -79,7 +79,7 @@ DIGEST_PRESETS = {
     },
     "engineering-deep-dive": {
         "keywords": [],
-        "must_keywords": ["engineering", "architecture", "systems", "debugging", "infrastructure"],
+        "must_keywords": ["engineering", "systems", "debugging", "infrastructure"],
         "should_keywords": ["architecture", "reliability", "scaling", "production", "performance"],
         "exclude_keywords": ["webinar", "coupon", "sponsor", "sponsored", "hiring", "job", "press release"],
         "require_any_title_keyword": False,
@@ -381,6 +381,8 @@ def is_seen(state: dict[str, Any], entry: dict[str, Any]) -> bool:
 def filter_entries(
     entries: list[dict[str, Any]],
     keywords: list[str] | None = None,
+    must_keywords: list[str] | None = None,
+    should_keywords: list[str] | None = None,
     exclude_keywords: list[str] | None = None,
     keyword_mode: str = "any",
     require_any_title_keyword: bool = False,
@@ -392,6 +394,8 @@ def filter_entries(
 ) -> list[dict[str, Any]]:
     feed_lookup = feed_lookup or {}
     normalized_keywords = [keyword.lower() for keyword in (keywords or [])]
+    normalized_must_keywords = [keyword.lower() for keyword in (must_keywords or [])]
+    normalized_should_keywords = [keyword.lower() for keyword in (should_keywords or [])]
     normalized_exclude_keywords = [keyword.lower() for keyword in (exclude_keywords or [])]
     author_filter = author.lower() if author else ""
     results = []
@@ -404,6 +408,18 @@ def filter_entries(
             for keyword in normalized_keywords
             if (locations := keyword_locations(entry, keyword))
         }
+        matched_must_locations = {
+            keyword: locations
+            for keyword in normalized_must_keywords
+            if (locations := keyword_locations(entry, keyword))
+        }
+        matched_should_locations = {
+            keyword: locations
+            for keyword in normalized_should_keywords
+            if (locations := keyword_locations(entry, keyword))
+        }
+        if normalized_must_keywords and not matched_must_locations:
+            continue
         matched_keywords = list(matched_locations.keys())
         if normalized_keywords and keyword_mode == "all" and len(matched_keywords) != len(normalized_keywords):
             continue
@@ -411,10 +427,15 @@ def filter_entries(
             continue
         if keyword_mode not in {"any", "all"}:
             raise ValueError(f"Unsupported keyword mode: {keyword_mode}")
+        title_requirement_locations = [
+            *matched_locations.values(),
+            *matched_must_locations.values(),
+            *matched_should_locations.values(),
+        ]
         if (
             require_any_title_keyword
-            and normalized_keywords
-            and not any("title" in locations for locations in matched_locations.values())
+            and (normalized_keywords or normalized_must_keywords or normalized_should_keywords)
+            and not any("title" in locations for locations in title_requirement_locations)
         ):
             continue
         if author_filter and author_filter not in entry.get("author", "").lower():
@@ -431,6 +452,10 @@ def filter_entries(
         item = dict(entry)
         item["matched_keywords"] = matched_keywords
         item["matched_keyword_locations"] = matched_locations
+        item["matched_must_keywords"] = list(matched_must_locations.keys())
+        item["matched_must_keyword_locations"] = matched_must_locations
+        item["matched_should_keywords"] = list(matched_should_locations.keys())
+        item["matched_should_keyword_locations"] = matched_should_locations
         results.append(item)
     return results
 
@@ -957,6 +982,8 @@ def command_digest(args: argparse.Namespace) -> int:
     filtered = filter_entries(
         entries,
         keywords=parse_keyword_csv(args.keywords),
+        must_keywords=parse_keyword_csv(getattr(args, "must_keywords", "")),
+        should_keywords=parse_keyword_csv(getattr(args, "should_keywords", "")),
         exclude_keywords=parse_keyword_csv(getattr(args, "exclude_keywords", "")),
         keyword_mode=getattr(args, "keyword_mode", "any"),
         require_any_title_keyword=getattr(args, "require_any_title_keyword", False),
@@ -1070,6 +1097,8 @@ def add_digest_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--since", default="24h")
     parser.add_argument("--preset", choices=["none", *sorted(DIGEST_PRESETS)], default="none")
     parser.add_argument("--keywords", default="")
+    parser.add_argument("--must-keywords", default="")
+    parser.add_argument("--should-keywords", default="")
     parser.add_argument("--exclude-keywords", default="")
     parser.add_argument("--keyword-mode", choices=["any", "all"], default="any")
     parser.add_argument("--require-any-title-keyword", action="store_true")
