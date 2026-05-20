@@ -36,6 +36,12 @@ Filtered entries include:
 
 Title matches receive a small scoring boost. Summary-only matches receive a small penalty so broad feed descriptions do not outrank specific article titles.
 
+Strict filtering options:
+
+- `--require-any-title-keyword`: require at least one included keyword to match the title.
+- `--exclude-keywords`: remove entries matching any noise keyword or phrase in title or summary.
+- `--keyword-mode all`: require every included keyword to match. The default `any` mode keeps the broader discovery behavior.
+
 ## Source Score
 
 Use a 10-point score and one recommendation:

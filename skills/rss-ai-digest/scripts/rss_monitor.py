@@ -316,6 +316,9 @@ def is_seen(state: dict[str, Any], entry: dict[str, Any]) -> bool:
 def filter_entries(
     entries: list[dict[str, Any]],
     keywords: list[str] | None = None,
+    exclude_keywords: list[str] | None = None,
+    keyword_mode: str = "any",
+    require_any_title_keyword: bool = False,
     author: str | None = None,
     since: datetime | None = None,
     category: str | None = None,
@@ -324,17 +327,30 @@ def filter_entries(
 ) -> list[dict[str, Any]]:
     feed_lookup = feed_lookup or {}
     normalized_keywords = [keyword.lower() for keyword in (keywords or [])]
+    normalized_exclude_keywords = [keyword.lower() for keyword in (exclude_keywords or [])]
     author_filter = author.lower() if author else ""
     results = []
     for entry in entries:
         feed = feed_lookup.get(entry.get("feed_id", ""), {})
+        if any(keyword_locations(entry, keyword) for keyword in normalized_exclude_keywords):
+            continue
         matched_locations = {
             keyword: locations
             for keyword in normalized_keywords
             if (locations := keyword_locations(entry, keyword))
         }
         matched_keywords = list(matched_locations.keys())
-        if normalized_keywords and not matched_keywords:
+        if normalized_keywords and keyword_mode == "all" and len(matched_keywords) != len(normalized_keywords):
+            continue
+        if normalized_keywords and keyword_mode == "any" and not matched_keywords:
+            continue
+        if keyword_mode not in {"any", "all"}:
+            raise ValueError(f"Unsupported keyword mode: {keyword_mode}")
+        if (
+            require_any_title_keyword
+            and normalized_keywords
+            and not any("title" in locations for locations in matched_locations.values())
+        ):
             continue
         if author_filter and author_filter not in entry.get("author", "").lower():
             continue
@@ -738,6 +754,9 @@ def command_digest(args: argparse.Namespace) -> int:
     filtered = filter_entries(
         entries,
         keywords=parse_keyword_csv(args.keywords),
+        exclude_keywords=parse_keyword_csv(getattr(args, "exclude_keywords", "")),
+        keyword_mode=getattr(args, "keyword_mode", "any"),
+        require_any_title_keyword=getattr(args, "require_any_title_keyword", False),
         author=args.author,
         since=parse_since(args.since),
         category=args.category,
@@ -808,6 +827,9 @@ def add_digest_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--health")
     parser.add_argument("--since", default="24h")
     parser.add_argument("--keywords", default="")
+    parser.add_argument("--exclude-keywords", default="")
+    parser.add_argument("--keyword-mode", choices=["any", "all"], default="any")
+    parser.add_argument("--require-any-title-keyword", action="store_true")
     parser.add_argument("--author")
     parser.add_argument("--category")
     parser.add_argument("--language")

@@ -138,6 +138,74 @@ class RssMonitorTests(unittest.TestCase):
         self.assertEqual(matched[0]["matched_keywords"], ["llm agents"])
         self.assertEqual(matched[0]["matched_keyword_locations"], {"llm agents": ["summary"]})
 
+    def test_require_any_title_keyword_filters_summary_only_matches(self):
+        title_match = {
+            "title": "LLM agents in production",
+            "summary": "A practical implementation note.",
+            "author": "",
+            "published_at": "2026-05-20T08:00:00+00:00",
+            "feed_id": "test",
+        }
+        summary_only = {
+            "title": "Production notes",
+            "summary": "A practical implementation note about LLM agents.",
+            "author": "",
+            "published_at": "2026-05-20T08:00:00+00:00",
+            "feed_id": "test",
+        }
+
+        matched = self.mod.filter_entries(
+            [title_match, summary_only],
+            keywords=["llm", "agents"],
+            require_any_title_keyword=True,
+        )
+
+        self.assertEqual([entry["title"] for entry in matched], ["LLM agents in production"])
+
+    def test_exclude_keywords_remove_matching_entries(self):
+        useful = {
+            "title": "LLM inference notes",
+            "summary": "A practical benchmark writeup.",
+            "author": "",
+            "published_at": "2026-05-20T08:00:00+00:00",
+            "feed_id": "test",
+        }
+        noisy = {
+            "title": "LLM webinar announcement",
+            "summary": "Join a marketing webinar.",
+            "author": "",
+            "published_at": "2026-05-20T08:00:00+00:00",
+            "feed_id": "test",
+        }
+
+        matched = self.mod.filter_entries(
+            [useful, noisy],
+            keywords=["llm"],
+            exclude_keywords=["webinar"],
+        )
+
+        self.assertEqual([entry["title"] for entry in matched], ["LLM inference notes"])
+
+    def test_keyword_mode_all_requires_every_keyword(self):
+        partial = {
+            "title": "LLM production notes",
+            "summary": "A practical implementation note.",
+            "author": "",
+            "published_at": "2026-05-20T08:00:00+00:00",
+            "feed_id": "test",
+        }
+        complete = {
+            "title": "LLM agent production notes",
+            "summary": "A practical implementation note.",
+            "author": "",
+            "published_at": "2026-05-20T08:00:00+00:00",
+            "feed_id": "test",
+        }
+
+        matched = self.mod.filter_entries([partial, complete], keywords=["llm", "agent"], keyword_mode="all")
+
+        self.assertEqual([entry["title"] for entry in matched], ["LLM agent production notes"])
+
     def test_title_keyword_match_scores_higher_than_summary_only_match(self):
         title_match = {
             "title": "LLM agents in production",

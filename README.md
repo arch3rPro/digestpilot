@@ -52,6 +52,8 @@ python3 skills/rss-ai-digest/scripts/rss_monitor.py digest \
   --health source-health.json \
   --since 24h \
   --keywords "agent,llm,rag,evals" \
+  --require-any-title-keyword \
+  --exclude-keywords "webinar,coupon,sponsor" \
   --min-score 7 \
   --mark-seen reported-only \
   --timeout 20 \
@@ -126,6 +128,8 @@ Digest JSON output is an envelope with `entries`, `failures`, `health`, `stats`,
 Local runtime artifacts such as `feeds.json`, `seen.json`, `source-health.json`, `digest.md`, and `latest.json` are ignored by Git by default.
 
 Fetch-based commands support `--timeout` and `--max-workers` so scheduled runs can balance speed and source politeness. Output ordering remains deterministic after concurrent fetches.
+
+Use `--require-any-title-keyword`, `--exclude-keywords`, and `--keyword-mode all` when a stricter digest should avoid weak summary-only matches or obvious noise.
 
 ## Skill Design Principles
 

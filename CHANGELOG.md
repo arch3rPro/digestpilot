@@ -6,6 +6,10 @@ All notable project changes are recorded here. This repository follows a practic
 
 ### Added
 
+- Added stricter content-quality filters for `digest` and `check-new`:
+  - `--require-any-title-keyword` filters out summary-only keyword matches.
+  - `--exclude-keywords` removes entries matching noise keywords or phrases.
+  - `--keyword-mode all` requires every included keyword to match.
 - Completed the remaining RSS AI Digest optimization phases:
   - Fetch-based commands now support `--timeout` and `--max-workers` with deterministic output ordering after concurrent fetches.
   - Keyword filtering is token-aware for single words and phrase-aware for multi-word terms.

@@ -37,6 +37,8 @@ python3 skills/rss-ai-digest/scripts/rss_monitor.py digest \
   --health source-health.json \
   --since 24h \
   --keywords "agent,llm,rag" \
+  --require-any-title-keyword \
+  --exclude-keywords "webinar,coupon,sponsor" \
   --min-score 7 \
   --mark-seen reported-only \
   --timeout 20 \
@@ -77,6 +79,8 @@ Use `--mark-seen reported-only` for normal digests so only surfaced entries are 
 Use `--timeout` and `--max-workers` on fetch-based commands to control slow sources and concurrent fetches. Results are sorted after fetching, so concurrent runs remain stable enough for diffs and automation.
 
 Keyword matching is token-aware for single words and phrase-aware for multi-word keywords. Prefer specific keywords such as `agent`, `llm`, `rag`, `evals`, `inference`, `benchmark`, and project names. The script records `matched_keywords` and `matched_keyword_locations` so the agent can explain whether a match came from the title or summary.
+
+For stricter AI digests, use `--require-any-title-keyword` to suppress summary-only matches, `--exclude-keywords` to remove obvious noise, and `--keyword-mode all` when every requested keyword must match.
 
 ## References
 
