@@ -15,6 +15,10 @@ All notable project changes are recorded here. This repository follows a practic
 - Documented the release-before-splitting gate for future multi-Skill packaging.
 - Reworked README around Agent and Skill usage, with CLI commands reduced to a concise implementation contract and documentation links grouped by purpose.
 - Added README sections for project status, installation model, output contract, and data/privacy expectations.
+- Added `README.zh-CN.md` for Chinese readers.
+- Added `examples/README.md` with common Agent and Skill invocation scenarios.
+- Added `CONTRIBUTING.md` and `LICENSE` for a more complete open-source project surface.
+- Added a release checklist for the first stable checkpoint and future multi-Skill split.
 
 ## 2026-05-20
 

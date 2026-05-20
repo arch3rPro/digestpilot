@@ -13,7 +13,11 @@ Keep the repository platform-neutral. Do not make core behavior depend on Codex,
 - `skills/rss-ai-digest/references/`: feed registry, scoring, automation, and base OPML references.
 - `tests/test_rss_monitor.py`: regression tests for the RSS monitor script.
 - `README.md`: human-facing project overview and quick start.
+- `README.zh-CN.md`: Chinese project overview.
+- `examples/README.md`: agent-level Skill invocation examples.
+- `CONTRIBUTING.md`: contribution and verification workflow.
 - `CHANGELOG.md`: project change log.
+- `docs/release-checklist.md`: release preparation checklist.
 - `docs/superpowers/`: design and implementation planning artifacts.
 
 ## Development Commands
@@ -51,6 +55,7 @@ git diff --check
 - Keep GitHub-facing docs free of local absolute paths.
 - Use relative links in README and reference files.
 - Update `CHANGELOG.md` for visible project changes.
+- Keep `README.md` and `README.zh-CN.md` structurally aligned when changing public project positioning.
 - Keep `README.md` focused on humans; keep agent operational details in this file.
 - Keep `SKILL.md` concise. Move long schemas, scoring logic, examples, and automation details to `references/`.
 

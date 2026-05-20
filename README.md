@@ -1,5 +1,9 @@
 # RSS Agent Skills
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+
+[中文说明](./README.zh-CN.md) | [Examples](./examples/README.md) | [Changelog](./CHANGELOG.md)
+
 Portable RSS-related Skills for agent ecosystems.
 
 This repository starts with `rss-ai-digest`, a Skill for AI and technical content discovery. It is designed for agents that need to import subscriptions, monitor new articles, rank high-signal items, maintain seen-state, and review RSS source quality without depending on one runtime.
@@ -43,6 +47,20 @@ skills/rss-ai-digest/
 ```
 
 `SKILL.md` is the agent entrypoint. The Python script is the deterministic implementation behind the Skill, not the product surface.
+
+## Repository Layout
+
+```text
+.
+├── skills/rss-ai-digest/        # Portable Skill package
+├── examples/                    # Agent and Skill invocation examples
+├── docs/                        # Project status and design history
+├── tests/                       # Regression tests for deterministic behavior
+├── AGENTS.md                    # Shared coding-agent instructions
+├── CONTRIBUTING.md              # Contribution workflow
+├── LICENSE                      # MIT license
+└── README.zh-CN.md              # Chinese README
+```
 
 ## Installation Model
 
@@ -90,11 +108,7 @@ Digest JSON includes:
 
 ## CLI Contract
 
-Agents and wrappers can call the implementation through:
-
-```bash
-python3 skills/rss-ai-digest/scripts/rss_monitor.py <command> [options]
-```
+Agents and wrappers can call the implementation through `scripts/rss_monitor.py`. Keep this as an implementation contract rather than the main user experience.
 
 The CLI contract is intentionally file-based. Callers pass explicit registry, state, health, patch, and output paths so the same Skill can run under different agent runtimes or schedulers.
 
@@ -147,6 +161,8 @@ python3 skills/rss-ai-digest/scripts/rss_monitor.py apply-source-patch \
   --apply
 ```
 
+More prompt-level examples are in [examples/README.md](./examples/README.md).
+
 ## Portability Rules
 
 - Keep core behavior platform-neutral.
@@ -178,7 +194,10 @@ Project and maintenance docs:
 - [Project status](./docs/project-status.zh-CN.md)
 - [Agent instructions](./AGENTS.md)
 - [Claude Code instructions](./CLAUDE.md)
+- [Contributing](./CONTRIBUTING.md)
 - [Change log](./CHANGELOG.md)
+- [Release checklist](./docs/release-checklist.md)
+- [License](./LICENSE)
 
 Design and implementation history lives under [`docs/superpowers/`](./docs/superpowers/). Treat those files as planning and validation archives, not the primary usage guide.
 
