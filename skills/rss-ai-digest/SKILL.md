@@ -16,6 +16,7 @@ Use this skill to turn RSS/Atom feeds and OPML files into high-signal AI and tec
 - For OPML import, run `scripts/rss_monitor.py import-opml`, then evaluate the resulting registry.
 - For source cleanup or feed quality review, run `scripts/rss_monitor.py evaluate-sources`.
 - For reviewable source governance actions, run `scripts/rss_monitor.py curate-sources`.
+- For safely applying reviewed source governance patches, run `scripts/rss_monitor.py apply-source-patch`.
 - For scheduled checks, read `references/automation.md` and provide a platform-neutral recipe.
 
 ## Core Commands
@@ -76,6 +77,17 @@ python3 skills/rss-ai-digest/scripts/rss_monitor.py curate-sources \
   --format markdown
 ```
 
+Apply reviewed source curation patches to a new registry file:
+
+```bash
+python3 skills/rss-ai-digest/scripts/rss_monitor.py apply-source-patch \
+  --registry feeds.json \
+  --patch source-curation.json \
+  --output feeds.curated.json \
+  --apply \
+  --format markdown
+```
+
 ## Output Guidance
 
 For user-facing answers, summarize the ranked entries instead of dumping raw feed data. Include title, link, source, score, and the reason the entry was selected. Mention failed feeds separately so source problems are visible.
@@ -91,6 +103,8 @@ Keyword matching is token-aware for single words and phrase-aware for multi-word
 For stricter AI digests, prefer `--preset ai-strict`. Use `--require-any-title-keyword` to suppress summary-only matches, `--exclude-keywords` to remove obvious noise, and `--keyword-mode all` when every requested keyword must match.
 
 Use `curate-sources` to produce source maintenance recommendations. It returns reviewable actions and registry patch hints, but it must not be treated as permission to delete or disable feeds automatically.
+
+Use `apply-source-patch` only after reviewing a curation result. The command defaults to dry-run mode and writes a registry only when `--apply` and `--output` are both provided.
 
 ## References
 

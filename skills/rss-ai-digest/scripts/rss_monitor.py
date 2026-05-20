@@ -563,6 +563,81 @@ def render_markdown_source_curation(curation: dict[str, Any]) -> str:
     return "\n".join(lines) + "\n"
 
 
+def extract_source_patches(payload: Any) -> list[dict[str, Any]]:
+    if isinstance(payload, list):
+        return [dict(item) for item in payload if isinstance(item, dict) and item.get("id")]
+    if not isinstance(payload, dict):
+        return []
+    if isinstance(payload.get("patches"), list):
+        return extract_source_patches(payload["patches"])
+    patches = []
+    for action in payload.get("actions", []):
+        if not isinstance(action, dict):
+            continue
+        patch = action.get("registry_patch") or {}
+        if patch.get("id"):
+            patches.append(dict(patch))
+    if payload.get("id"):
+        patches.append(dict(payload))
+    return patches
+
+
+def apply_source_patches(registry: dict[str, Any], patches: list[dict[str, Any]], dry_run: bool = True) -> dict[str, Any]:
+    next_registry = deepcopy(registry)
+    feeds = next_registry.setdefault("feeds", [])
+    operations = []
+    skipped = []
+    summary = {"set": 0, "remove": 0, "skipped": 0}
+
+    for patch in patches:
+        feed_id = patch.get("id")
+        index = next((idx for idx, feed in enumerate(feeds) if feed.get("id") == feed_id), None)
+        if index is None:
+            skipped.append({"id": feed_id, "reason": "source not found"})
+            summary["skipped"] += 1
+            continue
+        if patch.get("remove"):
+            removed = feeds.pop(index)
+            operations.append({"id": feed_id, "action": "remove", "title": removed.get("title", "")})
+            summary["remove"] += 1
+            continue
+        updates = patch.get("set") or {}
+        if updates:
+            before = {key: feeds[index].get(key) for key in updates}
+            feeds[index].update(updates)
+            operations.append({"id": feed_id, "action": "set", "before": before, "after": updates})
+            summary["set"] += 1
+
+    result = {
+        "dry_run": dry_run,
+        "summary": summary,
+        "operations": operations,
+        "skipped": skipped,
+        "registry": next_registry,
+    }
+    return result
+
+
+def render_markdown_source_patch_result(result: dict[str, Any]) -> str:
+    lines = ["## RSS Source Patch", ""]
+    lines.append(f"- Mode: {'dry-run' if result.get('dry_run') else 'apply'}")
+    summary = result.get("summary", {})
+    lines.append(f"- Set: {summary.get('set', 0)}")
+    lines.append(f"- Remove: {summary.get('remove', 0)}")
+    lines.append(f"- Skipped: {summary.get('skipped', 0)}")
+    operations = result.get("operations", [])
+    if operations:
+        lines.extend(["", "### Operations", ""])
+        for operation in operations:
+            lines.append(f"- `{operation.get('action')}` `{operation.get('id')}`")
+    skipped = result.get("skipped", [])
+    if skipped:
+        lines.extend(["", "### Skipped", ""])
+        for item in skipped:
+            lines.append(f"- `{item.get('id')}`: {item.get('reason', '')}")
+    return "\n".join(lines) + "\n"
+
+
 def build_failures(health: dict[str, Any], registry: dict[str, Any]) -> list[dict[str, Any]]:
     feed_lookup = {feed.get("id"): feed for feed in registry.get("feeds", [])}
     failures = []
@@ -876,6 +951,20 @@ def command_curate_sources(args: argparse.Namespace) -> int:
     return 0
 
 
+def command_apply_source_patch(args: argparse.Namespace) -> int:
+    registry = load_registry(args.registry)
+    patch_payload = load_json(args.patch, {})
+    patches = extract_source_patches(patch_payload)
+    should_apply = bool(getattr(args, "apply", False))
+    if should_apply and not args.output:
+        raise ValueError("--output is required when --apply is set")
+    result = apply_source_patches(registry, patches, dry_run=not should_apply)
+    if should_apply:
+        save_json(args.output, result["registry"])
+    print(render_json(result) if args.format == "json" else render_markdown_source_patch_result(result), end="")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Monitor and score AI/technical RSS feeds.")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -912,6 +1001,17 @@ def build_parser() -> argparse.ArgumentParser:
     curate.add_argument("--health")
     curate.add_argument("--format", choices=["json", "markdown"], default="markdown")
     curate.set_defaults(func=command_curate_sources)
+
+    apply_patch_parser = subparsers.add_parser(
+        "apply-source-patch",
+        help="Dry-run or apply reviewable source registry patches to an explicit output file.",
+    )
+    apply_patch_parser.add_argument("--registry", required=True)
+    apply_patch_parser.add_argument("--patch", required=True)
+    apply_patch_parser.add_argument("--output")
+    apply_patch_parser.add_argument("--apply", action="store_true")
+    apply_patch_parser.add_argument("--format", choices=["json", "markdown"], default="markdown")
+    apply_patch_parser.set_defaults(func=command_apply_source_patch)
     return parser
 
 

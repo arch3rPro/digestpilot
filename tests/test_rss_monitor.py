@@ -386,6 +386,84 @@ class RssMonitorTests(unittest.TestCase):
         self.assertIn("bad", markdown)
         self.assertIn("enabled", markdown)
 
+    def test_source_patches_can_be_extracted_from_curation_envelope(self):
+        curation = {
+            "actions": [
+                {"id": "keep", "action": "keep", "registry_patch": {}},
+                {"id": "bad", "action": "disable", "registry_patch": {"id": "bad", "set": {"enabled": False}}},
+                {"id": "dead", "action": "remove", "registry_patch": {"id": "dead", "remove": True}},
+            ]
+        }
+
+        patches = self.mod.extract_source_patches(curation)
+
+        self.assertEqual(
+            patches,
+            [
+                {"id": "bad", "set": {"enabled": False}},
+                {"id": "dead", "remove": True},
+            ],
+        )
+
+    def test_apply_source_patches_dry_run_does_not_mutate_registry(self):
+        registry = {
+            "feeds": [
+                {"id": "bad", "title": "Bad", "url": "https://example.com/bad", "enabled": True, "base_score": 4},
+                {"id": "dead", "title": "Dead", "url": "https://example.com/dead", "enabled": True, "base_score": 2},
+                {"id": "strong", "title": "Strong", "url": "https://example.com/strong", "enabled": True, "base_score": 9},
+            ]
+        }
+        original_registry = json.loads(json.dumps(registry))
+        patches = [
+            {"id": "bad", "set": {"enabled": False, "base_score": 3}},
+            {"id": "dead", "remove": True},
+        ]
+
+        result = self.mod.apply_source_patches(registry, patches, dry_run=True)
+
+        self.assertEqual(registry, original_registry)
+        self.assertEqual(result["summary"], {"set": 1, "remove": 1, "skipped": 0})
+        self.assertEqual([feed["id"] for feed in result["registry"]["feeds"]], ["bad", "strong"])
+        self.assertEqual(result["registry"]["feeds"][0]["enabled"], False)
+        self.assertEqual(result["registry"]["feeds"][0]["base_score"], 3)
+
+    def test_apply_source_patches_reports_missing_sources_as_skipped(self):
+        registry = {"feeds": [{"id": "strong", "title": "Strong", "url": "https://example.com/strong", "enabled": True}]}
+
+        result = self.mod.apply_source_patches(registry, [{"id": "missing", "set": {"enabled": False}}], dry_run=True)
+
+        self.assertEqual(result["summary"], {"set": 0, "remove": 0, "skipped": 1})
+        self.assertEqual(result["skipped"][0]["id"], "missing")
+        self.assertEqual(result["registry"], registry)
+
+    def test_command_apply_source_patch_writes_only_with_apply_and_output(self):
+        registry = {"feeds": [{"id": "bad", "title": "Bad", "url": "https://example.com/bad", "enabled": True}]}
+        curation = {"actions": [{"registry_patch": {"id": "bad", "set": {"enabled": False}}}]}
+
+        with tempfile.TemporaryDirectory() as tmp:
+            registry_path = Path(tmp) / "feeds.json"
+            patch_path = Path(tmp) / "patch.json"
+            output_path = Path(tmp) / "feeds.curated.json"
+            self.mod.save_json(registry_path, registry)
+            self.mod.save_json(patch_path, curation)
+
+            with redirect_stdout(StringIO()):
+                self.mod.command_apply_source_patch(
+                    Namespace(
+                        registry=str(registry_path),
+                        patch=str(patch_path),
+                        output=str(output_path),
+                        apply=True,
+                        format="json",
+                    )
+                )
+
+            saved_registry = self.mod.load_registry(output_path)
+            source_registry = self.mod.load_registry(registry_path)
+
+        self.assertEqual(saved_registry["feeds"][0]["enabled"], False)
+        self.assertEqual(source_registry["feeds"][0]["enabled"], True)
+
     def test_render_markdown_digest_orders_by_score(self):
         low = {"title": "Low", "link": "https://example.com/low", "feed_title": "Feed", "score": 5, "score_reasons": []}
         high = {"title": "High", "link": "https://example.com/high", "feed_title": "Feed", "score": 9, "score_reasons": ["ai_or_engineering_relevance"]}

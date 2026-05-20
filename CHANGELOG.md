@@ -7,7 +7,12 @@ All notable project changes are recorded here. This repository follows a practic
 ### Added
 
 - Added `curate-sources` to generate reviewable source governance actions and registry patch hints without modifying feed registries.
+- Added `apply-source-patch` to dry-run or apply reviewed source governance patches into an explicit output registry.
 - Expanded `source-metadata.json` coverage for selected AI, engineering, security, and commentary sources.
+
+### Documentation
+
+- Documented the release-before-splitting gate for future multi-Skill packaging.
 
 ## 2026-05-20
 

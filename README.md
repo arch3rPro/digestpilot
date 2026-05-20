@@ -30,7 +30,7 @@ skills/rss-ai-digest/
 └── scripts/rss_monitor.py
 ```
 
-`rss-ai-digest` helps agents turn feeds into ranked reading digests rather than raw feed dumps. It can import OPML, fetch feeds, filter entries, score content, track seen items, and evaluate source quality.
+`rss-ai-digest` helps agents turn feeds into ranked reading digests rather than raw feed dumps. It can import OPML, fetch feeds, filter entries, score content, track seen items, evaluate source quality, and apply reviewed source curation patches.
 
 ## Quick Start
 
@@ -87,6 +87,17 @@ Generate reviewable source curation actions without modifying the registry:
 python3 skills/rss-ai-digest/scripts/rss_monitor.py curate-sources \
   --registry feeds.json \
   --health source-health.json \
+  --format markdown
+```
+
+Dry-run or apply reviewed source curation patches to a new registry file:
+
+```bash
+python3 skills/rss-ai-digest/scripts/rss_monitor.py apply-source-patch \
+  --registry feeds.json \
+  --patch source-curation.json \
+  --output feeds.curated.json \
+  --apply \
   --format markdown
 ```
 
@@ -160,6 +171,7 @@ Use `--preset ai-strict` when a stricter digest should avoid weak summary-only m
 - Post-optimization validation: [`docs/superpowers/specs/2026-05-20-rss-ai-digest-post-optimization-validation.md`](./docs/superpowers/specs/2026-05-20-rss-ai-digest-post-optimization-validation.md)
 - Implementation plan: [`docs/superpowers/plans/2026-05-20-rss-ai-digest.md`](./docs/superpowers/plans/2026-05-20-rss-ai-digest.md)
 - Remaining optimization plan: [`docs/superpowers/plans/2026-05-20-rss-ai-digest-remaining-optimizations.md`](./docs/superpowers/plans/2026-05-20-rss-ai-digest-remaining-optimizations.md)
+- Source patch loop plan: [`docs/superpowers/plans/2026-05-21-rss-ai-digest-source-patch-loop.md`](./docs/superpowers/plans/2026-05-21-rss-ai-digest-source-patch-loop.md)
 - Agent instructions: [`AGENTS.md`](./AGENTS.md)
 - Claude Code instructions: [`CLAUDE.md`](./CLAUDE.md)
 - Change log: [`CHANGELOG.md`](./CHANGELOG.md)
@@ -190,3 +202,5 @@ Likely future Skills or plugin modules:
 - `rss-feed-discovery`: discovering RSS feeds from sites, GitHub lists, and curated directories
 
 These should remain separate wrappers or Skills around shared RSS primitives rather than runtime-specific forks of the same workflow.
+
+Before splitting the stable `rss-ai-digest` workflow into separate Skills, publish a release version so downstream agents and users have a stable checkpoint to pin.

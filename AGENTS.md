@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-`rss-agent-skills` is a portable collection of RSS-related Skills for agent ecosystems. The current package, `rss-ai-digest`, helps agents import OPML, parse RSS/Atom feeds, monitor new AI and technical content, dedupe seen entries, score articles, and evaluate source quality.
+`rss-agent-skills` is a portable collection of RSS-related Skills for agent ecosystems. The current package, `rss-ai-digest`, helps agents import OPML, parse RSS/Atom feeds, monitor new AI and technical content, dedupe seen entries, score articles, evaluate source quality, and apply reviewed source curation patches.
 
 Keep the repository platform-neutral. Do not make core behavior depend on Codex, Claude, Cursor, OpenClaw, n8n, GitHub Actions, or any single runtime.
 
@@ -73,3 +73,4 @@ git diff --check
 - Before pushing, run the relevant tests and `git diff --check`.
 - Do not stage unrelated local files or generated runtime outputs.
 - If publishing repository metadata, keep naming and descriptions broad enough for multiple future RSS Skills.
+- Before splitting stable `rss-ai-digest` behavior into multiple Skills, publish a release version first.

@@ -180,6 +180,52 @@ Curation actions:
 - `disable`: repeated failures suggest setting `enabled` to `false` after review.
 - `remove`: source is a removal candidate, but deletion should remain explicit and human/agent-reviewed.
 
+## Applying Source Patches
+
+`apply-source-patch` safely turns reviewed curation output into a new registry. It accepts either a `curate-sources --format json` envelope or a direct list of patch objects.
+
+Patch object shape:
+
+```json
+{
+  "id": "example-feed",
+  "set": {
+    "enabled": false
+  }
+}
+```
+
+Removal patch shape:
+
+```json
+{
+  "id": "example-feed",
+  "remove": true
+}
+```
+
+Dry-run by default:
+
+```bash
+python3 skills/rss-ai-digest/scripts/rss_monitor.py apply-source-patch \
+  --registry feeds.json \
+  --patch source-curation.json \
+  --format markdown
+```
+
+Write a reviewed registry to an explicit output file:
+
+```bash
+python3 skills/rss-ai-digest/scripts/rss_monitor.py apply-source-patch \
+  --registry feeds.json \
+  --patch source-curation.json \
+  --output feeds.curated.json \
+  --apply \
+  --format json
+```
+
+The command does not overwrite the input registry unless the caller explicitly uses the same path for `--output`.
+
 ## Digest JSON Envelope
 
 `digest --format json` and `check-new --format json` return an object rather than a raw list:

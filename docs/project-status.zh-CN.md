@@ -1,6 +1,6 @@
 # RSS Agent Skills 项目状态
 
-日期：2026-05-20
+日期：2026-05-21
 
 ## 当前定位
 
@@ -39,6 +39,7 @@
 - `check-new`：检查新增匹配条目，适合监控类工作流。
 - `evaluate-sources`：根据 registry 和 health 数据评估源质量。
 - `curate-sources`：生成可审阅源治理动作和 registry patch 建议，不直接修改源文件。
+- `apply-source-patch`：对已审阅的源治理 patch 做 dry-run 或写入新的 registry 文件。
 
 ### 筛选能力
 
@@ -96,6 +97,7 @@
 - 失败源会暴露错误信息，不再被隐藏成“没有匹配条目”。
 - 可通过 `curate-sources` 生成 `keep`、`watch`、`lower-priority`、`disable`、`remove` 等源维护建议。
 - `curate-sources` 只输出建议，不会自动禁用或删除源。
+- 可通过 `apply-source-patch` 将已审阅 patch 安全应用到新的 registry 文件。
 
 ### 性能与可靠性
 
@@ -126,7 +128,7 @@
   - 并发抓取。
   - deterministic ordering。
   - source evaluation。
-- 当前测试数量：23 个。
+- 当前测试数量：34 个。
 - Skill validator 已通过。
 - 已有 post-optimization validation 文档记录真实性能和输出表现。
 
@@ -140,6 +142,8 @@
 - `rss-alert-monitor`：关键词、作者、项目、主题监控。
 - `rss-digest-publisher`：发布到邮件、飞书、Slack、Obsidian 或 webhook。
 - `rss-feed-discovery`：从网站、GitHub 列表和目录发现 RSS 源。
+
+拆分前约束：在将稳定的 `rss-ai-digest` 拆成多个独立 Skills 前，先发布一个 release 版本，作为下游 agent 和用户可固定依赖的稳定检查点。
 
 ### 通知渠道集成
 
@@ -168,13 +172,12 @@
 
 ### 自动源清理
 
-`evaluate-sources` 和 `curate-sources` 能给出建议，但不会自动修改 registry 或 OPML。
+`evaluate-sources` 和 `curate-sources` 能给出建议，`apply-source-patch` 能把已审阅 registry patch 写入新的 registry 文件。
 
 尚未实现：
 
-- 自动禁用失败源。
-- 自动删除低质量源。
-- 自动应用 registry patch。
+- 无人工审阅的自动禁用失败源。
+- 无人工审阅的自动删除低质量源。
 - 生成 OPML patch。
 - 基于多次 health 观察的 cleanup command。
 
@@ -193,7 +196,6 @@
 
 尚未实现更复杂的筛选表达式：
 
-- `--require-any-title-keyword`。
 - must / should / exclude 关键词组。
 - 布尔表达式筛选。
 - 主题聚类。
@@ -262,7 +264,8 @@
 
 优先级最高的两个方向：
 
-1. 继续增强内容质量筛选：扩展噪声源 metadata、must/should/exclude 关键词组和更多 digest preset。
-2. 拆出 `rss-source-curator`：专门处理源评估、失败源治理、OPML/registry 清理和源质量维护。
+1. 准备首个 release：梳理变更、确定版本号、打 tag、发布 release notes。
+2. 继续增强内容质量筛选：扩展噪声源 metadata、must/should/exclude 关键词组和更多 digest preset。
+3. 拆出 `rss-source-curator`：专门处理源评估、失败源治理、OPML/registry 清理和源质量维护。
 
-如果目标是尽快进入可用工作流，建议先做内容质量筛选；如果目标是扩展成 RSS Skills 套件，建议先拆出 `rss-source-curator`。
+如果目标是扩展成 RSS Skills 套件，必须先发布当前稳定版本，再拆出 `rss-source-curator`。
