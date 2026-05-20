@@ -13,6 +13,8 @@ All notable project changes are recorded here. This repository follows a practic
 ### Documentation
 
 - Documented the release-before-splitting gate for future multi-Skill packaging.
+- Reworked README around Agent and Skill usage, with CLI commands reduced to a concise implementation contract and documentation links grouped by purpose.
+- Added README sections for project status, installation model, output contract, and data/privacy expectations.
 
 ## 2026-05-20
 

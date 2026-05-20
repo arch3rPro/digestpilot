@@ -1,19 +1,31 @@
 # RSS Agent Skills
 
-Portable RSS-related Skills for agent ecosystems. This repository starts with `rss-ai-digest`, a Skill for AI and technical RSS content discovery, and is structured to grow into a broader RSS Skill/plugin toolkit over time.
+Portable RSS-related Skills for agent ecosystems.
 
-## What This Repository Is
+This repository starts with `rss-ai-digest`, a Skill for AI and technical content discovery. It is designed for agents that need to import subscriptions, monitor new articles, rank high-signal items, maintain seen-state, and review RSS source quality without depending on one runtime.
 
-`rss-agent-skills` is a collection-oriented repository for RSS workflows that agents can use without being tied to one runtime. The current Skill focuses on:
+## Status
 
-- RSS 2.0 and Atom parsing
-- OPML import
-- AI and technical content discovery
-- New-entry tracking and deduplication
-- Article scoring and source quality evaluation
-- Markdown and JSON output for human and automation workflows
+| Area | Status |
+| --- | --- |
+| Current package | `rss-ai-digest` |
+| Runtime contract | Standard Skill layout plus a deterministic Python CLI |
+| Release stage | Pre-release; publish a stable release before splitting into multiple Skills |
+| Dependency model | Python standard library for the current implementation |
+| Platform support | Agent-runtime neutral; wrappers can be added without changing the Skill core |
 
-The project is intentionally platform-neutral. Codex, Claude, OpenClaw, n8n, GitHub Actions, cron, or other systems should be able to wrap the same scripts and Skill instructions.
+## Agent Use Cases
+
+Use `rss-ai-digest` when an agent needs to:
+
+- Turn RSS/Atom feeds into a ranked AI or technical reading digest.
+- Import an OPML file into a structured feed registry.
+- Monitor new entries by keyword, author, date, category, or language.
+- Track seen entries so repeated runs do not report the same item.
+- Evaluate feed health and source quality over time.
+- Generate reviewable source cleanup actions before changing a registry.
+
+Do not treat this repository as a full RSS reader, notification service, scheduler, or plugin-marketplace package yet. Those layers can wrap the same Skill later.
 
 ## Current Skill
 
@@ -30,11 +42,73 @@ skills/rss-ai-digest/
 └── scripts/rss_monitor.py
 ```
 
-`rss-ai-digest` helps agents turn feeds into ranked reading digests rather than raw feed dumps. It can import OPML, fetch feeds, filter entries, score content, track seen items, evaluate source quality, and apply reviewed source curation patches.
+`SKILL.md` is the agent entrypoint. The Python script is the deterministic implementation behind the Skill, not the product surface.
 
-## Quick Start
+## Installation Model
 
-Import the curated base OPML into a feed registry:
+This repository is meant to be consumed as a Skill package:
+
+- Agent runtimes should load or copy `skills/rss-ai-digest/` as the Skill directory.
+- Humans and maintainers should treat [`README.md`](./README.md), [`AGENTS.md`](./AGENTS.md), and [`CHANGELOG.md`](./CHANGELOG.md) as project-level documents.
+- Runtime-specific wrappers should live outside the Skill core unless the project explicitly starts a packaging phase.
+
+## Skill Capabilities
+
+`rss-ai-digest` currently supports:
+
+- RSS 2.0 and Atom parsing.
+- OPML import with category preservation.
+- Curated base OPML for AI, engineering, security, product, and general technical sources.
+- Optional source metadata priors for `base_score`, `language`, and `tags`.
+- Token-aware keyword matching and phrase matching.
+- Strict AI digest preset with noise exclusions.
+- Article scoring with explainable `score_reasons`.
+- Seen-state deduplication.
+- Source health persistence and failed-feed reporting.
+- Source evaluation and reviewable source curation patches.
+- Markdown output for people and JSON output for automation.
+
+## Output Contract
+
+For human-facing tasks, agents should return concise Markdown summaries with title, source, score, link, and selection reason. For automation, use JSON envelopes rather than parsing Markdown.
+
+Digest JSON includes:
+
+- `entries`: ranked reported entries.
+- `failures`: feed failures from the current run.
+- `health`: merged source health when a health file is provided.
+- `stats`: run-level counts for feeds, fetched entries, reported entries, and seen-state updates.
+- `generated_at`: UTC timestamp for the run.
+
+## Agent Workflow
+
+1. Read [`skills/rss-ai-digest/SKILL.md`](./skills/rss-ai-digest/SKILL.md) to choose the right workflow.
+2. Use [`skills/rss-ai-digest/references/base-feeds.opml`](./skills/rss-ai-digest/references/base-feeds.opml) when a starter source list is needed.
+3. Keep runtime files such as `feeds.json`, `seen.json`, and `source-health.json` outside Git.
+4. Prefer Markdown output for user-facing digests and JSON output for agent pipelines.
+5. Review `curate-sources` output before applying any registry patch.
+
+## CLI Contract
+
+Agents and wrappers can call the implementation through:
+
+```bash
+python3 skills/rss-ai-digest/scripts/rss_monitor.py <command> [options]
+```
+
+The CLI contract is intentionally file-based. Callers pass explicit registry, state, health, patch, and output paths so the same Skill can run under different agent runtimes or schedulers.
+
+| Command | Purpose |
+| --- | --- |
+| `import-opml` | Convert an OPML file into a feed registry JSON file. |
+| `fetch` | Fetch enabled feeds and output normalized entries. |
+| `digest` | Fetch, filter, score, dedupe, and render a reading digest. |
+| `check-new` | Report new matching entries for monitoring workflows. |
+| `evaluate-sources` | Score source quality from registry and health data. |
+| `curate-sources` | Generate reviewable source governance actions. |
+| `apply-source-patch` | Dry-run or apply reviewed registry patches to an explicit output file. |
+
+Minimal bootstrap:
 
 ```bash
 python3 skills/rss-ai-digest/scripts/rss_monitor.py import-opml \
@@ -43,7 +117,7 @@ python3 skills/rss-ai-digest/scripts/rss_monitor.py import-opml \
   --registry feeds.json
 ```
 
-Create a digest of new AI and technical content:
+Typical AI digest:
 
 ```bash
 python3 skills/rss-ai-digest/scripts/rss_monitor.py digest \
@@ -53,128 +127,60 @@ python3 skills/rss-ai-digest/scripts/rss_monitor.py digest \
   --since 24h \
   --preset ai-strict \
   --min-score 7 \
-  --mark-seen reported-only \
-  --timeout 20 \
-  --max-workers 8 \
   --format markdown
 ```
 
-Check for new matching entries as JSON:
-
-```bash
-python3 skills/rss-ai-digest/scripts/rss_monitor.py check-new \
-  --registry feeds.json \
-  --state seen.json \
-  --health source-health.json \
-  --keywords "inference,agents,benchmark" \
-  --mark-seen reported-only \
-  --timeout 20 \
-  --max-workers 8 \
-  --format json
-```
-
-Evaluate source quality:
-
-```bash
-python3 skills/rss-ai-digest/scripts/rss_monitor.py evaluate-sources \
-  --registry feeds.json \
-  --health source-health.json
-```
-
-Generate reviewable source curation actions without modifying the registry:
+Source governance loop:
 
 ```bash
 python3 skills/rss-ai-digest/scripts/rss_monitor.py curate-sources \
   --registry feeds.json \
   --health source-health.json \
-  --format markdown
+  --format json
 ```
-
-Dry-run or apply reviewed source curation patches to a new registry file:
 
 ```bash
 python3 skills/rss-ai-digest/scripts/rss_monitor.py apply-source-patch \
   --registry feeds.json \
   --patch source-curation.json \
   --output feeds.curated.json \
-  --apply \
-  --format markdown
+  --apply
 ```
 
-## Curated Base OPML
+## Portability Rules
 
-The starter source list is stored at:
+- Keep core behavior platform-neutral.
+- Do not make `rss-ai-digest` depend on Codex, Claude, Cursor, OpenClaw, n8n, GitHub Actions, or cron.
+- Put repeatable behavior in `scripts/`.
+- Put schemas, scoring rules, source lists, and automation recipes in `references/`.
+- Keep runtime wrappers separate from the Skill core.
+- Before splitting stable `rss-ai-digest` behavior into multiple Skills, publish a release version first.
 
-```text
-skills/rss-ai-digest/references/base-feeds.opml
-```
+## Data And Privacy
 
-It currently contains 92 sources grouped into:
-
-- AI, Research, and High-Signal Analysis
-- Software Engineering and Systems
-- Security and Risk
-- Product, Business, and Technology Culture
-- General Technical Blogs
-
-When imported, OPML outline groups are preserved as feed `category` values in the generated registry.
-
-Optional source priors are stored at:
-
-```text
-skills/rss-ai-digest/references/source-metadata.json
-```
-
-Pass this file with `import-opml --metadata` to enrich matching feed ids with `base_score`, `language`, and `tags`.
-The seed metadata currently covers selected AI, engineering, security, and commentary sources.
-
-## Output Formats
-
-Use Markdown when a person will read the result:
-
-```bash
---format markdown
-```
-
-Use JSON when another agent, scheduler, notification adapter, or workflow engine will consume the result:
-
-```bash
---format json
-```
-
-Digest JSON output is an envelope with `entries`, `failures`, `health`, `stats`, and `generated_at`. Markdown output includes run stats and a `Failed feeds` section when any feed fails.
-
-Local runtime artifacts such as `feeds.json`, `seen.json`, `source-health.json`, `digest.md`, and `latest.json` are ignored by Git by default.
-
-Fetch-based commands support `--timeout` and `--max-workers` so scheduled runs can balance speed and source politeness. Output ordering remains deterministic after concurrent fetches.
-
-Use `--preset ai-strict` when a stricter digest should avoid weak summary-only matches or obvious noise. Use `--require-any-title-keyword`, `--exclude-keywords`, and `--keyword-mode all` for custom strict filters.
-
-## Skill Design Principles
-
-- Keep one standard entrypoint per Skill: `skills/<skill-name>/SKILL.md`.
-- Put deterministic and repeatable behavior in `scripts/`.
-- Put schemas, scoring rules, and automation recipes in `references/`.
-- Keep runtime wrappers separate from core behavior.
-- Avoid binding the Skill to Codex, Claude, or any single plugin marketplace.
+- Feed registries, seen-state files, and source-health files may reveal reading interests.
+- Runtime files such as `feeds.json`, `seen.json`, `source-health.json`, `digest.md`, and `rss-output/` are ignored by Git by default.
+- Notification integrations should not send digest or feed data externally unless the user explicitly requests that channel.
+- `apply-source-patch` writes only to an explicit output file and should be used after reviewing curation results.
 
 ## Documentation
 
-- Skill entrypoint: [`skills/rss-ai-digest/SKILL.md`](./skills/rss-ai-digest/SKILL.md)
-- Project status: [`docs/project-status.zh-CN.md`](./docs/project-status.zh-CN.md)
-- Feed registry schema: [`skills/rss-ai-digest/references/feed-registry.md`](./skills/rss-ai-digest/references/feed-registry.md)
-- Scoring rules: [`skills/rss-ai-digest/references/scoring.md`](./skills/rss-ai-digest/references/scoring.md)
-- Source metadata seed: [`skills/rss-ai-digest/references/source-metadata.json`](./skills/rss-ai-digest/references/source-metadata.json)
-- Automation recipes: [`skills/rss-ai-digest/references/automation.md`](./skills/rss-ai-digest/references/automation.md)
-- Design spec: [`docs/superpowers/specs/2026-05-20-rss-ai-digest-design.md`](./docs/superpowers/specs/2026-05-20-rss-ai-digest-design.md)
-- Optimization design: [`docs/superpowers/specs/2026-05-20-rss-ai-digest-optimization-design.md`](./docs/superpowers/specs/2026-05-20-rss-ai-digest-optimization-design.md)
-- Post-optimization validation: [`docs/superpowers/specs/2026-05-20-rss-ai-digest-post-optimization-validation.md`](./docs/superpowers/specs/2026-05-20-rss-ai-digest-post-optimization-validation.md)
-- Implementation plan: [`docs/superpowers/plans/2026-05-20-rss-ai-digest.md`](./docs/superpowers/plans/2026-05-20-rss-ai-digest.md)
-- Remaining optimization plan: [`docs/superpowers/plans/2026-05-20-rss-ai-digest-remaining-optimizations.md`](./docs/superpowers/plans/2026-05-20-rss-ai-digest-remaining-optimizations.md)
-- Source patch loop plan: [`docs/superpowers/plans/2026-05-21-rss-ai-digest-source-patch-loop.md`](./docs/superpowers/plans/2026-05-21-rss-ai-digest-source-patch-loop.md)
-- Agent instructions: [`AGENTS.md`](./AGENTS.md)
-- Claude Code instructions: [`CLAUDE.md`](./CLAUDE.md)
-- Change log: [`CHANGELOG.md`](./CHANGELOG.md)
+Primary Skill docs:
+
+- [Skill entrypoint](./skills/rss-ai-digest/SKILL.md)
+- [Feed registry and state schema](./skills/rss-ai-digest/references/feed-registry.md)
+- [Scoring rules](./skills/rss-ai-digest/references/scoring.md)
+- [Automation recipes](./skills/rss-ai-digest/references/automation.md)
+- [Source metadata seed](./skills/rss-ai-digest/references/source-metadata.json)
+
+Project and maintenance docs:
+
+- [Project status](./docs/project-status.zh-CN.md)
+- [Agent instructions](./AGENTS.md)
+- [Claude Code instructions](./CLAUDE.md)
+- [Change log](./CHANGELOG.md)
+
+Design and implementation history lives under [`docs/superpowers/`](./docs/superpowers/). Treat those files as planning and validation archives, not the primary usage guide.
 
 ## Development
 
@@ -190,17 +196,21 @@ Validate the Skill package if the local validator dependencies are available:
 python3 /path/to/skill-creator/scripts/quick_validate.py skills/rss-ai-digest
 ```
 
+Check basic whitespace issues:
+
+```bash
+git diff --check
+```
+
 The runtime script uses the Python standard library for the MVP. No project dependency installation is required for the included tests.
 
 ## Roadmap
 
 Likely future Skills or plugin modules:
 
-- `rss-source-curator`: source cleanup, ranking, and OPML maintenance
-- `rss-alert-monitor`: keyword, author, project, and topic monitoring
-- `rss-digest-publisher`: publishing to email, Feishu, Slack, Obsidian, or webhooks
-- `rss-feed-discovery`: discovering RSS feeds from sites, GitHub lists, and curated directories
+- `rss-source-curator`: source cleanup, ranking, and OPML maintenance.
+- `rss-alert-monitor`: keyword, author, project, and topic monitoring.
+- `rss-digest-publisher`: publishing to email, Feishu, Slack, Obsidian, or webhooks.
+- `rss-feed-discovery`: discovering RSS feeds from sites, GitHub lists, and curated directories.
 
-These should remain separate wrappers or Skills around shared RSS primitives rather than runtime-specific forks of the same workflow.
-
-Before splitting the stable `rss-ai-digest` workflow into separate Skills, publish a release version so downstream agents and users have a stable checkpoint to pin.
+These should remain separate wrappers or Skills around shared RSS primitives rather than runtime-specific forks of the same workflow. Publish a stable release before starting the split.
