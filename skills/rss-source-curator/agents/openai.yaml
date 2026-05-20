@@ -1,0 +1,4 @@
+interface:
+  display_name: "RSS Source Curator"
+  short_description: "Review RSS source health and maintain feed registries."
+  default_prompt: "Use $rss-source-curator to review my RSS source quality and recommend registry cleanup actions."
