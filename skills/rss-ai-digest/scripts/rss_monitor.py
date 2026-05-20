@@ -60,8 +60,48 @@ NOISE_TERMS = {
     "press release",
 }
 
-AI_STRICT_KEYWORDS = "agent,llm,rag,ai,model,inference,evals,benchmark"
-AI_STRICT_EXCLUDE_KEYWORDS = "webinar,coupon,sponsor,sponsored,hiring,job,press release"
+DIGEST_PRESETS = {
+    "ai-strict": {
+        "keywords": ["agent", "llm", "rag", "ai", "model", "inference", "evals", "benchmark"],
+        "must_keywords": [],
+        "should_keywords": [],
+        "exclude_keywords": ["webinar", "coupon", "sponsor", "sponsored", "hiring", "job", "press release"],
+        "require_any_title_keyword": True,
+        "min_score": None,
+    },
+    "ai-research": {
+        "keywords": [],
+        "must_keywords": ["llm", "model", "reasoning", "evals", "benchmark"],
+        "should_keywords": ["benchmark", "inference", "agent", "rag", "alignment", "research"],
+        "exclude_keywords": ["webinar", "coupon", "sponsor", "sponsored", "hiring", "job", "press release"],
+        "require_any_title_keyword": True,
+        "min_score": 8,
+    },
+    "engineering-deep-dive": {
+        "keywords": [],
+        "must_keywords": ["engineering", "architecture", "systems", "debugging", "infrastructure"],
+        "should_keywords": ["architecture", "reliability", "scaling", "production", "performance"],
+        "exclude_keywords": ["webinar", "coupon", "sponsor", "sponsored", "hiring", "job", "press release"],
+        "require_any_title_keyword": False,
+        "min_score": 7,
+    },
+    "security-risk": {
+        "keywords": [],
+        "must_keywords": ["security", "breach", "vulnerability", "malware", "risk"],
+        "should_keywords": ["incident", "exploit", "privacy", "supply chain"],
+        "exclude_keywords": ["webinar", "coupon", "sponsor", "sponsored", "hiring", "job", "press release"],
+        "require_any_title_keyword": False,
+        "min_score": 7,
+    },
+    "product-tech": {
+        "keywords": [],
+        "must_keywords": ["product", "platform", "startup", "business", "strategy"],
+        "should_keywords": ["ai", "developer", "pricing", "market", "workflow"],
+        "exclude_keywords": ["webinar", "coupon", "sponsor", "sponsored", "hiring", "job", "press release"],
+        "require_any_title_keyword": False,
+        "min_score": 6,
+    },
+}
 
 
 def local_name(tag: str) -> str:
@@ -119,13 +159,21 @@ def apply_filter_preset(args: argparse.Namespace) -> argparse.Namespace:
     preset = getattr(args, "preset", "none")
     if preset == "none":
         return args
-    if preset != "ai-strict":
+    if preset not in DIGEST_PRESETS:
         raise ValueError(f"Unsupported preset: {preset}")
-    if not getattr(args, "keywords", ""):
-        args.keywords = AI_STRICT_KEYWORDS
-    if not getattr(args, "exclude_keywords", ""):
-        args.exclude_keywords = AI_STRICT_EXCLUDE_KEYWORDS
-    args.require_any_title_keyword = True
+    defaults = DIGEST_PRESETS[preset]
+    if not getattr(args, "keywords", "") and defaults["keywords"]:
+        args.keywords = ",".join(defaults["keywords"])
+    if not getattr(args, "must_keywords", "") and defaults["must_keywords"]:
+        args.must_keywords = ",".join(defaults["must_keywords"])
+    if not getattr(args, "should_keywords", "") and defaults["should_keywords"]:
+        args.should_keywords = ",".join(defaults["should_keywords"])
+    if not getattr(args, "exclude_keywords", "") and defaults["exclude_keywords"]:
+        args.exclude_keywords = ",".join(defaults["exclude_keywords"])
+    if defaults["require_any_title_keyword"]:
+        args.require_any_title_keyword = True
+    if defaults["min_score"] is not None and getattr(args, "min_score", 0) == 0:
+        args.min_score = defaults["min_score"]
     return args
 
 
@@ -1020,7 +1068,7 @@ def add_digest_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--state", required=True)
     parser.add_argument("--health")
     parser.add_argument("--since", default="24h")
-    parser.add_argument("--preset", choices=["none", "ai-strict"], default="none")
+    parser.add_argument("--preset", choices=["none", *sorted(DIGEST_PRESETS)], default="none")
     parser.add_argument("--keywords", default="")
     parser.add_argument("--exclude-keywords", default="")
     parser.add_argument("--keyword-mode", choices=["any", "all"], default="any")

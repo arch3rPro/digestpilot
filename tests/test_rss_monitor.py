@@ -235,6 +235,37 @@ class RssMonitorTests(unittest.TestCase):
         self.assertEqual(args.exclude_keywords, "sponsored")
         self.assertTrue(args.require_any_title_keyword)
 
+    def test_digest_presets_define_quality_defaults(self):
+        presets = self.mod.DIGEST_PRESETS
+
+        self.assertIn("ai-research", presets)
+        self.assertIn("engineering-deep-dive", presets)
+        self.assertIn("security-risk", presets)
+        self.assertIn("product-tech", presets)
+        self.assertIn("llm", presets["ai-research"]["must_keywords"])
+        self.assertIn("architecture", presets["engineering-deep-dive"]["should_keywords"])
+        self.assertIn("breach", presets["security-risk"]["must_keywords"])
+        self.assertIn("sponsor", presets["product-tech"]["exclude_keywords"])
+
+    def test_apply_research_preset_sets_new_keyword_groups(self):
+        args = Namespace(
+            preset="ai-research",
+            keywords="",
+            must_keywords="",
+            should_keywords="",
+            exclude_keywords="",
+            require_any_title_keyword=False,
+            min_score=0,
+        )
+
+        self.mod.apply_filter_preset(args)
+
+        self.assertIn("llm", args.must_keywords)
+        self.assertIn("benchmark", args.should_keywords)
+        self.assertIn("webinar", args.exclude_keywords)
+        self.assertTrue(args.require_any_title_keyword)
+        self.assertEqual(args.min_score, 8)
+
     def test_title_keyword_match_scores_higher_than_summary_only_match(self):
         title_match = {
             "title": "LLM agents in production",
