@@ -138,6 +138,7 @@ Fetch-based commands support `--timeout` and `--max-workers` so scheduled runs c
 ## Documentation
 
 - Skill entrypoint: [`skills/rss-ai-digest/SKILL.md`](./skills/rss-ai-digest/SKILL.md)
+- Project status: [`docs/project-status.zh-CN.md`](./docs/project-status.zh-CN.md)
 - Feed registry schema: [`skills/rss-ai-digest/references/feed-registry.md`](./skills/rss-ai-digest/references/feed-registry.md)
 - Scoring rules: [`skills/rss-ai-digest/references/scoring.md`](./skills/rss-ai-digest/references/scoring.md)
 - Source metadata seed: [`skills/rss-ai-digest/references/source-metadata.json`](./skills/rss-ai-digest/references/source-metadata.json)

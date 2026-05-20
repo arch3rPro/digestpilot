@@ -27,6 +27,7 @@ All notable project changes are recorded here. This repository follows a practic
 
 ### Documentation
 
+- Added `docs/project-status.zh-CN.md` summarizing implemented capabilities, missing features, maturity, and recommended next steps.
 - Added `docs/superpowers/plans/2026-05-20-rss-ai-digest-remaining-optimizations.md`.
 - Added `docs/superpowers/specs/2026-05-20-rss-ai-digest-post-optimization-validation.md` with full-feed runtime, health, and ranking validation notes.
 - Updated README and Skill references for source metadata, fetch controls, keyword matching, and source governance fields.
