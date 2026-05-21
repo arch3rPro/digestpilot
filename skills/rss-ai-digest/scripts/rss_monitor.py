@@ -60,6 +60,21 @@ NOISE_TERMS = {
     "press release",
 }
 
+TOPIC_KEYWORDS = {
+    "AI / LLM": {"ai", "llm", "agent", "agents", "model", "reasoning", "evals", "inference", "rag"},
+    "Engineering": {
+        "engineering",
+        "architecture",
+        "systems",
+        "debugging",
+        "infrastructure",
+        "reliability",
+        "scaling",
+    },
+    "Security": {"security", "breach", "vulnerability", "malware", "risk", "incident", "exploit"},
+    "Product / Business": {"product", "business", "startup", "strategy", "pricing", "market", "platform"},
+}
+
 DIGEST_PRESETS = {
     "ai-strict": {
         "keywords": ["agent", "llm", "rag", "ai", "model", "inference", "evals", "benchmark"],
@@ -179,6 +194,33 @@ def apply_filter_preset(args: argparse.Namespace) -> argparse.Namespace:
 
 def text_tokens(value: str) -> set[str]:
     return set(re.findall(r"[a-z0-9]+", value.lower()))
+
+
+def assign_topic(entry: dict[str, Any], feed: dict[str, Any] | None = None) -> str:
+    feed = feed or {}
+    category_text = " ".join(feed.get("category", [])).lower()
+    entry_text = f"{entry.get('title', '')} {entry.get('summary', '')}".lower()
+    for tokens in (text_tokens(entry_text), text_tokens(category_text)):
+        topic = topic_from_tokens(tokens)
+        if topic != "Other":
+            return topic
+    return "Other"
+
+
+def remove_overlapping_keyword_locations(
+    locations: dict[str, list[str]], *existing_locations: dict[str, list[str]]
+) -> dict[str, list[str]]:
+    existing_keywords = set()
+    for existing in existing_locations:
+        existing_keywords.update(existing.keys())
+    return {keyword: fields for keyword, fields in locations.items() if keyword not in existing_keywords}
+
+
+def topic_from_tokens(tokens: set[str]) -> str:
+    for topic, keywords in TOPIC_KEYWORDS.items():
+        if tokens & keywords:
+            return topic
+    return "Other"
 
 
 def keyword_locations(entry: dict[str, Any], keyword: str) -> list[str]:
@@ -486,6 +528,18 @@ def score_entry(entry: dict[str, Any], feed: dict[str, Any] | None = None) -> di
     elif locations and all("summary" in fields and "title" not in fields for fields in locations.values()):
         score -= 1
         reasons.append("summary_only_keyword_match")
+    must_locations = entry.get("matched_must_keyword_locations", {})
+    should_locations = remove_overlapping_keyword_locations(
+        entry.get("matched_should_keyword_locations", {}),
+        locations,
+        must_locations,
+    )
+    if should_locations:
+        score += min(2, len(should_locations))
+        reasons.append("should_keyword_match")
+        if any("title" in fields for fields in should_locations.values()):
+            score += 1
+            reasons.append("title_should_keyword_match")
     if parse_datetime(entry.get("published_at")):
         score += 1
         reasons.append("has_publication_date")
@@ -943,7 +997,13 @@ def sort_scored_entries(entries: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 def score_entries(entries: list[dict[str, Any]], registry: dict[str, Any]) -> list[dict[str, Any]]:
     feed_lookup = {feed.get("id"): feed for feed in registry.get("feeds", [])}
-    return [score_entry(entry, feed_lookup.get(entry.get("feed_id", ""), {})) for entry in entries]
+    scored_entries = []
+    for entry in entries:
+        feed = feed_lookup.get(entry.get("feed_id", ""), {})
+        scored = score_entry(entry, feed)
+        scored["topic"] = assign_topic(scored, feed)
+        scored_entries.append(scored)
+    return scored_entries
 
 
 def command_import_opml(args: argparse.Namespace) -> int:

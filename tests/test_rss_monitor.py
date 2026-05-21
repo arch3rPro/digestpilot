@@ -336,6 +336,56 @@ class RssMonitorTests(unittest.TestCase):
 
         self.assertGreater(title_score, summary_score)
 
+    def test_assign_topic_uses_entry_text_and_feed_category(self):
+        ai_entry = {"title": "LLM evals", "summary": "Reasoning benchmark", "feed_id": "ai"}
+        security_entry = {"title": "Supply chain breach", "summary": "Security incident", "feed_id": "sec"}
+        feed_lookup = {
+            "ai": {"category": ["AI, Research, and High-Signal Analysis"]},
+            "sec": {"category": ["Security and Risk"]},
+        }
+
+        self.assertEqual(self.mod.assign_topic(ai_entry, feed_lookup["ai"]), "AI / LLM")
+        self.assertEqual(self.mod.assign_topic(security_entry, feed_lookup["sec"]), "Security")
+
+    def test_assign_topic_prefers_entry_text_over_feed_category(self):
+        entry = {"title": "Supply chain breach", "summary": "Security incident", "feed_id": "mixed"}
+        feed = {"category": ["AI, Research, and High-Signal Analysis"]}
+
+        self.assertEqual(self.mod.assign_topic(entry, feed), "Security")
+
+    def test_should_keyword_match_adds_score_reason(self):
+        entry = {
+            "title": "LLM reliability benchmark",
+            "summary": "Inference notes.",
+            "published_at": "2026-05-20T08:00:00+00:00",
+            "link": "https://example.com/llm",
+            "feed_id": "test",
+            "matched_should_keywords": ["benchmark"],
+            "matched_should_keyword_locations": {"benchmark": ["title"]},
+        }
+
+        scored = self.mod.score_entry(entry, feed={"base_score": 5})
+
+        self.assertIn("should_keyword_match", scored["score_reasons"])
+        self.assertGreaterEqual(scored["score"], 7)
+
+    def test_should_keyword_scoring_ignores_already_counted_keywords(self):
+        entry = {
+            "title": "LLM benchmark",
+            "summary": "Inference notes.",
+            "published_at": "2026-05-20T08:00:00+00:00",
+            "link": "https://example.com/llm",
+            "feed_id": "test",
+            "matched_keyword_locations": {"benchmark": ["title"]},
+            "matched_must_keyword_locations": {"llm": ["title"]},
+            "matched_should_keyword_locations": {"benchmark": ["title"], "llm": ["title"]},
+        }
+
+        scored = self.mod.score_entry(entry, feed={"base_score": 5})
+
+        self.assertNotIn("should_keyword_match", scored["score_reasons"])
+        self.assertNotIn("title_should_keyword_match", scored["score_reasons"])
+
     def test_import_opml_applies_source_metadata(self):
         metadata = {
             "simon-willison": {
