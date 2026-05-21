@@ -74,6 +74,7 @@ TOPIC_KEYWORDS = {
     "Security": {"security", "breach", "vulnerability", "malware", "risk", "incident", "exploit"},
     "Product / Business": {"product", "business", "startup", "strategy", "pricing", "market", "platform"},
 }
+TOPIC_ORDER = ["AI / LLM", "Engineering", "Security", "Product / Business", "Other"]
 
 DIGEST_PRESETS = {
     "ai-strict": {
@@ -205,6 +206,14 @@ def assign_topic(entry: dict[str, Any], feed: dict[str, Any] | None = None) -> s
         if topic != "Other":
             return topic
     return "Other"
+
+
+def group_entries_by_topic(entries: list[dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:
+    groups = {topic: [] for topic in TOPIC_ORDER}
+    for entry in entries:
+        topic = entry.get("topic") or "Other"
+        groups.setdefault(topic, []).append(entry)
+    return groups
 
 
 def remove_overlapping_keyword_locations(
@@ -867,19 +876,55 @@ def render_markdown_digest(entries: list[dict[str, Any]], title: str = "RSS AI D
         lines.append("No matching entries found.")
         return "\n".join(lines) + "\n"
     for index, entry in enumerate(ranked, start=1):
-        reasons = ", ".join(entry.get("score_reasons", [])) or "matched filters"
-        lines.append(f"{index}. [{entry.get('title', 'Untitled')}]({entry.get('link', '')})")
-        lines.append(f"   - Score: {entry.get('score', 0)}/10")
-        lines.append(f"   - Source: {entry.get('feed_title') or entry.get('feed_id', '')}")
-        if entry.get("author"):
-            lines.append(f"   - Author: {entry['author']}")
-        lines.append(f"   - Reason: {reasons}")
+        lines.extend(render_markdown_entry_lines(index, entry))
     return "\n".join(lines) + "\n"
 
 
+def render_markdown_entry_lines(index: int, entry: dict[str, Any]) -> list[str]:
+    reasons = ", ".join(entry.get("score_reasons", [])) or "matched filters"
+    lines = [f"{index}. [{entry.get('title', 'Untitled')}]({entry.get('link', '')})"]
+    lines.append(f"   - Score: {entry.get('score', 0)}/10")
+    lines.append(f"   - Source: {entry.get('feed_title') or entry.get('feed_id', '')}")
+    if entry.get("author"):
+        lines.append(f"   - Author: {entry['author']}")
+    lines.append(f"   - Reason: {reasons}")
+    return lines
+
+
 def render_markdown_digest_result(result: dict[str, Any], title: str = "RSS AI Digest") -> str:
-    lines = [render_markdown_digest(result.get("entries", []), title).rstrip()]
+    entries = sort_scored_entries(result.get("entries", []))
+    failures = result.get("failures", [])
     stats = result.get("stats", {})
+    groups = group_entries_by_topic(entries)
+    top_topics = [topic for topic, items in groups.items() if items][:3]
+
+    lines = [f"## {title}", "", "### Overview", ""]
+    lines.append(f"- Reported entries: {len(entries)}")
+    lines.append(f"- Top topics: {', '.join(top_topics) if top_topics else 'None'}")
+    lines.append(f"- Failed feeds: {len(failures)}")
+    lines.extend(["", "### Top Picks", ""])
+    if entries:
+        for index, entry in enumerate(entries[:5], start=1):
+            lines.extend(render_markdown_entry_lines(index, entry))
+    else:
+        lines.append("No matching entries found.")
+
+    for topic in TOPIC_ORDER:
+        topic_entries = groups.get(topic, [])
+        if not topic_entries:
+            continue
+        lines.extend(["", f"### {topic}", ""])
+        for index, entry in enumerate(topic_entries, start=1):
+            lines.extend(render_markdown_entry_lines(index, entry))
+
+    if failures:
+        lines.extend(["", "### Failed feeds", ""])
+        for failure in failures:
+            label = failure.get("title") or failure.get("id", "unknown")
+            error = failure.get("error", "")
+            url = failure.get("url", "")
+            suffix = f" ({url})" if url else ""
+            lines.append(f"- {label}{suffix}: {error}")
     if stats:
         lines.extend(
             [
@@ -891,15 +936,6 @@ def render_markdown_digest_result(result: dict[str, Any], title: str = "RSS AI D
                 f"- Seen state: {stats.get('entries_marked_seen', 0)} entries marked seen",
             ]
         )
-    failures = result.get("failures", [])
-    if failures:
-        lines.extend(["", "### Failed feeds", ""])
-        for failure in failures:
-            label = failure.get("title") or failure.get("id", "unknown")
-            error = failure.get("error", "")
-            url = failure.get("url", "")
-            suffix = f" ({url})" if url else ""
-            lines.append(f"- {label}{suffix}: {error}")
     return "\n".join(lines) + "\n"
 
 

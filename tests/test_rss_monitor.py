@@ -799,6 +799,50 @@ class RssMonitorTests(unittest.TestCase):
         self.assertIn("No matching entries found.", markdown)
         self.assertIn("### Failed feeds", markdown)
         self.assertIn("Broken Feed", markdown)
+        self.assertNotIn("### AI / LLM", markdown)
+
+    def test_markdown_digest_result_groups_entries_by_topic(self):
+        result = {
+            "entries": [
+                {
+                    "title": "LLM evals",
+                    "link": "https://example.com/ai",
+                    "feed_title": "AI Feed",
+                    "score": 9,
+                    "score_reasons": ["should_keyword_match"],
+                    "topic": "AI / LLM",
+                },
+                {
+                    "title": "Debugging production systems",
+                    "link": "https://example.com/eng",
+                    "feed_title": "Engineering Feed",
+                    "score": 8,
+                    "score_reasons": ["technical_depth_signal"],
+                    "topic": "Engineering",
+                },
+            ],
+            "failures": [],
+            "health": {},
+            "stats": {
+                "feeds_success": 2,
+                "feeds_failed": 0,
+                "feeds_enabled": 2,
+                "entries_fetched": 2,
+                "entries_filtered": 2,
+                "entries_reported": 2,
+                "entries_marked_seen": 2,
+            },
+            "generated_at": "2026-05-20T08:00:00+00:00",
+        }
+
+        markdown = self.mod.render_markdown_digest_result(result, title="Test Digest")
+
+        self.assertIn("### Overview", markdown)
+        self.assertIn("### Top Picks", markdown)
+        self.assertLess(markdown.index("### AI / LLM"), markdown.index("### Engineering"))
+        self.assertIn("LLM evals", markdown)
+        self.assertIn("Debugging production systems", markdown)
+        self.assertNotIn("### Security", markdown)
 
     def test_concurrent_fetch_matches_serial_fetch_for_controlled_feeds(self):
         registry = {
