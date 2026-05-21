@@ -5,6 +5,7 @@ export interface EvidenceBrief {
   time_window: string;
   generated_at: string;
   sources_scanned: number;
+  source_health_summary: SourceHealthSummary;
   evidence_count: number;
   selection_criteria: {
     must_keywords: string[];
@@ -19,6 +20,16 @@ export interface EvidenceBrief {
   suggested_next_questions: string[];
 }
 
+export interface SourceHealthSummary {
+  checked: number;
+  succeeded: number;
+  failed: number;
+  failed_sample: Array<{
+    id: string;
+    error: string;
+  }>;
+}
+
 export function renderEvidenceMarkdown(brief: EvidenceBrief): string {
   const lines = [
     `# Evidence Brief: ${brief.question}`,
@@ -28,6 +39,7 @@ export function renderEvidenceMarkdown(brief: EvidenceBrief): string {
     `- Time window: ${brief.time_window}`,
     `- Generated at: ${brief.generated_at}`,
     `- Sources scanned: ${brief.sources_scanned}`,
+    `- Source health: ${brief.source_health_summary.succeeded} succeeded, ${brief.source_health_summary.failed} failed`,
     `- Evidence items: ${brief.evidence_count}`,
     `- Selection criteria: must=${brief.selection_criteria.must_keywords.join(", ") || "none"}; should=${brief.selection_criteria.should_keywords.join(", ") || "none"}`,
     "",
@@ -51,7 +63,16 @@ export function renderEvidenceMarkdown(brief: EvidenceBrief): string {
     lines.push("");
   }
 
-  lines.push("## Source Notes", "- Strong sources:", "- Weak/noisy sources:", "- Failed sources:", "");
+  lines.push("## Source Notes", "- Strong sources:", "- Weak/noisy sources:");
+  if (brief.source_health_summary.failed_sample.length > 0) {
+    lines.push("- Failed sources:");
+    for (const item of brief.source_health_summary.failed_sample) {
+      lines.push(`  - ${item.id}: ${item.error}`);
+    }
+  } else {
+    lines.push("- Failed sources: none recorded");
+  }
+  lines.push("");
   lines.push("## Gaps", "- Missing perspectives:", "- Thin evidence:", "- Sources to add:", "");
   lines.push("## Suggested Next Questions", "- Agent-fillable from evidence.");
   return `${lines.join("\n")}\n`;

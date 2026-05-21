@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { renderEvidenceMarkdown, type EvidenceBrief } from "../evidence/render.js";
+import { renderEvidenceMarkdown, type EvidenceBrief, type SourceHealthSummary } from "../evidence/render.js";
 import { selectEvidence } from "../evidence/select.js";
 import { openResearchDb } from "../workspace/db.js";
 import { getWorkspacePaths } from "../workspace/paths.js";
@@ -33,11 +33,13 @@ export async function createEvidenceBrief(
       limit: options.limit
     });
     const now = new Date().toISOString();
+    const sourceHealthSummary = await loadSourceHealthSummary(paths.sourceHealthPath);
     const brief: EvidenceBrief = {
       question: options.question,
       time_window: options.since,
       generated_at: now,
-      sources_scanned: Number((db.prepare("select count(*) as count from sources").get() as { count: number }).count),
+      sources_scanned: sourceHealthSummary.checked || Number((db.prepare("select count(*) as count from sources").get() as { count: number }).count),
+      source_health_summary: sourceHealthSummary,
       evidence_count: evidence.length,
       selection_criteria: {
         must_keywords: splitCsv(options.mustKeywords),
@@ -104,4 +106,32 @@ function slugify(value: string): string {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
+}
+
+async function loadSourceHealthSummary(path: string): Promise<SourceHealthSummary> {
+  try {
+    const health = JSON.parse(await readFile(path, "utf8")) as Record<string, Record<string, unknown>>;
+    const entries = Object.entries(health);
+    const failed = entries.filter(([, value]) => Number(value.failure_count || 0) > 0 || value.status === "failing");
+    const succeeded = entries.filter(
+      ([, value]) =>
+        Number(value.success_count || 0) > 0 ||
+        value.status === "healthy" ||
+        (typeof value.last_success_at === "string" && Number(value.failure_count || 0) === 0)
+    );
+    return {
+      checked: entries.length,
+      succeeded: succeeded.length,
+      failed: failed.length,
+      failed_sample: failed.slice(0, 10).map(([id, value]) => ({
+        id,
+        error: String(value.last_error || "unknown error")
+      }))
+    };
+  } catch (error) {
+    if (error && typeof error === "object" && "code" in error && error.code === "ENOENT") {
+      return { checked: 0, succeeded: 0, failed: 0, failed_sample: [] };
+    }
+    throw error;
+  }
 }

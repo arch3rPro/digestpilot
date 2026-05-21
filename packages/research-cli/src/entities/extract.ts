@@ -59,8 +59,21 @@ function extractCandidateNames(text: string): string[] {
   ];
   for (const pattern of patterns) {
     for (const match of text.matchAll(pattern)) {
-      candidates.add(match[0]);
+      const candidate = match[0];
+      if (isUsefulCandidate(candidate)) {
+        candidates.add(candidate);
+      }
     }
   }
   return Array.from(candidates).sort();
+}
+
+function isUsefulCandidate(candidate: string): boolean {
+  if (candidate.includes("/")) return false;
+  if (/^\d/.test(candidate)) return false;
+  if (/^\d{4}$/.test(candidate)) return false;
+  if (/^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\/?\d*$/i.test(candidate)) return false;
+  if (/^[A-Z]{1,2}$/.test(candidate)) return false;
+  if (/^[A-Z]{2,}$/.test(candidate) && candidate.length > 10) return false;
+  return true;
 }
