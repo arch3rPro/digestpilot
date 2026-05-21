@@ -3,12 +3,15 @@ import { appendFile } from "node:fs/promises";
 import type { ExtractedEntity } from "../entities/config.js";
 import { extractEntities } from "../entities/extract.js";
 import type { ResearchDatabase } from "../workspace/db.js";
-import type { RssDigestEntry, WorkspacePaths } from "../types.js";
+import type { RssDigestEntry, SourceHealthSummary, WorkspacePaths } from "../types.js";
 import type { EntityConfig } from "../entities/config.js";
 
 export interface ArchiveResult {
   entriesArchived: number;
   entitiesLinked: number;
+  runId?: string;
+  sourceHealthSummary?: SourceHealthSummary;
+  stats?: Record<string, number>;
 }
 
 export interface ArchiveOptions {

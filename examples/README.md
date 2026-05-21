@@ -65,6 +65,24 @@ Agent behavior:
 - Use `curate-sources` when the user needs reviewable maintenance actions.
 - Do not apply registry patches until the user reviews the recommendations.
 
+## Subscription Research Daily
+
+User request:
+
+```text
+Use subscription-research-agent to prepare today's AI technology research daily from local subscription evidence.
+Write it in Chinese with core judgments, top items, source health, and follow-up questions.
+```
+
+Agent behavior:
+
+- Use `skills/subscription-research-agent/SKILL.md` as the workflow entrypoint.
+- Initialize or reuse a local research workspace.
+- Ingest RSS evidence first, or read the latest evidence brief if one already exists for the requested window.
+- Generate or review an evidence brief before writing the final daily report.
+- Follow `skills/subscription-research-agent/references/daily-report.md`.
+- Keep the daily report in standard Markdown and do not publish it externally unless the user requests a channel.
+
 ## Apply Reviewed Source Patch
 
 User request:

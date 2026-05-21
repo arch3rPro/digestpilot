@@ -1,4 +1,4 @@
-import type { EvidenceItem } from "../types.js";
+import type { EvidenceItem, SourceHealthSummary } from "../types.js";
 
 export interface EvidenceBrief {
   question: string;
@@ -18,16 +18,6 @@ export interface EvidenceBrief {
   source_notes: Record<string, unknown>;
   gaps: string[];
   suggested_next_questions: string[];
-}
-
-export interface SourceHealthSummary {
-  checked: number;
-  succeeded: number;
-  failed: number;
-  failed_sample: Array<{
-    id: string;
-    error: string;
-  }>;
 }
 
 export function renderEvidenceMarkdown(brief: EvidenceBrief): string {

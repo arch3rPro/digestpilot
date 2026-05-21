@@ -35,13 +35,15 @@ test("ingestRssEnvelope archives entries to JSONL and SQLite", async () => {
       ],
       failures: [],
       health: {},
-      stats: { feeds_success: 1 },
+      stats: { feeds_total: 1, feeds_success: 1, feeds_failed: 0 },
       generated_at: "2026-05-21T00:00:00Z"
     };
 
     const result = await ingestRssEnvelope({ workspace, envelope });
     assert.equal(result.entriesArchived, 1);
     assert.equal(result.entitiesLinked > 0, true);
+    assert.equal(typeof result.runId, "string");
+    assert.deepEqual(result.sourceHealthSummary, { checked: 1, succeeded: 1, failed: 0, failed_sample: [] });
 
     const jsonl = await readFile(join(workspace, "data/articles.jsonl"), "utf8");
     assert.match(jsonl, /OpenAI LLM evals in production/);
@@ -59,6 +61,82 @@ test("ingestRssEnvelope archives entries to JSONL and SQLite", async () => {
 
       const entity = db.prepare("select name from entities where id = 'openai'").get() as { name: string };
       assert.equal(entity.name, "OpenAI");
+
+      const run = db.prepare("select * from research_runs where run_type = 'rss_ingest'").get() as {
+        question: string;
+        time_window: string;
+        stats_json: string;
+        source_health_summary_json: string;
+        archived_count: number;
+        entity_link_count: number;
+        status: string;
+      };
+      assert.equal(run.question, "RSS ingest");
+      assert.equal(run.time_window, "unspecified");
+      assert.deepEqual(JSON.parse(run.stats_json), { feeds_total: 1, feeds_success: 1, feeds_failed: 0 });
+      assert.deepEqual(JSON.parse(run.source_health_summary_json), {
+        checked: 1,
+        succeeded: 1,
+        failed: 0,
+        failed_sample: []
+      });
+      assert.equal(run.archived_count, 1);
+      assert.equal(run.entity_link_count > 0, true);
+      assert.equal(run.status, "completed");
+    } finally {
+      db.close();
+    }
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("ingestRssEnvelope persists failed source health samples from envelope health", async () => {
+  const root = await mkdtemp(join(tmpdir(), "subscription-research-"));
+  const workspace = join(root, "workspace");
+  try {
+    await initWorkspace({ workspace });
+    const result = await ingestRssEnvelope({
+      workspace,
+      timeWindow: "24h",
+      criteria: {
+        channel: "rss",
+        since: "24h",
+        must_keywords: "llm,agent",
+        min_score: 8
+      },
+      envelope: {
+        entries: [],
+        health: {
+          good: { status: "healthy", success_count: 2, failure_count: 0 },
+          bad: { status: "failing", success_count: 0, failure_count: 3, last_error: "HTTP 503" }
+        },
+        stats: { feeds_total: 2, feeds_success: 1, feeds_failed: 1 },
+        generated_at: "2026-05-21T00:00:00Z"
+      }
+    });
+
+    assert.equal(result.entriesArchived, 0);
+    assert.deepEqual(result.sourceHealthSummary, {
+      checked: 2,
+      succeeded: 1,
+      failed: 1,
+      failed_sample: [{ id: "bad", error: "HTTP 503" }]
+    });
+
+    const db = new Database(join(workspace, "data/research.db"), { readonly: true });
+    try {
+      const run = db.prepare("select criteria_json, source_health_summary_json from research_runs").get() as {
+        criteria_json: string;
+        source_health_summary_json: string;
+      };
+      assert.deepEqual(JSON.parse(run.criteria_json), {
+        channel: "rss",
+        since: "24h",
+        must_keywords: "llm,agent",
+        min_score: 8
+      });
+      assert.deepEqual(JSON.parse(run.source_health_summary_json), result.sourceHealthSummary);
     } finally {
       db.close();
     }

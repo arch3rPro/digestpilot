@@ -16,8 +16,10 @@ Use this skill to orchestrate local-first research workflows around subscription
 - For local research workspace setup, run `subscription-research init`.
 - For archiving RSS results into the research workspace, run `subscription-research ingest rss`.
 - For source-backed research context, run `subscription-research brief evidence`.
+- For a daily research report or subscription daily, generate or read an evidence brief first, then follow `references/daily-report.md`.
 - For workspace structure, read `references/research-workspace.md`.
 - For evidence brief fields, read `references/evidence-brief.md`.
+- For daily report quality and structure, read `references/daily-report.md`.
 
 ## Core Commands
 
@@ -41,3 +43,5 @@ subscription-research brief evidence \
 ## Boundaries
 
 This skill does not promise a final research conclusion from deterministic tooling alone. Treat generated briefs as evidence packages. The Agent should cite evidence items when writing a memo or report.
+
+Daily reports are Agent-written synthesis artifacts. The CLI prepares evidence; the Agent owns judgment, source caveats, recommended reading order, and follow-up questions.

@@ -21,10 +21,12 @@
 ### Local-first Subscription Research Agent
 
 - `v0.3` 引入 `subscription-research-agent` 作为研究编排 Skill。
-- 新增 research workspace 与 evidence brief 契约文档。
+- 新增 research workspace、evidence brief 与 daily report 契约文档。
 - 本地 research workspace 使用 SQLite、JSONL、JSON 和 Markdown。
 - CLI 生成 evidence brief，不直接生成最终研究报告。
+- 研究日报由 Agent 基于 evidence brief 写作，遵循稳定章节、来源边界、阅读顺序和后续问题契约。
 - Node/TypeScript `subscription-research` CLI 是 `v0.3` 的本地执行层，用于 workspace 初始化、RSS evidence ingest、entity extraction 和 evidence brief generation。
+- RSS ingest run 已写入 SQLite `research_runs`，记录筛选条件、RSS worker stats、source health 摘要、归档数量和实体链接数量。
 
 ### 项目与 Skill 基础
 
@@ -137,7 +139,7 @@
 
 ### 测试与验证
 
-- 已有单元测试覆盖：
+- 已有 Python 单元测试覆盖：
   - OPML 导入。
   - RSS 和 Atom 解析。
   - 关键词、作者、日期筛选。
@@ -150,7 +152,8 @@
   - 并发抓取。
   - deterministic ordering。
   - source evaluation。
-- 当前测试数量：34 个。
+- 当前 Python RSS monitor 测试数量：44 个。
+- 当前 Node research CLI 测试数量：10 个。
 - Skill validator 已通过。
 - 已有 post-optimization validation 文档记录真实性能和输出表现。
 
@@ -224,7 +227,7 @@
 
 ### 内容处理与摘要
 
-当前处理的是 feed entry 元数据和 feed summary，不做完整正文处理。
+当前处理的是 feed entry 元数据和 feed summary，不做完整正文处理。`subscription-research-agent` 已提供日报写作契约，但日报综合仍由 Agent 基于 evidence brief 完成。
 
 尚未实现：
 
@@ -232,8 +235,8 @@
 - HTML 正文清洗。
 - 可读性抽取。
 - 长 summary 截断模式。
-- 自动中文摘要。
-- 自动生成日报导语。
+- deterministic CLI 自动中文摘要。
+- deterministic CLI 自动生成最终日报。
 - 内容质量的 LLM 评审。
 
 ### 插件市场与 Claude 插件
@@ -248,11 +251,10 @@
 
 ### 数据层与多用户
 
-当前使用 JSON 文件作为轻量数据层。
+RSS digest 侧仍使用 JSON 文件作为轻量状态层。`subscription-research-agent` 的本地研究工作区已引入 SQLite、JSONL、JSON 配置和 Markdown 输出。
 
 尚未实现：
 
-- SQLite 或数据库存储。
 - 多用户 profile。
 - 多工作区配置。
 - 长期趋势分析。

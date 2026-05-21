@@ -38,6 +38,7 @@
 - 围绕订阅来源初始化本地优先 research workspace。
 - 将 RSS evidence 归档到可查询的本地记忆。
 - 生成带来源依据的 evidence brief，用于后续研究 memo 写作。
+- 基于 evidence brief 写作包含来源边界、核心判断和后续问题的研究日报。
 
 它目前不是完整 RSS 阅读器、通知中心、后台调度服务、托管研究平台或插件市场成品。这些能力后续可以作为 wrapper 或独立 Skill 扩展。
 
@@ -47,7 +48,7 @@
 | --- | --- |
 | `rss-ai-digest` | 发现、筛选、评分、去重并生成高信号 AI/技术阅读摘要。 |
 | `rss-source-curator` | 评估 RSS 源质量、审查源健康、生成源治理动作，并应用已审阅 registry patch。 |
-| `subscription-research-agent` | 围绕订阅来源编排本地优先 evidence brief，用于研究工作流。 |
+| `subscription-research-agent` | 围绕订阅来源编排本地优先 evidence brief 和 Agent 写作的研究日报。 |
 
 ## v0.2.0 准备范围
 
@@ -59,7 +60,9 @@
 
 - `subscription-research-agent` 增加本地订阅研究工作流的高层编排入口。
 - evidence brief 被视为带来源依据的上下文包，而不是最终研究结论。
+- 研究日报是 Agent 基于 evidence brief 写作的综合产物，包含稳定的核心判断、重点资讯、信息源健康和后续跟踪问题。
 - research workspace 采用本地优先设计，使用 SQLite、JSONL、JSON 配置和 Markdown 输出。
+- RSS ingest run 会写入 SQLite，记录筛选条件、worker stats、source health 摘要、归档数量和实体链接数量。
 - `subscription-research` CLI 契约保持文件化，便于不同 Agent runtime 包装且不改变 Skill core。
 
 ## Skill 包结构
@@ -87,6 +90,7 @@ skills/subscription-research-agent/
 ├── SKILL.md
 ├── agents/openai.yaml
 └── references/
+    ├── daily-report.md
     ├── evidence-brief.md
     └── research-workspace.md
 ```
@@ -118,13 +122,13 @@ skills/subscription-research-agent/
 - Agent runtime 应按需加载或复制 `skills/` 下的目录。
 - 使用 `skills/rss-ai-digest/` 进行内容发现和日报生成。
 - 使用 `skills/rss-source-curator/` 进行源治理和 registry 维护。
-- 使用 `skills/subscription-research-agent/` 进行本地优先 evidence brief 编排。
+- 使用 `skills/subscription-research-agent/` 进行本地优先 evidence brief 编排和研究日报综合写作。
 - 人类维护者应把 [`README.zh-CN.md`](./README.zh-CN.md)、[`AGENTS.md`](./AGENTS.md) 和 [`CHANGELOG.md`](./CHANGELOG.md) 作为项目级文档。
 - 除非项目明确进入插件打包阶段，否则运行时专用 wrapper 应保持在 Skill core 之外。
 
 ## Research CLI
 
-`packages/research-cli/` 是 v0.3 本地优先 `subscription-research` CLI 的 package 位置。它负责 research workspace、SQLite schema、RSS evidence ingest、entity extraction 和 evidence brief 生成。`v0.3` 阶段继续调用现有 Python RSS worker，不重写 RSS parser。
+`packages/research-cli/` 是 v0.3 本地优先 `subscription-research` CLI 的 package 位置。它负责 research workspace、SQLite schema、RSS evidence ingest、ingest-run metadata、entity extraction 和 evidence brief 生成。`v0.3` 阶段继续调用现有 Python RSS worker，不重写 RSS parser。最终研究日报仍由 Agent 基于 evidence brief 写作，并遵循 Skill reference 契约。
 
 ## 能力概览
 
@@ -146,7 +150,7 @@ skills/subscription-research-agent/
 
 ## Agent 工作流
 
-1. 按任务选择 Skill 入口：内容发现和日报使用 [`rss-ai-digest`](./skills/rss-ai-digest/SKILL.md)，源治理使用 [`rss-source-curator`](./skills/rss-source-curator/SKILL.md)，evidence brief 工作流使用 [`subscription-research-agent`](./skills/subscription-research-agent/SKILL.md)。
+1. 按任务选择 Skill 入口：内容发现和摘要使用 [`rss-ai-digest`](./skills/rss-ai-digest/SKILL.md)，源治理使用 [`rss-source-curator`](./skills/rss-source-curator/SKILL.md)，evidence brief 和研究日报工作流使用 [`subscription-research-agent`](./skills/subscription-research-agent/SKILL.md)。
 2. 需要初始订阅源时，使用 [`skills/rss-ai-digest/references/base-feeds.opml`](./skills/rss-ai-digest/references/base-feeds.opml)。
 3. 将 `feeds.json`、`seen.json`、`source-health.json` 等运行时文件保留在 Git 之外。
 4. 用户可读日报优先输出 Markdown；自动化管道优先输出 JSON。
@@ -173,6 +177,8 @@ Agent 和 wrapper 可以通过 `scripts/rss_monitor.py` 调用确定性实现。
 | `init` | 初始化本地 research workspace。 |
 | `ingest rss` | 将 RSS evidence 归档到 research workspace。 |
 | `brief evidence` | 基于本地 workspace 数据生成带来源依据的 evidence brief。 |
+
+CLI 本身不直接生成最终研究报告。Agent 应基于 evidence brief，并参考 `subscription-research-agent` 的日报契约写作日报。
 
 最小初始化：
 
@@ -220,6 +226,7 @@ python3 skills/rss-ai-digest/scripts/rss_monitor.py digest \
 - [`rss-source-curator` registry 维护](./skills/rss-source-curator/references/registry-maintenance.md)
 - [`subscription-research-agent` research workspace](./skills/subscription-research-agent/references/research-workspace.md)
 - [`subscription-research-agent` evidence brief contract](./skills/subscription-research-agent/references/evidence-brief.md)
+- [`subscription-research-agent` daily report contract](./skills/subscription-research-agent/references/daily-report.md)
 - [`rss-ai-digest` 源元数据种子](./skills/rss-ai-digest/references/source-metadata.json)
 
 项目维护文档：

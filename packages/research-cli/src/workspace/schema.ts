@@ -1,5 +1,7 @@
 import type { ResearchDatabase } from "./db.js";
 
+const SCHEMA_VERSION = 2;
+
 const statements = [
   `create table if not exists schema_version (
     version integer not null,
@@ -78,9 +80,15 @@ const statements = [
   )`,
   `create table if not exists research_runs (
     id text primary key,
+    run_type text not null default 'evidence',
     question text not null,
     time_window text not null,
     criteria_json text not null,
+    stats_json text not null default '{}',
+    source_health_summary_json text not null default '{}',
+    archived_count integer not null default 0,
+    entity_link_count integer not null default 0,
+    status text not null default 'completed',
     started_at text not null,
     completed_at text,
     output_markdown_path text,
@@ -106,14 +114,42 @@ export function applySchema(db: ResearchDatabase): void {
       db.prepare(statement).run();
     }
 
+    migrateResearchRuns(db);
+
     const row = db
       .prepare("select version from schema_version order by version desc limit 1")
       .get() as { version: number } | undefined;
 
-    if (!row) {
-      db.prepare("insert into schema_version (version, applied_at) values (?, ?)").run(1, new Date().toISOString());
+    if (!row || row.version < SCHEMA_VERSION) {
+      db.prepare("insert into schema_version (version, applied_at) values (?, ?)").run(
+        SCHEMA_VERSION,
+        new Date().toISOString()
+      );
     }
   });
 
   transaction();
+}
+
+function migrateResearchRuns(db: ResearchDatabase): void {
+  const columns = new Set(
+    (db.prepare("pragma table_info(research_runs)").all() as Array<{ name: string }>).map((column) => column.name)
+  );
+  const migrations: Array<[string, string]> = [
+    ["run_type", "alter table research_runs add column run_type text not null default 'evidence'"],
+    ["stats_json", "alter table research_runs add column stats_json text not null default '{}'"],
+    [
+      "source_health_summary_json",
+      "alter table research_runs add column source_health_summary_json text not null default '{}'"
+    ],
+    ["archived_count", "alter table research_runs add column archived_count integer not null default 0"],
+    ["entity_link_count", "alter table research_runs add column entity_link_count integer not null default 0"],
+    ["status", "alter table research_runs add column status text not null default 'completed'"]
+  ];
+
+  for (const [column, statement] of migrations) {
+    if (!columns.has(column)) {
+      db.prepare(statement).run();
+    }
+  }
 }

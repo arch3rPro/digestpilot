@@ -14,7 +14,7 @@ Keep the repository platform-neutral. Do not make core behavior depend on Codex,
 - `skills/rss-source-curator/SKILL.md`: source governance Skill entrypoint.
 - `skills/rss-source-curator/references/`: source governance and registry maintenance references.
 - `skills/subscription-research-agent/SKILL.md`: local-first research orchestration Skill entrypoint.
-- `skills/subscription-research-agent/references/`: research workspace and evidence brief contract references.
+- `skills/subscription-research-agent/references/`: research workspace, evidence brief, and daily report contract references.
 - `packages/research-cli/`: Node/TypeScript CLI package for research workspace, SQLite, ingestion archive, and evidence brief generation.
 - `tests/test_rss_monitor.py`: regression tests for the RSS monitor script.
 - `README.md`: human-facing project overview and quick start.
@@ -60,6 +60,7 @@ git diff --check
 - Prefer Python standard library for MVP functionality.
 - Keep core scripts platform-neutral and callable from any agent runtime.
 - Keep research workspace tooling local-first and file-based; do not require hosted storage or a single notes app.
+- Keep final research daily reports Agent-written; deterministic tooling should prepare evidence and stable workspace paths, not pretend to produce final conclusions on its own.
 - Use explicit file paths for registry, state, health, and output files.
 - Keep local runtime outputs out of Git. Examples: `feeds.json`, `seen.json`, `source-health.json`, `digest.md`, `latest.json`, `rss-output/`, `research-workspace/`.
 - Preserve the standard Skill layout: `skills/<skill-name>/SKILL.md`.

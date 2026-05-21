@@ -23,11 +23,22 @@ export interface RssDigestEnvelope {
   generated_at?: string;
 }
 
+export interface SourceHealthSummary {
+  checked: number;
+  succeeded: number;
+  failed: number;
+  failed_sample: Array<{
+    id: string;
+    error: string;
+  }>;
+}
+
 export interface WorkspacePaths {
   root: string;
   dataDir: string;
   notesDir: string;
   briefsDir: string;
+  dailyDir: string;
   exportsDir: string;
   jsonExportsDir: string;
   configDir: string;

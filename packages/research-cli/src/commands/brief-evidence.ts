@@ -1,7 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { renderEvidenceMarkdown, type EvidenceBrief, type SourceHealthSummary } from "../evidence/render.js";
+import { renderEvidenceMarkdown, type EvidenceBrief } from "../evidence/render.js";
+import type { SourceHealthSummary } from "../types.js";
 import { selectEvidence } from "../evidence/select.js";
 import { openResearchDb } from "../workspace/db.js";
 import { getWorkspacePaths } from "../workspace/paths.js";
