@@ -1,6 +1,6 @@
 import type { ResearchDatabase } from "./db.js";
 
-const SCHEMA_VERSION = 3;
+const SCHEMA_VERSION = 4;
 
 const statements = [
   `create table if not exists schema_version (
@@ -108,7 +108,24 @@ const statements = [
     primary key(run_id, article_id),
     foreign key(run_id) references research_runs(id),
     foreign key(article_id) references articles(id)
-  )`
+  )`,
+  `create table if not exists source_health_observations (
+    run_id text not null,
+    source_id text not null,
+    status text not null,
+    success_count integer not null default 0,
+    failure_count integer not null default 0,
+    last_success_at text,
+    last_error_at text,
+    last_error text,
+    observed_at text not null,
+    raw_json text not null,
+    primary key(run_id, source_id),
+    foreign key(run_id) references research_runs(id),
+    foreign key(source_id) references sources(id)
+  )`,
+  `create index if not exists source_health_observations_source_id_idx
+    on source_health_observations (source_id, observed_at)`
 ];
 
 export function applySchema(db: ResearchDatabase): void {

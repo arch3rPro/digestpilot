@@ -58,6 +58,7 @@ export async function ingestRssEnvelope(options: IngestRssEnvelopeOptions): Prom
       startedAt: options.startedAt ?? options.envelope.generated_at ?? new Date().toISOString(),
       timeWindow: options.timeWindow ?? options.criteria?.since ?? "unspecified"
     });
+    persistSourceHealthObservations(db, runId, options.envelope);
     return { ...archiveResult, runId, sourceHealthSummary, stats: options.envelope.stats ?? {} };
   } finally {
     db.close();
@@ -188,4 +189,60 @@ function numberFromStats(stats: Record<string, number> | undefined, key: string)
 
 function cleanObject(input: IngestRunCriteria): IngestRunCriteria {
   return Object.fromEntries(Object.entries(input).filter(([, value]) => value !== undefined && value !== "")) as IngestRunCriteria;
+}
+
+function persistSourceHealthObservations(
+  db: ReturnType<typeof openResearchDb>,
+  runId: string,
+  envelope: RssDigestEnvelope
+): void {
+  const observedAt = envelope.generated_at ?? new Date().toISOString();
+  const upsertSource = db.prepare(`
+    insert into sources (id, title, url, type, category_json, created_at, updated_at)
+    values (@id, @title, '', 'rss', '[]', @now, @now)
+    on conflict(id) do update set updated_at = excluded.updated_at
+  `);
+  const insertObservation = db.prepare(`
+    insert or replace into source_health_observations (
+      run_id, source_id, status, success_count, failure_count, last_success_at,
+      last_error_at, last_error, observed_at, raw_json
+    )
+    values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+
+  for (const [sourceId, value] of Object.entries((envelope.health ?? {}) as Record<string, Record<string, unknown>>)) {
+    const status = sourceStatus(value);
+    upsertSource.run({
+      id: sourceId,
+      title: String(value.title || sourceId),
+      now: observedAt
+    });
+    insertObservation.run(
+      runId,
+      sourceId,
+      status,
+      numericValue(value.success_count),
+      numericValue(value.failure_count),
+      stringValue(value.last_success_at),
+      stringValue(value.last_error_at),
+      stringValue(value.last_error),
+      observedAt,
+      JSON.stringify(value)
+    );
+  }
+}
+
+function sourceStatus(value: Record<string, unknown>): string {
+  if (typeof value.status === "string" && value.status) return value.status;
+  if (isFailedHealth(value)) return "failing";
+  if (isSucceededHealth(value)) return "healthy";
+  return "unknown";
+}
+
+function numericValue(value: unknown): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+
+function stringValue(value: unknown): string {
+  return typeof value === "string" ? value : "";
 }

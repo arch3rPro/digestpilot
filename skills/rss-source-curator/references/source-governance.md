@@ -26,6 +26,16 @@
 - `disable`: repeated failures suggest setting `enabled` to `false` after review.
 - `remove`: source is a removal candidate after explicit review.
 
+## Historical Observations
+
+When a local research workspace is available, `subscription-research source-health` summarizes repeated per-source observations from RSS ingest runs:
+
+- `keep`: repeated successful observations.
+- `watch`: intermittent failures that need more observations or timeout/retry tuning.
+- `disable_candidate`: persistent failures across the available observations.
+
+`disable_candidate` is still not permission to mutate a registry. It is a review signal for `rss-source-curator`.
+
 ## Safety Rule
 
 Recommendations are not permission to mutate a registry. Use `apply-source-patch` only after review.

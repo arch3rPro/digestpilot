@@ -112,10 +112,13 @@ Regression action:
 
 The Agent can write a good report from evidence, but the shape is still manual.
 
-Next:
+Status: implemented as an Agent-facing report contract.
 
-- Add a `daily-report.md` reference or template under `skills/subscription-research-agent/references/`.
-- Include sections for key signals, recommended reading order, source reliability, and workflow notes.
+Implemented:
+
+- Added `skills/subscription-research-agent/references/daily-report.md`.
+- Added stable sections for run overview, key judgments, top items, reading order, source health, and follow-up questions.
+- Kept final daily report writing as Agent synthesis, not deterministic CLI output.
 
 ### Original Source Attribution
 
@@ -153,13 +156,19 @@ This keeps evidence brief generation and daily report writing connected to the i
 
 ### Source Governance Follow-up
 
-The daily run produced 15 source failures. It is not enough evidence to remove feeds.
+Status: implemented for historical observation and recommendation summaries.
 
-Next:
+Implemented:
 
-- Track repeated failures across multiple days.
-- Recommend retry/timeout tuning for high-value sources before recommending removal.
-- Feed this data into `rss-source-curator`.
+- RSS ingest now persists per-source observations in `source_health_observations`.
+- `subscription-research source-health` summarizes repeated observations.
+- Recommendations distinguish `keep`, `watch`, and `disable_candidate`.
+- `rss-source-curator` now documents these historical observations as review signals.
+
+Remaining:
+
+- Automatically generating reviewed registry patches from historical source-health summaries.
+- Incorporating source value and retry/timeout tuning into recommendations.
 
 ## Regression Status
 
@@ -183,6 +192,13 @@ Implemented in the follow-up attribution pass:
 - Conservative attribution inference added for common commentary title patterns.
 - Evidence brief output includes original and commentary source attribution.
 - Node tests added for attribution persistence and evidence rendering.
+
+Implemented in the follow-up source-health history pass:
+
+- Schema version advanced to 4 with `source_health_observations`.
+- RSS ingest persists per-source health snapshots for each run.
+- Added `subscription-research source-health` JSON/Markdown summaries.
+- Node tests added for persistent, intermittent, and healthy source recommendations.
 
 Real workspace regression check after the fix:
 

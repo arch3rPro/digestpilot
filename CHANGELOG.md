@@ -11,6 +11,7 @@ All notable project changes are recorded here.
 - Added a daily research report contract for Agent-written reports synthesized from evidence briefs.
 - Added SQLite persistence for RSS ingest runs, including criteria, RSS worker stats, source health summary, archived entries, and entity link counts.
 - Added conservative article source attribution for commentary and original sources in the research CLI archive and evidence brief output.
+- Added per-source health observation history and `subscription-research source-health` summaries for repeated source failure review.
 - Added the `packages/research-cli` Node/TypeScript CLI package for local workspace initialization, SQLite-backed evidence archive, RSS evidence ingest, entity extraction, and evidence brief generation.
 - Added public documentation for the v0.3 local-first subscription research Agent direction.
 
@@ -20,6 +21,7 @@ All notable project changes are recorded here.
 - Made the research workspace daily-report path explicit in the TypeScript workspace contract.
 - Advanced the research workspace schema to version 2 with migration support for RSS ingest run metadata.
 - Advanced the research workspace schema to version 3 with migration support for article attribution metadata.
+- Advanced the research workspace schema to version 4 with per-source health observation history.
 
 ## v0.2.0 - Unreleased
 

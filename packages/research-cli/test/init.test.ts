@@ -50,13 +50,14 @@ test("initWorkspace creates directories, config files, and schema", async () => 
           "evidence_items",
           "research_runs",
           "schema_version",
+          "source_health_observations",
           "sources",
           "topics"
         ]
       );
 
       const version = db.prepare("select version from schema_version").get() as { version: number };
-      assert.equal(version.version, 3);
+      assert.equal(version.version, 4);
 
       const runColumns = db.prepare("pragma table_info(research_runs)").all() as Array<{ name: string }>;
       assert.deepEqual(
@@ -116,7 +117,7 @@ test("initWorkspace migrates version 1 research metadata tables", async () => {
       const version = migrated
         .prepare("select version from schema_version order by version desc limit 1")
         .get() as { version: number };
-      assert.equal(version.version, 3);
+      assert.equal(version.version, 4);
 
       const columns = migrated.prepare("pragma table_info(research_runs)").all() as Array<{ name: string }>;
       for (const column of [
