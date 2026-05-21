@@ -1,6 +1,6 @@
 import type { ResearchDatabase } from "./db.js";
 
-const SCHEMA_VERSION = 2;
+const SCHEMA_VERSION = 3;
 
 const statements = [
   `create table if not exists schema_version (
@@ -31,6 +31,9 @@ const statements = [
     published_at text,
     summary text,
     content_excerpt text,
+    commentary_source text not null default '',
+    original_source text not null default '',
+    original_url text not null default '',
     topic text,
     score integer,
     score_reasons_json text not null default '[]',
@@ -115,6 +118,7 @@ export function applySchema(db: ResearchDatabase): void {
     }
 
     migrateResearchRuns(db);
+    migrateArticles(db);
 
     const row = db
       .prepare("select version from schema_version order by version desc limit 1")
@@ -129,6 +133,23 @@ export function applySchema(db: ResearchDatabase): void {
   });
 
   transaction();
+}
+
+function migrateArticles(db: ResearchDatabase): void {
+  const columns = new Set(
+    (db.prepare("pragma table_info(articles)").all() as Array<{ name: string }>).map((column) => column.name)
+  );
+  const migrations: Array<[string, string]> = [
+    ["commentary_source", "alter table articles add column commentary_source text not null default ''"],
+    ["original_source", "alter table articles add column original_source text not null default ''"],
+    ["original_url", "alter table articles add column original_url text not null default ''"]
+  ];
+
+  for (const [column, statement] of migrations) {
+    if (!columns.has(column)) {
+      db.prepare(statement).run();
+    }
+  }
 }
 
 function migrateResearchRuns(db: ResearchDatabase): void {

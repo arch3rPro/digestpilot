@@ -56,12 +56,19 @@ test("initWorkspace creates directories, config files, and schema", async () => 
       );
 
       const version = db.prepare("select version from schema_version").get() as { version: number };
-      assert.equal(version.version, 2);
+      assert.equal(version.version, 3);
 
       const runColumns = db.prepare("pragma table_info(research_runs)").all() as Array<{ name: string }>;
       assert.deepEqual(
         ["run_type", "stats_json", "source_health_summary_json", "archived_count", "entity_link_count", "status"].every(
           (column) => runColumns.some((row) => row.name === column)
+        ),
+        true
+      );
+      const articleColumns = db.prepare("pragma table_info(articles)").all() as Array<{ name: string }>;
+      assert.deepEqual(
+        ["commentary_source", "original_source", "original_url"].every((column) =>
+          articleColumns.some((row) => row.name === column)
         ),
         true
       );
@@ -73,7 +80,7 @@ test("initWorkspace creates directories, config files, and schema", async () => 
   }
 });
 
-test("initWorkspace migrates version 1 research_runs table", async () => {
+test("initWorkspace migrates version 1 research metadata tables", async () => {
   const root = await mkdtemp(join(tmpdir(), "subscription-research-"));
   const workspace = join(root, "workspace");
 
@@ -109,7 +116,7 @@ test("initWorkspace migrates version 1 research_runs table", async () => {
       const version = migrated
         .prepare("select version from schema_version order by version desc limit 1")
         .get() as { version: number };
-      assert.equal(version.version, 2);
+      assert.equal(version.version, 3);
 
       const columns = migrated.prepare("pragma table_info(research_runs)").all() as Array<{ name: string }>;
       for (const column of [
@@ -121,6 +128,11 @@ test("initWorkspace migrates version 1 research_runs table", async () => {
         "status"
       ]) {
         assert.equal(columns.some((row) => row.name === column), true);
+      }
+
+      const articleColumns = migrated.prepare("pragma table_info(articles)").all() as Array<{ name: string }>;
+      for (const column of ["commentary_source", "original_source", "original_url"]) {
+        assert.equal(articleColumns.some((row) => row.name === column), true);
       }
     } finally {
       migrated.close();

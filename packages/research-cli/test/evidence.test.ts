@@ -173,3 +173,53 @@ test("createEvidenceBrief avoids filename collisions and applies since filtering
     await rm(root, { recursive: true, force: true });
   }
 });
+
+test("createEvidenceBrief includes original and commentary source attribution", async () => {
+  const root = await mkdtemp(join(tmpdir(), "subscription-research-"));
+  const workspace = join(root, "workspace");
+  try {
+    await initWorkspace({ workspace });
+    await ingestRssEnvelope({
+      workspace,
+      envelope: {
+        entries: [
+          {
+            title: "WSJ: Google Unveils New Gemini AI Agent",
+            link: "https://daringfireball.net/linked/2026/05/20/google-gemini",
+            feed_id: "daring-fireball",
+            feed_title: "Daring Fireball",
+            published_at: new Date().toISOString(),
+            summary: "AI agent reporting and commentary.",
+            topic: "AI / LLM",
+            score: 9
+          }
+        ]
+      }
+    });
+
+    const result = await createEvidenceBrief({
+      workspace,
+      question: "AI agent daily",
+      since: "1d",
+      mustKeywords: "ai,agent",
+      limit: 10
+    });
+
+    const json = JSON.parse(await readFile(result.jsonPath, "utf8")) as {
+      evidence_items: Array<{
+        commentary_source?: string;
+        original_source?: string;
+        original_url?: string;
+      }>;
+    };
+    assert.equal(json.evidence_items[0].commentary_source, "Daring Fireball");
+    assert.equal(json.evidence_items[0].original_source, "WSJ");
+    assert.equal(json.evidence_items[0].original_url, "");
+
+    const markdown = await readFile(result.markdownPath, "utf8");
+    assert.match(markdown, /Original source: WSJ/);
+    assert.match(markdown, /Commentary source: Daring Fireball/);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});

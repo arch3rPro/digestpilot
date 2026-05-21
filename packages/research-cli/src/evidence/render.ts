@@ -42,6 +42,15 @@ export function renderEvidenceMarkdown(brief: EvidenceBrief): string {
   for (const [index, item] of brief.evidence_items.entries()) {
     lines.push(`### ${index + 1}. ${item.title}`);
     lines.push(`- Source: ${item.source}`);
+    if (item.original_source) {
+      lines.push(`- Original source: ${item.original_source}`);
+    }
+    if (item.original_url) {
+      lines.push(`- Original URL: ${item.original_url}`);
+    }
+    if (item.commentary_source) {
+      lines.push(`- Commentary source: ${item.commentary_source}`);
+    }
     lines.push(`- Link: ${item.link}`);
     lines.push(`- Published: ${item.published_at}`);
     lines.push(`- Topic: ${item.topic}`);

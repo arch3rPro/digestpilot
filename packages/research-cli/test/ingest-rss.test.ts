@@ -145,6 +145,76 @@ test("ingestRssEnvelope persists failed source health samples from envelope heal
   }
 });
 
+test("ingestRssEnvelope persists conservative source attribution", async () => {
+  const root = await mkdtemp(join(tmpdir(), "subscription-research-"));
+  const workspace = join(root, "workspace");
+  try {
+    await initWorkspace({ workspace });
+    await ingestRssEnvelope({
+      workspace,
+      envelope: {
+        entries: [
+          {
+            title: "WSJ: Google Unveils New Gemini AI Agent",
+            link: "https://daringfireball.net/linked/2026/05/20/google-gemini",
+            feed_id: "daring-fireball",
+            feed_title: "Daring Fireball",
+            published_at: "2026-05-21T00:00:00Z",
+            summary: "Commentary on original WSJ reporting.",
+            topic: "AI / LLM",
+            score: 9
+          },
+          {
+            title: "Quoting SpaceX S-1",
+            link: "https://simonwillison.net/2026/May/20/spacex-s1/",
+            feed_id: "simon-willison",
+            feed_title: "Simon Willison",
+            published_at: "2026-05-21T01:00:00Z",
+            summary: "A quoted source filing.",
+            topic: "AI / LLM",
+            score: 9
+          },
+          {
+            title: "Assumptions weaken properties",
+            link: "https://buttondown.com/hillelwayne/archive/assumptions-weaken-properties/",
+            feed_id: "hillel-wayne",
+            feed_title: "Hillel Wayne",
+            published_at: "2026-05-21T02:00:00Z",
+            summary: "Original engineering article.",
+            topic: "Engineering",
+            score: 9
+          }
+        ]
+      }
+    });
+
+    const db = new Database(join(workspace, "data/research.db"), { readonly: true });
+    try {
+      const rows = db
+        .prepare(
+          "select title, commentary_source, original_source, original_url from articles order by published_at asc"
+        )
+        .all() as Array<{
+        title: string;
+        commentary_source: string;
+        original_source: string;
+        original_url: string;
+      }>;
+      assert.equal(rows[0].commentary_source, "Daring Fireball");
+      assert.equal(rows[0].original_source, "WSJ");
+      assert.equal(rows[0].original_url, "");
+      assert.equal(rows[1].commentary_source, "Simon Willison");
+      assert.equal(rows[1].original_source, "SpaceX S-1");
+      assert.equal(rows[2].commentary_source, "");
+      assert.equal(rows[2].original_source, "");
+    } finally {
+      db.close();
+    }
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
 test("defaultRssMonitorPath resolves from the package location instead of cwd", () => {
   assert.match(defaultRssMonitorPath(), /skills\/rss-ai-digest\/scripts\/rss_monitor\.py$/);
   assert.equal(existsSync(defaultRssMonitorPath()), true);

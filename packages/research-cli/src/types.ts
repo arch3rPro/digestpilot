@@ -12,6 +12,9 @@ export interface RssDigestEntry {
   matched_keywords?: string[];
   matched_must_keywords?: string[];
   matched_should_keywords?: string[];
+  commentary_source?: string;
+  original_source?: string;
+  original_url?: string;
   raw?: unknown;
 }
 
@@ -31,6 +34,12 @@ export interface SourceHealthSummary {
     id: string;
     error: string;
   }>;
+}
+
+export interface ArticleAttribution {
+  commentary_source: string;
+  original_source: string;
+  original_url: string;
 }
 
 export interface WorkspacePaths {
@@ -58,6 +67,9 @@ export interface EvidenceItem {
   title: string;
   link: string;
   source: string;
+  commentary_source: string;
+  original_source: string;
+  original_url: string;
   published_at: string;
   topic: string;
   entities: string[];

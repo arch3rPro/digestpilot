@@ -27,6 +27,7 @@
 - 研究日报由 Agent 基于 evidence brief 写作，遵循稳定章节、来源边界、阅读顺序和后续问题契约。
 - Node/TypeScript `subscription-research` CLI 是 `v0.3` 的本地执行层，用于 workspace 初始化、RSS evidence ingest、entity extraction 和 evidence brief generation。
 - RSS ingest run 已写入 SQLite `research_runs`，记录筛选条件、RSS worker stats、source health 摘要、归档数量和实体链接数量。
+- article archive 和 evidence brief 已支持保守来源归因字段：`commentary_source`、`original_source` 和 `original_url`。
 
 ### 项目与 Skill 基础
 
@@ -153,7 +154,7 @@
   - deterministic ordering。
   - source evaluation。
 - 当前 Python RSS monitor 测试数量：44 个。
-- 当前 Node research CLI 测试数量：10 个。
+- 当前 Node research CLI 测试数量：13 个。
 - Skill validator 已通过。
 - 已有 post-optimization validation 文档记录真实性能和输出表现。
 
@@ -238,6 +239,7 @@
 - deterministic CLI 自动中文摘要。
 - deterministic CLI 自动生成最终日报。
 - 内容质量的 LLM 评审。
+- 全文级原始来源解析；当前只做 RSS 元数据层面的保守归因。
 
 ### 插件市场与 Claude 插件
 

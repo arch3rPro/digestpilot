@@ -17,6 +17,9 @@ Each evidence item should include:
 
 - `title`
 - `source`
+- `commentary_source`
+- `original_source`
+- `original_url`
 - `link`
 - `published_at`
 - `topic`

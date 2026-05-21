@@ -40,8 +40,10 @@ Use standard Markdown. Keep section names readable and stable:
 Each selected item should include:
 
 - title
-- source or commentary source
+- source
+- commentary source when detected
 - original source when distinguishable
+- original URL when available
 - author when available
 - link
 - score when available
@@ -49,6 +51,15 @@ Each selected item should include:
 - why it matters
 
 If an item is from a commentary feed that links to original reporting, make that distinction clear. Do not imply the commentary feed is the original publisher when the evidence shows otherwise.
+
+Use the evidence fields conservatively:
+
+- `source`: the subscription feed source.
+- `commentary_source`: the commentary or secondary source when the item appears to discuss another source.
+- `original_source`: the detected original reporting, filing, paper, or quoted source.
+- `original_url`: the original URL only when the evidence explicitly provides one.
+
+If `original_source` is empty, do not infer one in the final report.
 
 ## Quality Rules
 
@@ -59,6 +70,7 @@ If an item is from a commentary feed that links to original reporting, make that
 - Mention source failures and coverage gaps.
 - Do not cite scores as truth; use them as ranking signals.
 - Avoid making claims that require full article reading when only RSS metadata or summaries were available.
+- Prefer original-source wording when `original_source` is present, but still credit the commentary source when the subscription item is a commentary link.
 - Keep notification, publishing, and external sharing outside this Skill unless the user explicitly requests a channel.
 
 ## Chinese Report Style

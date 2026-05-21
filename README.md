@@ -63,6 +63,7 @@ Do not treat this repository as a full RSS reader, notification service, schedul
 - Daily reports are Agent-written synthesis artifacts produced from evidence briefs, with stable sections for judgments, top items, source health, and follow-up questions.
 - The research workspace is local-first and uses SQLite, JSONL, JSON configuration, and Markdown output.
 - RSS ingest runs are persisted in SQLite with criteria, worker stats, source health summary, archived counts, and entity link counts.
+- Evidence items include conservative commentary-source and original-source attribution when RSS metadata makes that distinction clear.
 - The `subscription-research` CLI contract remains file-based so other agent runtimes can wrap it without changing the Skill core.
 
 ## Skill Package Layout

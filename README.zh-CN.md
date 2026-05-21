@@ -63,6 +63,7 @@
 - 研究日报是 Agent 基于 evidence brief 写作的综合产物，包含稳定的核心判断、重点资讯、信息源健康和后续跟踪问题。
 - research workspace 采用本地优先设计，使用 SQLite、JSONL、JSON 配置和 Markdown 输出。
 - RSS ingest run 会写入 SQLite，记录筛选条件、worker stats、source health 摘要、归档数量和实体链接数量。
+- 当 RSS 元数据能明确区分时，evidence item 会包含保守的评论源和原始来源归因字段。
 - `subscription-research` CLI 契约保持文件化，便于不同 Agent runtime 包装且不改变 Skill core。
 
 ## Skill 包结构
