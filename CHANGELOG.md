@@ -2,6 +2,19 @@
 
 All notable project changes are recorded here.
 
+## v0.3.0 - Unreleased
+
+### Added
+
+- Added the `subscription-research-agent` Skill for local-first evidence research workflows.
+- Added research workspace and evidence brief references for subscription-backed research orchestration.
+- Added the `packages/research-cli` Node/TypeScript CLI package for local workspace initialization, SQLite-backed evidence archive, RSS evidence ingest, entity extraction, and evidence brief generation.
+- Added public documentation for the v0.3 local-first subscription research Agent direction.
+
+### Changed
+
+- Expanded the project direction from an RSS Skills suite toward a local-first subscription research Agent toolkit.
+
 ## v0.2.0 - Unreleased
 
 ### Added

@@ -1,0 +1,27 @@
+{
+  "name": "@subscription-research/cli",
+  "version": "0.3.0",
+  "private": true,
+  "description": "Local-first subscription research workspace CLI.",
+  "type": "module",
+  "bin": {
+    "subscription-research": "./dist/src/cli.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "npm run build && node --test dist/test/*.test.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.8.1",
+    "commander": "^13.1.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/node": "^22.13.1",
+    "typescript": "^5.7.3"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

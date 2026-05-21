@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-`rss-agent-skills` is a portable collection of RSS-related Skills for agent ecosystems. The current suite includes `rss-ai-digest` for AI/technical content discovery and `rss-source-curator` for source governance and registry maintenance.
+`rss-agent-skills` is a portable collection of RSS-related Skills and local-first subscription research workflows for agent ecosystems. The current suite includes `rss-ai-digest` for AI/technical content discovery, `rss-source-curator` for source governance and registry maintenance, and `subscription-research-agent` for research evidence orchestration.
 
 Keep the repository platform-neutral. Do not make core behavior depend on Codex, Claude, Cursor, OpenClaw, n8n, GitHub Actions, or any single runtime.
 
@@ -13,6 +13,9 @@ Keep the repository platform-neutral. Do not make core behavior depend on Codex,
 - `skills/rss-ai-digest/references/`: feed registry, scoring, automation, and base OPML references.
 - `skills/rss-source-curator/SKILL.md`: source governance Skill entrypoint.
 - `skills/rss-source-curator/references/`: source governance and registry maintenance references.
+- `skills/subscription-research-agent/SKILL.md`: local-first research orchestration Skill entrypoint.
+- `skills/subscription-research-agent/references/`: research workspace and evidence brief contract references.
+- `packages/research-cli/`: Node/TypeScript CLI package for research workspace, SQLite, ingestion archive, and evidence brief generation.
 - `tests/test_rss_monitor.py`: regression tests for the RSS monitor script.
 - `README.md`: human-facing project overview and quick start.
 - `README.zh-CN.md`: Chinese project overview.
@@ -32,10 +35,18 @@ Run the test suite before committing code changes:
 python3 -m unittest tests/test_rss_monitor.py -v
 ```
 
+Run the research CLI test suite when `packages/research-cli/` exists or when changing the research CLI contract:
+
+```bash
+cd packages/research-cli && npm test
+```
+
 Validate the Skill package when the local skill validator is available:
 
 ```bash
 python3 /path/to/skill-creator/scripts/quick_validate.py skills/rss-ai-digest
+python3 /path/to/skill-creator/scripts/quick_validate.py skills/rss-source-curator
+python3 /path/to/skill-creator/scripts/quick_validate.py skills/subscription-research-agent
 ```
 
 Check basic Git whitespace issues:
@@ -48,8 +59,9 @@ git diff --check
 
 - Prefer Python standard library for MVP functionality.
 - Keep core scripts platform-neutral and callable from any agent runtime.
+- Keep research workspace tooling local-first and file-based; do not require hosted storage or a single notes app.
 - Use explicit file paths for registry, state, health, and output files.
-- Keep local runtime outputs out of Git. Examples: `feeds.json`, `seen.json`, `source-health.json`, `digest.md`, `latest.json`, `rss-output/`.
+- Keep local runtime outputs out of Git. Examples: `feeds.json`, `seen.json`, `source-health.json`, `digest.md`, `latest.json`, `rss-output/`, `research-workspace/`.
 - Preserve the standard Skill layout: `skills/<skill-name>/SKILL.md`.
 - Put repeatable behavior in `scripts/`; put schemas, scoring rules, and workflow references in `references/`.
 - Do not add runtime-specific entrypoints unless the project explicitly starts a plugin-packaging phase.
@@ -66,6 +78,7 @@ git diff --check
 ## Testing Guidelines
 
 - Add or update tests when changing `rss_monitor.py` behavior.
+- Add or update Node tests when changing `packages/research-cli/` behavior.
 - Test OPML behavior with `skills/rss-ai-digest/references/base-feeds.opml` when changing import logic.
 - If tests create Python caches, remove or ignore them before finishing.
 - Do not rely on network access for unit tests.
@@ -73,7 +86,7 @@ git diff --check
 ## Security And Privacy
 
 - Do not commit secrets, API tokens, private feed credentials, `.env` files, or local state files.
-- Treat feed registries and seen-state files as potentially personal reading data unless the user says they are public.
+- Treat feed registries, seen-state files, research workspaces, entity lists, and evidence briefs as potentially personal reading data unless the user says they are public.
 - Do not add notification integrations that send data externally without explicit user direction.
 
 ## Git Workflow

@@ -4,9 +4,9 @@
 
 ## 当前定位
 
-`rss-agent-skills` 是一个面向通用 agent 生态的 RSS Skills 仓库。当前已落地的正式 Skills 是 `rss-ai-digest` 和 `rss-source-curator`。`rss-ai-digest` 用于 AI 与技术内容发现、订阅源聚合、条目筛选、评分和去重；`rss-source-curator` 用于源质量治理和 registry 维护。
+`rss-agent-skills` 是一个面向通用 agent 生态的 RSS Skills 与本地优先订阅研究工作流仓库。当前已落地的正式 Skills 是 `rss-ai-digest`、`rss-source-curator` 和 `subscription-research-agent`。`rss-ai-digest` 用于 AI 与技术内容发现、订阅源聚合、条目筛选、评分和去重；`rss-source-curator` 用于源质量治理和 registry 维护；`subscription-research-agent` 用于围绕订阅来源编排 evidence brief。
 
-项目当前不是完整 RSS 阅读器，也不是独立 SaaS 产品。它更接近一个可被 Codex、Claude、OpenClaw、n8n、GitHub Actions、cron 或其他 agent/runtime 包装调用的可移植 RSS 工作流组件。
+项目当前不是完整 RSS 阅读器，也不是独立 SaaS 产品或托管研究平台。它更接近一个可被不同 agent/runtime 包装调用的可移植 RSS 与订阅研究工作流组件。
 
 ## 已实现功能
 
@@ -18,10 +18,19 @@
 - `rss-ai-digest` 继续负责内容发现和日报。
 - `rss-source-curator` 负责源质量治理和 registry 维护。
 
+### Local-first Subscription Research Agent
+
+- `v0.3` 引入 `subscription-research-agent` 作为研究编排 Skill。
+- 新增 research workspace 与 evidence brief 契约文档。
+- 本地 research workspace 使用 SQLite、JSONL、JSON 和 Markdown。
+- CLI 生成 evidence brief，不直接生成最终研究报告。
+- Node/TypeScript `subscription-research` CLI 是 `v0.3` 的本地执行层，用于 workspace 初始化、RSS evidence ingest、entity extraction 和 evidence brief generation。
+
 ### 项目与 Skill 基础
 
-- 已建立标准 Skill 结构：`skills/rss-ai-digest/SKILL.md` 和 `skills/rss-source-curator/SKILL.md`。
+- 已建立标准 Skill 结构：`skills/rss-ai-digest/SKILL.md`、`skills/rss-source-curator/SKILL.md` 和 `skills/subscription-research-agent/SKILL.md`。
 - 已提供平台中立的 CLI 实现：`skills/rss-ai-digest/scripts/rss_monitor.py`。
+- 已新增本地研究 CLI：`packages/research-cli/`。
 - 已提供 README、CHANGELOG、AGENTS.md、CLAUDE.md 和设计/验证文档。
 - 已保持核心行为与具体运行时解耦，不依赖 Codex、Claude 或特定插件市场。
 - 已提供 OpenAI/Codex 风格的可选 UI metadata：`skills/rss-ai-digest/agents/openai.yaml`。
@@ -252,19 +261,21 @@
 
 ## 当前成熟度判断
 
-当前项目已经达到“通用 agent 可调用的 RSS/AI 技术内容发现 Skill MVP + 性能和可观测性优化”阶段。
+当前项目已经达到“通用 agent 可调用的 RSS/AI 技术内容发现 Skill MVP + 性能和可观测性优化”，并开始进入“本地优先订阅研究 Agent foundation”阶段。
 
 它适合用于：
 
 - 日常 AI/技术 RSS digest。
 - 新文章监控。
 - 高质量技术源的基础维护。
+- 围绕订阅来源生成 evidence brief。
 - 作为未来插件或自动化工作流的底层 CLI。
 
 它还不适合直接作为：
 
 - 完整 RSS 阅读器。
 - 多用户订阅平台。
+- 托管研究平台。
 - 通知中心。
 - 插件市场成品。
 - 自动源发现和清理系统。
@@ -274,7 +285,8 @@
 优先级最高的方向：
 
 1. 对 `v0.2.0` 做发布前审阅、打 tag 和发布。
-2. 继续增强内容质量筛选：扩展噪声源 metadata、布尔表达式、语义去重和 LLM rerank。
-3. 规划后续独立 Skills，例如 `rss-alert-monitor`、`rss-digest-publisher` 和 `rss-feed-discovery`。
+2. 完成 `v0.3` 本地 research CLI 与 evidence brief 的端到端验证。
+3. 继续增强内容质量筛选：扩展噪声源 metadata、布尔表达式、语义去重和 LLM rerank。
+4. 规划后续独立 Skills，例如 `rss-alert-monitor`、`rss-digest-publisher` 和 `rss-feed-discovery`。
 
 如果目标是继续扩展 RSS Skills 套件，应优先保持共享数据结构、CLI 契约和文档入口一致。
