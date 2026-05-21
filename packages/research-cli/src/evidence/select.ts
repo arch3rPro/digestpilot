@@ -22,7 +22,10 @@ export function selectEvidence(db: ResearchDatabase, options: SelectEvidenceOpti
   const rows = db
     .prepare(
       `
-    select a.id, a.title, a.link, a.published_at, a.topic, a.score, a.score_reasons_json, a.summary, s.title as source
+    select
+      a.id, a.title, a.link, a.published_at, a.topic, a.score, a.score_reasons_json, a.summary,
+      a.commentary_source, a.original_source, a.original_url,
+      s.title as source
     from articles a
     left join sources s on s.id = a.source_id
     where coalesce(a.score, 0) >= ?
@@ -52,6 +55,9 @@ export function selectEvidence(db: ResearchDatabase, options: SelectEvidenceOpti
         title: String(row.title || ""),
         link: String(row.link || ""),
         source: String(row.source || ""),
+        commentary_source: String(row.commentary_source || ""),
+        original_source: String(row.original_source || ""),
+        original_url: String(row.original_url || ""),
         published_at: String(row.published_at || ""),
         topic: String(row.topic || "Other"),
         entities: loadArticleEntities(db, String(row.id)),

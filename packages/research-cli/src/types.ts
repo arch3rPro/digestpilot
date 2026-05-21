@@ -12,6 +12,9 @@ export interface RssDigestEntry {
   matched_keywords?: string[];
   matched_must_keywords?: string[];
   matched_should_keywords?: string[];
+  commentary_source?: string;
+  original_source?: string;
+  original_url?: string;
   raw?: unknown;
 }
 
@@ -23,11 +26,28 @@ export interface RssDigestEnvelope {
   generated_at?: string;
 }
 
+export interface SourceHealthSummary {
+  checked: number;
+  succeeded: number;
+  failed: number;
+  failed_sample: Array<{
+    id: string;
+    error: string;
+  }>;
+}
+
+export interface ArticleAttribution {
+  commentary_source: string;
+  original_source: string;
+  original_url: string;
+}
+
 export interface WorkspacePaths {
   root: string;
   dataDir: string;
   notesDir: string;
   briefsDir: string;
+  dailyDir: string;
   exportsDir: string;
   jsonExportsDir: string;
   configDir: string;
@@ -47,6 +67,9 @@ export interface EvidenceItem {
   title: string;
   link: string;
   source: string;
+  commentary_source: string;
+  original_source: string;
+  original_url: string;
   published_at: string;
   topic: string;
   entities: string[];

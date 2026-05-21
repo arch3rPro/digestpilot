@@ -17,6 +17,9 @@ Each evidence item should include:
 
 - `title`
 - `source`
+- `commentary_source`
+- `original_source`
+- `original_url`
 - `link`
 - `published_at`
 - `topic`
@@ -36,3 +39,4 @@ When writing a memo from the brief:
 - Call out stale, missing, or weak evidence.
 - Avoid treating score as truth; use it as a ranking signal.
 - Keep speculation separate from the evidence summary.
+- For daily reports, follow `daily-report.md` after the evidence brief is generated or reviewed.

@@ -121,19 +121,35 @@ Next:
 
 Daring Fireball and similar sources often link to original reporting while adding commentary.
 
-Next:
+Status: implemented for conservative RSS metadata attribution.
 
-- Add fields for `source`, `commentary_source`, and `original_source` when they can be detected.
-- Avoid treating a secondary commentary feed as the only source for major announcements.
+Implemented:
+
+- Added article attribution fields for `commentary_source`, `original_source`, and `original_url`.
+- Detects conservative title patterns such as `WSJ: ...` and `Quoting SpaceX S-1`.
+- Evidence brief JSON and Markdown now expose original and commentary source fields.
+- Normal articles without explicit source hints keep attribution fields empty rather than guessing.
+
+Remaining:
+
+- Full-page original URL extraction.
+- Broader source-pattern registry.
+- LLM-assisted attribution review for ambiguous cases.
 
 ### Research Run Persistence
 
-The workspace has `research_runs`, but ingest run metadata does not yet persist fetched feed count, failed feed count, archived entry count, and command criteria in a first-class table row.
+Status: implemented in the follow-up persistence pass.
 
-Next:
+The workspace now persists RSS ingest metadata in `research_runs` with:
 
-- Add an ingest run record or extend `research_runs` to cover ingestion.
-- Store RSS digest stats and health summary with each ingest.
+- `run_type = rss_ingest`
+- command criteria such as channel, registry, time window, keyword criteria, and score threshold
+- RSS digest stats such as feed counts and failures
+- source health summary with failed source samples
+- archived entry count
+- entity link count
+
+This keeps evidence brief generation and daily report writing connected to the ingest run that prepared the local evidence.
 
 ### Source Governance Follow-up
 
@@ -154,6 +170,19 @@ Implemented in the follow-up regression pass:
 - Entity candidate noise filters.
 - Node tests for health summary, since filtering, file collision prevention, worker path resolution, and entity candidate filtering.
 - Python tests updated so command-level digest behavior is not tied to a fixed `24h` wall-clock window.
+
+Implemented in the follow-up persistence pass:
+
+- RSS ingest runs persisted to `research_runs`.
+- Schema version advanced to 2 with lightweight migration for existing workspaces.
+- Node tests added for persisted ingest criteria, source health summary, archive count, and entity link count.
+
+Implemented in the follow-up attribution pass:
+
+- Schema version advanced to 3 with article attribution columns and migration coverage.
+- Conservative attribution inference added for common commentary title patterns.
+- Evidence brief output includes original and commentary source attribution.
+- Node tests added for attribution persistence and evidence rendering.
 
 Real workspace regression check after the fix:
 

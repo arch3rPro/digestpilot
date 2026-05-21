@@ -3,12 +3,16 @@ import { appendFile } from "node:fs/promises";
 import type { ExtractedEntity } from "../entities/config.js";
 import { extractEntities } from "../entities/extract.js";
 import type { ResearchDatabase } from "../workspace/db.js";
-import type { RssDigestEntry, WorkspacePaths } from "../types.js";
+import type { RssDigestEntry, SourceHealthSummary, WorkspacePaths } from "../types.js";
 import type { EntityConfig } from "../entities/config.js";
+import { inferArticleAttribution } from "./attribution.js";
 
 export interface ArchiveResult {
   entriesArchived: number;
   entitiesLinked: number;
+  runId?: string;
+  sourceHealthSummary?: SourceHealthSummary;
+  stats?: Record<string, number>;
 }
 
 export interface ArchiveOptions {
@@ -33,11 +37,11 @@ export async function archiveEntries(
   const upsertArticle = db.prepare(`
     insert into articles (
       id, source_id, title, link, author, published_at, summary, content_excerpt,
-      topic, score, score_reasons_json, raw_json, first_seen_at, last_seen_at
+      commentary_source, original_source, original_url, topic, score, score_reasons_json, raw_json, first_seen_at, last_seen_at
     )
     values (
       @id, @source_id, @title, @link, @author, @published_at, @summary, @content_excerpt,
-      @topic, @score, @score_reasons_json, @raw_json, @now, @now
+      @commentary_source, @original_source, @original_url, @topic, @score, @score_reasons_json, @raw_json, @now, @now
     )
     on conflict(id) do update set
       title = excluded.title,
@@ -45,6 +49,9 @@ export async function archiveEntries(
       published_at = excluded.published_at,
       summary = excluded.summary,
       content_excerpt = excluded.content_excerpt,
+      commentary_source = excluded.commentary_source,
+      original_source = excluded.original_source,
+      original_url = excluded.original_url,
       score = excluded.score,
       topic = excluded.topic,
       score_reasons_json = excluded.score_reasons_json,
@@ -70,6 +77,7 @@ export async function archiveEntries(
     for (const entry of items) {
       const sourceId = entry.feed_id || "unknown";
       const id = articleId(entry);
+      const attribution = inferArticleAttribution(entry);
       upsertSource.run({
         id: sourceId,
         title: entry.feed_title || sourceId,
@@ -85,6 +93,9 @@ export async function archiveEntries(
         published_at: entry.published_at || "",
         summary: entry.summary || "",
         content_excerpt: entry.summary || "",
+        commentary_source: attribution.commentary_source,
+        original_source: attribution.original_source,
+        original_url: attribution.original_url,
         topic: entry.topic || "Other",
         score: entry.score ?? 0,
         score_reasons_json: JSON.stringify(entry.score_reasons || []),

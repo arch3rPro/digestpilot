@@ -13,6 +13,7 @@ export function getWorkspacePaths(workspace: string): WorkspacePaths {
     dataDir,
     notesDir,
     briefsDir: join(notesDir, "briefs"),
+    dailyDir: join(notesDir, "daily"),
     exportsDir,
     jsonExportsDir: join(exportsDir, "json"),
     configDir,
@@ -32,7 +33,7 @@ export function workspaceDirectories(paths: WorkspacePaths): string[] {
   return [
     paths.dataDir,
     paths.briefsDir,
-    join(paths.notesDir, "daily"),
+    paths.dailyDir,
     join(paths.notesDir, "weekly"),
     join(paths.notesDir, "topics"),
     join(paths.notesDir, "entities"),

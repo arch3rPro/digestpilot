@@ -38,6 +38,7 @@ Use `subscription-research-agent` when an agent needs to:
 - Initialize a local-first research workspace around subscription sources.
 - Archive RSS evidence into queryable local memory.
 - Generate source-backed evidence briefs for later memo writing.
+- Write daily research reports from evidence briefs with source caveats and follow-up questions.
 
 Do not treat this repository as a full RSS reader, notification service, scheduler, hosted research platform, or plugin-marketplace package yet. Those layers can wrap the same Skills later.
 
@@ -47,7 +48,7 @@ Do not treat this repository as a full RSS reader, notification service, schedul
 | --- | --- |
 | `rss-ai-digest` | Discover, filter, score, dedupe, and render high-signal AI/technical reading digests. |
 | `rss-source-curator` | Evaluate RSS source quality, review feed health, generate curation actions, and apply reviewed registry patches. |
-| `subscription-research-agent` | Orchestrate local-first evidence briefs from subscription sources for research workflows. |
+| `subscription-research-agent` | Orchestrate local-first evidence briefs and Agent-written daily reports from subscription sources. |
 
 ## v0.2.0 Prepared Scope
 
@@ -59,7 +60,10 @@ Do not treat this repository as a full RSS reader, notification service, schedul
 
 - `subscription-research-agent` adds the high-level orchestration layer for local subscription research workflows.
 - Evidence briefs are treated as source-backed context packages, not final research conclusions.
+- Daily reports are Agent-written synthesis artifacts produced from evidence briefs, with stable sections for judgments, top items, source health, and follow-up questions.
 - The research workspace is local-first and uses SQLite, JSONL, JSON configuration, and Markdown output.
+- RSS ingest runs are persisted in SQLite with criteria, worker stats, source health summary, archived counts, and entity link counts.
+- Evidence items include conservative commentary-source and original-source attribution when RSS metadata makes that distinction clear.
 - The `subscription-research` CLI contract remains file-based so other agent runtimes can wrap it without changing the Skill core.
 
 ## Skill Package Layout
@@ -87,6 +91,7 @@ skills/subscription-research-agent/
 ├── SKILL.md
 ├── agents/openai.yaml
 └── references/
+    ├── daily-report.md
     ├── evidence-brief.md
     └── research-workspace.md
 ```
@@ -118,13 +123,13 @@ This repository is meant to be consumed as one or more Skill packages:
 - Agent runtimes should load or copy the needed directories under `skills/`.
 - Use `skills/rss-ai-digest/` for content discovery and digest generation.
 - Use `skills/rss-source-curator/` for source governance and registry maintenance.
-- Use `skills/subscription-research-agent/` for local-first evidence brief orchestration.
+- Use `skills/subscription-research-agent/` for local-first evidence brief orchestration and daily research report synthesis.
 - Humans and maintainers should treat [`README.md`](./README.md), [`AGENTS.md`](./AGENTS.md), and [`CHANGELOG.md`](./CHANGELOG.md) as project-level documents.
 - Runtime-specific wrappers should live outside the Skill core unless the project explicitly starts a packaging phase.
 
 ## Research CLI
 
-`packages/research-cli/` is the v0.3 local-first `subscription-research` CLI package location. It manages research workspaces, SQLite schema, RSS evidence ingestion, entity extraction, and evidence brief generation. For `v0.3`, it calls the existing Python RSS worker instead of rewriting RSS parsing in TypeScript.
+`packages/research-cli/` is the v0.3 local-first `subscription-research` CLI package location. It manages research workspaces, SQLite schema, RSS evidence ingestion, ingest-run metadata, entity extraction, and evidence brief generation. For `v0.3`, it calls the existing Python RSS worker instead of rewriting RSS parsing in TypeScript. Final daily reports remain Agent-written synthesis artifacts, guided by the Skill reference contract.
 
 ## Skill Capabilities
 
@@ -158,7 +163,7 @@ Digest JSON includes:
 
 ## Agent Workflow
 
-1. Choose the relevant Skill entrypoint: [`rss-ai-digest`](./skills/rss-ai-digest/SKILL.md) for content discovery and digests, [`rss-source-curator`](./skills/rss-source-curator/SKILL.md) for source governance, or [`subscription-research-agent`](./skills/subscription-research-agent/SKILL.md) for evidence brief workflows.
+1. Choose the relevant Skill entrypoint: [`rss-ai-digest`](./skills/rss-ai-digest/SKILL.md) for content discovery and digests, [`rss-source-curator`](./skills/rss-source-curator/SKILL.md) for source governance, or [`subscription-research-agent`](./skills/subscription-research-agent/SKILL.md) for evidence brief and daily report workflows.
 2. Use [`skills/rss-ai-digest/references/base-feeds.opml`](./skills/rss-ai-digest/references/base-feeds.opml) when a starter source list is needed.
 3. Keep runtime files such as `feeds.json`, `seen.json`, and `source-health.json` outside Git.
 4. Prefer Markdown output for user-facing digests and JSON output for agent pipelines.
@@ -187,6 +192,8 @@ The `subscription-research` CLI contract for `v0.3` adds local research workspac
 | `init` | Initialize a local research workspace. |
 | `ingest rss` | Archive RSS evidence into the research workspace. |
 | `brief evidence` | Generate a source-backed evidence brief from local workspace data. |
+
+The CLI does not generate final reports by itself. Agents write daily reports from evidence briefs using the `subscription-research-agent` daily report reference.
 
 Minimal bootstrap:
 
@@ -261,6 +268,7 @@ Primary Skill docs:
 - [`rss-source-curator` registry maintenance](./skills/rss-source-curator/references/registry-maintenance.md)
 - [`subscription-research-agent` research workspace](./skills/subscription-research-agent/references/research-workspace.md)
 - [`subscription-research-agent` evidence brief contract](./skills/subscription-research-agent/references/evidence-brief.md)
+- [`subscription-research-agent` daily report contract](./skills/subscription-research-agent/references/daily-report.md)
 - [`rss-ai-digest` source metadata seed](./skills/rss-ai-digest/references/source-metadata.json)
 
 Project and maintenance docs:
