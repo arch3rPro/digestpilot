@@ -38,3 +38,21 @@ test("extractEntities returns rule candidates", () => {
   assert.ok(entities.some((entity) => entity.name === "LangGraph" && entity.source === "rule"));
   assert.ok(entities.some((entity) => entity.name === "MCP" && entity.source === "rule"));
 });
+
+test("extractEntities filters URL fragments and date-like candidates", () => {
+  const entities = extractEntities(
+    {
+      title: "Gemini 3 adds Antigravity CLI",
+      summary: "See com/google-gemini and net/tags from May/19 in 2026."
+    },
+    { entities: [] }
+  );
+  const names = entities.map((entity) => entity.name);
+
+  assert.ok(names.includes("Gemini 3"));
+  assert.ok(names.includes("Antigravity CLI"));
+  assert.equal(names.includes("com/google-gemini"), false);
+  assert.equal(names.includes("net/tags"), false);
+  assert.equal(names.includes("May/19"), false);
+  assert.equal(names.includes("2026"), false);
+});
