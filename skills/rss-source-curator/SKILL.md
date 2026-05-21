@@ -13,6 +13,7 @@ Use this skill to review and maintain RSS source quality. Keep the workflow port
 
 - Run commands from the repository root with `python3 skills/rss-ai-digest/scripts/rss_monitor.py`.
 - For source quality scoring, use `evaluate-sources`.
+- For source health history from a local research workspace, use `subscription-research source-health`.
 - For human review, use `curate-sources --format markdown`.
 - For patch application, first generate machine-readable curation with `curate-sources --format json > source-curation.json`, then use `apply-source-patch`.
 - For source status semantics, read `references/source-governance.md`.
@@ -26,6 +27,15 @@ Evaluate source quality:
 python3 skills/rss-ai-digest/scripts/rss_monitor.py evaluate-sources \
   --registry feeds.json \
   --health source-health.json
+```
+
+Review repeated source failures from a research workspace:
+
+```bash
+subscription-research source-health \
+  --workspace research-workspace \
+  --min-observations 2 \
+  --format markdown
 ```
 
 Generate human-readable curation actions:

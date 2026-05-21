@@ -38,7 +38,7 @@ Do not assume Obsidian or any single notes app. Markdown output should remain st
 
 ## Research Runs
 
-The `research_runs` table records both deterministic ingest runs and evidence brief runs.
+The `research_runs` table records both deterministic ingest runs and evidence brief runs. The `source_health_observations` table records per-source health snapshots from each RSS ingest run.
 
 For RSS ingest runs, rows use `run_type = rss_ingest` and include:
 
@@ -50,6 +50,8 @@ For RSS ingest runs, rows use `run_type = rss_ingest` and include:
 - `entity_link_count`: number of article/entity links created.
 
 For evidence brief runs, rows use the default `run_type = evidence` and include output Markdown and JSON paths.
+
+Use `subscription-research source-health` to summarize repeated observations into `keep`, `watch`, and `disable_candidate` recommendations.
 
 ## Article Attribution
 

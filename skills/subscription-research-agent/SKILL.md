@@ -16,6 +16,7 @@ Use this skill to orchestrate local-first research workflows around subscription
 - For local research workspace setup, run `subscription-research init`.
 - For archiving RSS results into the research workspace, run `subscription-research ingest rss`.
 - For source-backed research context, run `subscription-research brief evidence`.
+- For historical source health review across ingest runs, run `subscription-research source-health`.
 - For a daily research report or subscription daily, generate or read an evidence brief first, then follow `references/daily-report.md`.
 - For workspace structure, read `references/research-workspace.md`.
 - For evidence brief fields, read `references/evidence-brief.md`.
@@ -38,6 +39,15 @@ subscription-research brief evidence \
   --since 7d \
   --must-keywords "llm,evals" \
   --should-keywords "benchmark,reliability,agent"
+```
+
+Review source health history:
+
+```bash
+subscription-research source-health \
+  --workspace research-workspace \
+  --min-observations 2 \
+  --format markdown
 ```
 
 ## Boundaries

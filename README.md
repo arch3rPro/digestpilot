@@ -63,6 +63,7 @@ Do not treat this repository as a full RSS reader, notification service, schedul
 - Daily reports are Agent-written synthesis artifacts produced from evidence briefs, with stable sections for judgments, top items, source health, and follow-up questions.
 - The research workspace is local-first and uses SQLite, JSONL, JSON configuration, and Markdown output.
 - RSS ingest runs are persisted in SQLite with criteria, worker stats, source health summary, archived counts, and entity link counts.
+- Per-source health observations are persisted across ingest runs so agents can distinguish persistent failures from temporary outages.
 - Evidence items include conservative commentary-source and original-source attribution when RSS metadata makes that distinction clear.
 - The `subscription-research` CLI contract remains file-based so other agent runtimes can wrap it without changing the Skill core.
 
@@ -129,7 +130,7 @@ This repository is meant to be consumed as one or more Skill packages:
 
 ## Research CLI
 
-`packages/research-cli/` is the v0.3 local-first `subscription-research` CLI package location. It manages research workspaces, SQLite schema, RSS evidence ingestion, ingest-run metadata, entity extraction, and evidence brief generation. For `v0.3`, it calls the existing Python RSS worker instead of rewriting RSS parsing in TypeScript. Final daily reports remain Agent-written synthesis artifacts, guided by the Skill reference contract.
+`packages/research-cli/` is the v0.3 local-first `subscription-research` CLI package location. It manages research workspaces, SQLite schema, RSS evidence ingestion, ingest-run metadata, per-source health history, entity extraction, and evidence brief generation. For `v0.3`, it calls the existing Python RSS worker instead of rewriting RSS parsing in TypeScript. Final daily reports remain Agent-written synthesis artifacts, guided by the Skill reference contract.
 
 ## Skill Capabilities
 
@@ -192,8 +193,18 @@ The `subscription-research` CLI contract for `v0.3` adds local research workspac
 | `init` | Initialize a local research workspace. |
 | `ingest rss` | Archive RSS evidence into the research workspace. |
 | `brief evidence` | Generate a source-backed evidence brief from local workspace data. |
+| `source-health` | Summarize historical source health observations from repeated ingest runs. |
 
 The CLI does not generate final reports by itself. Agents write daily reports from evidence briefs using the `subscription-research-agent` daily report reference.
+
+Source health history:
+
+```bash
+subscription-research source-health \
+  --workspace research-workspace \
+  --min-observations 2 \
+  --format markdown
+```
 
 Minimal bootstrap:
 

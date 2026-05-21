@@ -28,6 +28,7 @@
 - Node/TypeScript `subscription-research` CLI 是 `v0.3` 的本地执行层，用于 workspace 初始化、RSS evidence ingest、entity extraction 和 evidence brief generation。
 - RSS ingest run 已写入 SQLite `research_runs`，记录筛选条件、RSS worker stats、source health 摘要、归档数量和实体链接数量。
 - article archive 和 evidence brief 已支持保守来源归因字段：`commentary_source`、`original_source` 和 `original_url`。
+- RSS ingest 会写入每个源的历史健康观察，`subscription-research source-health` 可按多次观察输出 `keep`、`watch`、`disable_candidate` 建议。
 
 ### 项目与 Skill 基础
 
@@ -60,6 +61,7 @@
 - `evaluate-sources`：根据 registry 和 health 数据评估源质量。
 - `curate-sources`：生成可审阅源治理动作和 registry patch 建议，不直接修改源文件。
 - `apply-source-patch`：对已审阅的源治理 patch 做 dry-run 或写入新的 registry 文件。
+- `subscription-research source-health`：汇总多次 ingest 形成的历史源健康观察。
 
 ### 筛选能力
 
@@ -154,7 +156,7 @@
   - deterministic ordering。
   - source evaluation。
 - 当前 Python RSS monitor 测试数量：44 个。
-- 当前 Node research CLI 测试数量：13 个。
+- 当前 Node research CLI 测试数量：14 个。
 - Skill validator 已通过。
 - 已有 post-optimization validation 文档记录真实性能和输出表现。
 
@@ -197,14 +199,14 @@
 
 ### 自动源清理
 
-`evaluate-sources` 和 `curate-sources` 能给出建议，`apply-source-patch` 能把已审阅 registry patch 写入新的 registry 文件。
+`evaluate-sources` 和 `curate-sources` 能给出建议，`apply-source-patch` 能把已审阅 registry patch 写入新的 registry 文件。`subscription-research source-health` 已能基于多次 ingest 的历史观察区分稳定源、间歇失败源和持续失败源。
 
 尚未实现：
 
 - 无人工审阅的自动禁用失败源。
 - 无人工审阅的自动删除低质量源。
 - 生成 OPML patch。
-- 基于多次 health 观察的 cleanup command。
+- 基于历史观察自动生成 registry patch 的 cleanup command。
 
 ### RSS 源发现
 

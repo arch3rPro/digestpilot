@@ -63,6 +63,7 @@
 - 研究日报是 Agent 基于 evidence brief 写作的综合产物，包含稳定的核心判断、重点资讯、信息源健康和后续跟踪问题。
 - research workspace 采用本地优先设计，使用 SQLite、JSONL、JSON 配置和 Markdown 输出。
 - RSS ingest run 会写入 SQLite，记录筛选条件、worker stats、source health 摘要、归档数量和实体链接数量。
+- 每个源的健康观察会跨 ingest run 持久化，帮助 Agent 区分持续失败和临时故障。
 - 当 RSS 元数据能明确区分时，evidence item 会包含保守的评论源和原始来源归因字段。
 - `subscription-research` CLI 契约保持文件化，便于不同 Agent runtime 包装且不改变 Skill core。
 
@@ -129,7 +130,7 @@ skills/subscription-research-agent/
 
 ## Research CLI
 
-`packages/research-cli/` 是 v0.3 本地优先 `subscription-research` CLI 的 package 位置。它负责 research workspace、SQLite schema、RSS evidence ingest、ingest-run metadata、entity extraction 和 evidence brief 生成。`v0.3` 阶段继续调用现有 Python RSS worker，不重写 RSS parser。最终研究日报仍由 Agent 基于 evidence brief 写作，并遵循 Skill reference 契约。
+`packages/research-cli/` 是 v0.3 本地优先 `subscription-research` CLI 的 package 位置。它负责 research workspace、SQLite schema、RSS evidence ingest、ingest-run metadata、per-source health history、entity extraction 和 evidence brief 生成。`v0.3` 阶段继续调用现有 Python RSS worker，不重写 RSS parser。最终研究日报仍由 Agent 基于 evidence brief 写作，并遵循 Skill reference 契约。
 
 ## 能力概览
 
@@ -178,8 +179,18 @@ Agent 和 wrapper 可以通过 `scripts/rss_monitor.py` 调用确定性实现。
 | `init` | 初始化本地 research workspace。 |
 | `ingest rss` | 将 RSS evidence 归档到 research workspace。 |
 | `brief evidence` | 基于本地 workspace 数据生成带来源依据的 evidence brief。 |
+| `source-health` | 汇总多次 ingest 形成的历史源健康观察。 |
 
 CLI 本身不直接生成最终研究报告。Agent 应基于 evidence brief，并参考 `subscription-research-agent` 的日报契约写作日报。
+
+源健康历史：
+
+```bash
+subscription-research source-health \
+  --workspace research-workspace \
+  --min-observations 2 \
+  --format markdown
+```
 
 最小初始化：
 

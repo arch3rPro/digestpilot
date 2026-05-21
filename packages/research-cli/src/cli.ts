@@ -3,6 +3,9 @@ import { Command } from "commander";
 import { createEvidenceBrief } from "./commands/brief-evidence.js";
 import { ingestRss } from "./commands/ingest-rss.js";
 import { initWorkspace } from "./commands/init.js";
+import { renderSourceHealthMarkdown, summarizeSourceHealthHistory } from "./sources/health.js";
+import { openResearchDb } from "./workspace/db.js";
+import { getWorkspacePaths } from "./workspace/paths.js";
 
 const program = new Command();
 
@@ -79,6 +82,29 @@ program
       limit: optionalNumber(options.limit) ?? 20
     });
     console.log(JSON.stringify(result, null, 2));
+  });
+
+program
+  .command("source-health")
+  .description("Summarize historical source health observations from the research workspace.")
+  .requiredOption("--workspace <path>", "Workspace directory")
+  .option("--min-observations <number>", "Minimum observations before making a recommendation", parseInteger, 2)
+  .option("--format <format>", "Output format: json or markdown", "json")
+  .action(async (options: Record<string, string | number | undefined>) => {
+    const format = optionalString(options.format) ?? "json";
+    if (!["json", "markdown"].includes(format)) {
+      throw new Error(`Unsupported source-health format: ${format}`);
+    }
+    const paths = getWorkspacePaths(requiredString(options.workspace, "workspace"));
+    const db = openResearchDb(paths.databasePath);
+    try {
+      const result = summarizeSourceHealthHistory(db, {
+        minObservations: optionalNumber(options.minObservations) ?? 2
+      });
+      console.log(format === "markdown" ? renderSourceHealthMarkdown(result) : JSON.stringify(result, null, 2));
+    } finally {
+      db.close();
+    }
   });
 
 await program.parseAsync(process.argv);

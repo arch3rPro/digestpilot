@@ -98,3 +98,19 @@ Agent behavior:
 - Use `apply-source-patch`.
 - Require an explicit output file.
 - Prefer dry-run first unless the user already confirmed the patch.
+
+## Historical Source Health Review
+
+User request:
+
+```text
+Use the local research workspace to review RSS sources that keep failing.
+Return Markdown and do not modify the registry.
+```
+
+Agent behavior:
+
+- Use `subscription-research-agent` when the workspace owns the source-health history.
+- Run `subscription-research source-health --workspace research-workspace --min-observations 2 --format markdown`.
+- Treat `disable_candidate` as a review signal, not permission to delete or disable a source.
+- Use `rss-source-curator` for any later reviewed registry patch workflow.
