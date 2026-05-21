@@ -15,7 +15,7 @@ This repository is an RSS Skills suite for agent ecosystems. It is designed for 
 | Stable release | `v0.1.0` includes `rss-ai-digest` |
 | Current workspace | `rss-ai-digest`, `rss-source-curator` |
 | Runtime contract | Standard Skill layout plus a deterministic Python CLI |
-| Release stage | Phase 2 changes are unreleased |
+| Release stage | `v0.2.0` is prepared but unreleased |
 | Dependency model | Python standard library for the current implementation |
 | Platform support | Agent-runtime neutral; wrappers can be added without changing the Skill core |
 
@@ -41,6 +41,12 @@ Do not treat this repository as a full RSS reader, notification service, schedul
 | --- | --- |
 | `rss-ai-digest` | Discover, filter, score, dedupe, and render high-signal AI/technical reading digests. |
 | `rss-source-curator` | Evaluate RSS source quality, review feed health, generate curation actions, and apply reviewed registry patches. |
+
+## v0.2.0 Prepared Scope
+
+- `rss-ai-digest` now supports deterministic digest presets, keyword groups, and topic-grouped Markdown output.
+- `rss-source-curator` owns source governance and registry maintenance workflows.
+- `v0.2.0` is prepared for release review and remains unreleased until a release tag is created.
 
 ## Skill Package Layout
 
@@ -100,8 +106,10 @@ This repository is meant to be consumed as one or more Skill packages:
 - Curated base OPML for AI, engineering, security, product, and general technical sources.
 - Optional source metadata priors for `base_score`, `language`, and `tags`.
 - Token-aware keyword matching and phrase matching.
-- Strict AI digest preset with noise exclusions.
+- Deterministic digest presets for AI research, engineering deep dives, security risk, and product/technology workflows.
+- Must / should / exclude keyword groups for explicit quality criteria.
 - Article scoring with explainable `score_reasons`.
+- Deterministic topic assignment and topic-grouped Markdown output.
 - Seen-state deduplication.
 - Source health persistence and failed-feed reporting.
 - Source evaluation and reviewable source curation patches.
@@ -216,6 +224,7 @@ Primary Skill docs:
 Project and maintenance docs:
 
 - [Project status](./docs/project-status.zh-CN.md)
+- [v0.2.0 release notes](./docs/releases/v0.2.0.md)
 - [v0.1.0 release notes](./docs/releases/v0.1.0.md)
 - [Agent instructions](./AGENTS.md)
 - [Claude Code instructions](./CLAUDE.md)

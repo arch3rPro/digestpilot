@@ -2,11 +2,19 @@
 
 All notable project changes are recorded here.
 
-## Unreleased
+## v0.2.0 - Unreleased
 
 ### Added
 
-- Added `rss-source-curator` as the first separate RSS suite Skill for source governance and registry maintenance.
+- Added `rss-source-curator` as the source governance Skill.
+- Added deterministic digest presets for research, engineering, security, and product/technology workflows.
+- Added must / should / exclude keyword groups.
+- Added deterministic topic assignment and grouped Markdown digest output.
+
+### Changed
+
+- Presented the repository as an RSS Skills suite.
+- Kept existing digest command behavior backward compatible while adding new digest quality controls.
 
 ## v0.1.0 - 2026-05-21
 

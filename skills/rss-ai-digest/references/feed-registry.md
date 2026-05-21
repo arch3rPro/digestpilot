@@ -232,7 +232,14 @@ The command does not overwrite the input registry unless the caller explicitly u
 
 ```json
 {
-  "entries": [],
+  "entries": [
+    {
+      "title": "Example",
+      "link": "https://example.com/post",
+      "score": 8,
+      "topic": "AI / LLM"
+    }
+  ],
   "failures": [],
   "health": {},
   "stats": {
@@ -249,4 +256,6 @@ The command does not overwrite the input registry unless the caller explicitly u
 }
 ```
 
-Markdown digest output includes run stats and a `Failed feeds` section when any feed fails during the current run.
+Each JSON entry includes `topic` for downstream routing. Topic values are deterministic: `AI / LLM`, `Engineering`, `Security`, `Product / Business`, or `Other`.
+
+Markdown digest output includes run stats and a `Failed feeds` section when any feed fails during the current run. Digest Markdown groups reported entries by deterministic topic.

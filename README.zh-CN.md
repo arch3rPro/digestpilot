@@ -15,7 +15,7 @@
 | 稳定发布 | `v0.1.0` 包含 `rss-ai-digest` |
 | 当前工作区 | `rss-ai-digest`、`rss-source-curator` |
 | 运行契约 | 标准 Skill 结构 + 确定性 Python CLI |
-| 发布阶段 | Phase 2 变更尚未发布 |
+| 发布阶段 | `v0.2.0` 已准备，尚未发布 |
 | 依赖模型 | 当前实现仅使用 Python 标准库 |
 | 平台支持 | 运行时中立，可被不同 Agent 或调度器包装 |
 
@@ -41,6 +41,12 @@
 | --- | --- |
 | `rss-ai-digest` | 发现、筛选、评分、去重并生成高信号 AI/技术阅读摘要。 |
 | `rss-source-curator` | 评估 RSS 源质量、审查源健康、生成源治理动作，并应用已审阅 registry patch。 |
+
+## v0.2.0 准备范围
+
+- `rss-ai-digest` 现在支持确定性 digest presets、关键词组和按主题分组的 Markdown 输出。
+- `rss-source-curator` 负责源治理和 registry 维护工作流。
+- `v0.2.0` 已进入发布审阅准备状态，但在创建 release tag 前仍视为未发布。
 
 ## Skill 包结构
 
@@ -100,8 +106,10 @@ skills/rss-source-curator/
 - 面向 AI、工程、安全、产品和通用技术博客的基础 OPML。
 - 通过 source metadata 设置 `base_score`、`language`、`tags` 等源先验。
 - token-aware 关键词匹配和短语匹配。
-- 严格 AI digest preset 和噪声排除。
+- 面向 AI research、engineering deep dive、security risk、product/technology 工作流的确定性 digest presets。
+- must / should / exclude 关键词组，用于明确质量标准。
 - 带 `score_reasons` 的文章评分。
+- 确定性 topic assignment 和按主题分组的 Markdown 输出。
 - seen-state 去重。
 - source health 持久化和 failed feeds 报告。
 - 源质量评估和可审阅源治理 patch。
@@ -176,6 +184,7 @@ python3 skills/rss-ai-digest/scripts/rss_monitor.py digest \
 项目维护文档：
 
 - [项目状态](./docs/project-status.zh-CN.md)
+- [v0.2.0 release notes](./docs/releases/v0.2.0.md)
 - [v0.1.0 release notes](./docs/releases/v0.1.0.md)
 - [Agent 指令](./AGENTS.md)
 - [Claude Code 指令](./CLAUDE.md)

@@ -43,6 +43,13 @@ Strict filtering options:
 - `--exclude-keywords`: remove entries matching any noise keyword or phrase in title or summary.
 - `--keyword-mode all`: require every included keyword to match. The default `any` mode keeps the broader discovery behavior.
 
+## Digest Quality Signals
+
+- Must keywords are admission criteria; when title matching is required, at least one must, should, or standard keyword must appear in the title.
+- Should keyword matches increase score but do not admit an entry by themselves.
+- Summary-only matches are weaker than title matches.
+- Entries are assigned deterministic topics: `AI / LLM`, `Engineering`, `Security`, `Product / Business`, or `Other`.
+
 ## Source Score
 
 Use a 10-point score and one recommendation:

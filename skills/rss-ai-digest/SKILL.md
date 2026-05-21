@@ -103,6 +103,10 @@ Keyword matching is token-aware for single words and phrase-aware for multi-word
 
 For stricter AI digests, prefer `--preset ai-strict`. Use `--require-any-title-keyword` to suppress summary-only matches, `--exclude-keywords` to remove obvious noise, and `--keyword-mode all` when every requested keyword must match.
 
+For higher-quality digests, use presets such as `ai-research`, `engineering-deep-dive`, `security-risk`, or `product-tech`. Use `--must-keywords`, `--should-keywords`, and `--exclude-keywords` when the user provides explicit quality criteria.
+
+Markdown digests are grouped by deterministic topics. JSON entries include `topic` for downstream routing.
+
 Use `curate-sources` to produce source maintenance recommendations. It returns reviewable actions and registry patch hints, but it must not be treated as permission to delete or disable feeds automatically.
 
 Use `apply-source-patch` only after reviewing a curation result. The command defaults to dry-run mode and writes a registry only when `--apply` and `--output` are both provided.

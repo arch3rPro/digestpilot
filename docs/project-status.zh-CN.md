@@ -13,7 +13,8 @@
 ### RSS Skills Suite
 
 - 已发布 `v0.1.0` 作为拆分前稳定检查点。
-- Phase 2 开始引入第二个正式 Skill：`rss-source-curator`。
+- Phase 2 已引入第二个正式 Skill：`rss-source-curator`。
+- `v0.2.0` 已准备发布说明和文档更新，但尚未创建 release tag。
 - `rss-ai-digest` 继续负责内容发现和日报。
 - `rss-source-curator` 负责源质量治理和 registry 维护。
 
@@ -63,6 +64,8 @@
 - 单词关键词使用 token-aware 匹配，避免 `ai` 误命中无关长词。
 - 多词关键词使用 phrase matching。
 - 支持 `--preset ai-strict`，可一键应用严格 AI digest 默认筛选。
+- 支持 `ai-research`、`engineering-deep-dive`、`security-risk`、`product-tech` 等确定性 digest presets。
+- 支持 `--must-keywords`、`--should-keywords`、`--exclude-keywords` 关键词组，用于明确质量标准。
 - 支持 `--require-any-title-keyword`，可过滤 summary-only 的弱匹配。
 - 支持 `--exclude-keywords`，可排除噪声关键词或短语。
 - 支持 `--keyword-mode all`，要求所有关键词都命中。
@@ -76,6 +79,7 @@
 - 评分考虑 AI/工程相关性、技术深度、来源先验、发布时间、噪声特征等。
 - 标题关键词命中会加分。
 - 仅 summary 命中的弱匹配会降权。
+- 条目会被分配确定性 topic：`AI / LLM`、`Engineering`、`Security`、`Product / Business` 或 `Other`。
 - 输出 `score_reasons`，便于 agent 或用户解释推荐原因。
 - 并发抓取后仍保持稳定排序，便于自动化和结果对比。
 
@@ -117,8 +121,10 @@
 ### 输出格式
 
 - 支持 Markdown 输出，适合人阅读。
+- Markdown digest 会按确定性 topic 分组。
 - 支持 JSON 输出，适合 agent、调度器、通知适配器或工作流系统消费。
 - JSON digest 使用 envelope，而不是裸 entries 数组。
+- JSON entries 包含 `topic` 字段，便于下游路由。
 
 ### 测试与验证
 
@@ -143,7 +149,7 @@
 
 ### 后续多 Skill 扩展
 
-当前已进入 RSS Skills Suite Phase 2，正式 Skills 包括 `rss-ai-digest` 和 `rss-source-curator`。以下 Roadmap Skill 尚未实现：
+当前已完成 RSS Skills Suite Phase 2 的主要文档与功能准备，正式 Skills 包括 `rss-ai-digest` 和 `rss-source-curator`。`v0.2.0` 处于 prepared/unreleased 状态，尚未打 tag。以下 Roadmap Skill 尚未实现：
 
 - `rss-alert-monitor`：关键词、作者、项目、主题监控。
 - `rss-digest-publisher`：发布到邮件、飞书、Slack、Obsidian 或 webhook。
@@ -198,13 +204,11 @@
 - 从网页目录生成 OPML。
 - 验证候选源后自动加入 registry。
 
-### 高级筛选
+### 更高级筛选
 
 尚未实现更复杂的筛选表达式：
 
-- must / should / exclude 关键词组。
 - 布尔表达式筛选。
-- 主题聚类。
 - 语义去重。
 - 相似文章合并。
 - LLM rerank。
@@ -221,7 +225,6 @@
 - 长 summary 截断模式。
 - 自动中文摘要。
 - 自动生成日报导语。
-- 按主题自动分组。
 - 内容质量的 LLM 评审。
 
 ### 插件市场与 Claude 插件
@@ -268,10 +271,10 @@
 
 ## 推荐下一步
 
-优先级最高的两个方向：
+优先级最高的方向：
 
-1. 完善 `rss-source-curator`：专门处理源评估、失败源治理、OPML/registry 清理和源质量维护。
-2. 继续增强内容质量筛选：扩展噪声源 metadata、must/should/exclude 关键词组和更多 digest preset。
+1. 对 `v0.2.0` 做发布前审阅、打 tag 和发布。
+2. 继续增强内容质量筛选：扩展噪声源 metadata、布尔表达式、语义去重和 LLM rerank。
 3. 规划后续独立 Skills，例如 `rss-alert-monitor`、`rss-digest-publisher` 和 `rss-feed-discovery`。
 
 如果目标是继续扩展 RSS Skills 套件，应优先保持共享数据结构、CLI 契约和文档入口一致。
