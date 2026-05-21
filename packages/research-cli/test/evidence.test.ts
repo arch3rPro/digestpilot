@@ -1,0 +1,118 @@
+import assert from "node:assert/strict";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import test from "node:test";
+import { createEvidenceBrief } from "../src/commands/brief-evidence.js";
+import { ingestRssEnvelope } from "../src/commands/ingest-rss.js";
+import { initWorkspace } from "../src/commands/init.js";
+
+test("createEvidenceBrief writes markdown and JSON evidence outputs", async () => {
+  const root = await mkdtemp(join(tmpdir(), "subscription-research-"));
+  const workspace = join(root, "workspace");
+  try {
+    await initWorkspace({ workspace });
+    await ingestRssEnvelope({
+      workspace,
+      envelope: {
+        entries: [
+          {
+            title: "LLM evals in production",
+            link: "https://example.com/llm-evals",
+            feed_id: "ai-feed",
+            feed_title: "AI Feed",
+            published_at: "2026-05-21T00:00:00Z",
+            summary: "Benchmark reliability notes.",
+            topic: "AI / LLM",
+            score: 9,
+            score_reasons: ["should_keyword_match"]
+          }
+        ]
+      }
+    });
+
+    const result = await createEvidenceBrief({
+      workspace,
+      question: "最近 LLM evals 有哪些新进展？",
+      since: "7d",
+      mustKeywords: "llm,evals",
+      shouldKeywords: "benchmark,reliability",
+      limit: 10
+    });
+
+    const markdown = await readFile(result.markdownPath, "utf8");
+    const json = JSON.parse(await readFile(result.jsonPath, "utf8")) as {
+      question: string;
+      evidence_items: unknown[];
+    };
+    assert.match(markdown, /# Evidence Brief:/);
+    assert.match(markdown, /LLM evals in production/);
+    assert.equal(json.evidence_items.length, 1);
+    assert.equal(json.question, "最近 LLM evals 有哪些新进展？");
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("createEvidenceBrief avoids filename collisions and applies since filtering", async () => {
+  const root = await mkdtemp(join(tmpdir(), "subscription-research-"));
+  const workspace = join(root, "workspace");
+  try {
+    await initWorkspace({ workspace });
+    await ingestRssEnvelope({
+      workspace,
+      envelope: {
+        entries: [
+          {
+            title: "Fresh LLM evals in production",
+            link: "https://example.com/fresh-llm-evals",
+            feed_id: "ai-feed",
+            feed_title: "AI Feed",
+            published_at: new Date().toISOString(),
+            summary: "Benchmark reliability notes.",
+            topic: "AI / LLM",
+            score: 9,
+            score_reasons: ["should_keyword_match"]
+          },
+          {
+            title: "Old LLM evals in production",
+            link: "https://example.com/old-llm-evals",
+            feed_id: "ai-feed",
+            feed_title: "AI Feed",
+            published_at: "2020-01-01T00:00:00Z",
+            summary: "Benchmark reliability notes.",
+            topic: "AI / LLM",
+            score: 9,
+            score_reasons: ["should_keyword_match"]
+          }
+        ]
+      }
+    });
+
+    const first = await createEvidenceBrief({
+      workspace,
+      question: "最近 LLM evals 有哪些新进展？",
+      since: "1d",
+      mustKeywords: "llm,evals",
+      limit: 10
+    });
+    const second = await createEvidenceBrief({
+      workspace,
+      question: "最近 LLM evals 有哪些新进展？",
+      since: "1d",
+      mustKeywords: "llm,evals",
+      limit: 10
+    });
+
+    assert.notEqual(first.markdownPath, second.markdownPath);
+    const json = JSON.parse(await readFile(first.jsonPath, "utf8")) as {
+      evidence_items: Array<{ title: string }>;
+    };
+    assert.deepEqual(
+      json.evidence_items.map((item) => item.title),
+      ["Fresh LLM evals in production"]
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});

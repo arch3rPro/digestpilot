@@ -50,3 +50,10 @@ latest.json
 rss-output/
 *.local.json
 *.generated.json
+
+# Research workspace runtime outputs
+research-workspace/
+*.sqlite-wal
+*.sqlite-shm
+packages/research-cli/dist/
+packages/research-cli/node_modules/

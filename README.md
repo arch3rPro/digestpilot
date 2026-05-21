@@ -4,19 +4,19 @@
 
 [中文说明](./README.zh-CN.md) | [Examples](./examples/README.md) | [Changelog](./CHANGELOG.md)
 
-Portable RSS-related Skills for agent ecosystems.
+Portable RSS-related Skills and local-first subscription research workflows for agent ecosystems.
 
-This repository is an RSS Skills suite for agent ecosystems. It is designed for agents that need to import subscriptions, monitor new articles, rank high-signal items, maintain seen-state, and review RSS source quality without depending on one runtime.
+This repository is an RSS Skills suite for agent ecosystems. It is designed for agents that need to import subscriptions, monitor new articles, rank high-signal items, maintain seen-state, review RSS source quality, and prepare evidence briefs without depending on one runtime.
 
 ## Status
 
 | Area | Status |
 | --- | --- |
 | Stable release | `v0.1.0` includes `rss-ai-digest` |
-| Current workspace | `rss-ai-digest`, `rss-source-curator` |
-| Runtime contract | Standard Skill layout plus a deterministic Python CLI |
-| Release stage | `v0.2.0` is prepared but unreleased |
-| Dependency model | Python standard library for the current implementation |
+| Current workspace | `rss-ai-digest`, `rss-source-curator`, `subscription-research-agent` |
+| Runtime contract | Standard Skill layout plus deterministic local CLIs |
+| Release stage | `v0.2.0` is prepared but unreleased; `v0.3.0` is in active development |
+| Dependency model | Python standard library for RSS primitives; Node/TypeScript for research workspace tooling |
 | Platform support | Agent-runtime neutral; wrappers can be added without changing the Skill core |
 
 ## Agent Use Cases
@@ -33,7 +33,13 @@ Use `rss-source-curator` when an agent needs to:
 - Evaluate feed health and source quality over time.
 - Generate reviewable source cleanup actions before changing a registry.
 
-Do not treat this repository as a full RSS reader, notification service, scheduler, or plugin-marketplace package yet. Those layers can wrap the same Skill later.
+Use `subscription-research-agent` when an agent needs to:
+
+- Initialize a local-first research workspace around subscription sources.
+- Archive RSS evidence into queryable local memory.
+- Generate source-backed evidence briefs for later memo writing.
+
+Do not treat this repository as a full RSS reader, notification service, scheduler, hosted research platform, or plugin-marketplace package yet. Those layers can wrap the same Skills later.
 
 ## Current Skills
 
@@ -41,12 +47,20 @@ Do not treat this repository as a full RSS reader, notification service, schedul
 | --- | --- |
 | `rss-ai-digest` | Discover, filter, score, dedupe, and render high-signal AI/technical reading digests. |
 | `rss-source-curator` | Evaluate RSS source quality, review feed health, generate curation actions, and apply reviewed registry patches. |
+| `subscription-research-agent` | Orchestrate local-first evidence briefs from subscription sources for research workflows. |
 
 ## v0.2.0 Prepared Scope
 
 - `rss-ai-digest` now supports deterministic digest presets, keyword groups, and topic-grouped Markdown output.
 - `rss-source-curator` owns source governance and registry maintenance workflows.
 - `v0.2.0` is prepared for release review and remains unreleased until a release tag is created.
+
+## v0.3.0 Local-First Research Scope
+
+- `subscription-research-agent` adds the high-level orchestration layer for local subscription research workflows.
+- Evidence briefs are treated as source-backed context packages, not final research conclusions.
+- The research workspace is local-first and uses SQLite, JSONL, JSON configuration, and Markdown output.
+- The `subscription-research` CLI contract remains file-based so other agent runtimes can wrap it without changing the Skill core.
 
 ## Skill Package Layout
 
@@ -68,6 +82,13 @@ skills/rss-source-curator/
 └── references/
     ├── registry-maintenance.md
     └── source-governance.md
+
+skills/subscription-research-agent/
+├── SKILL.md
+├── agents/openai.yaml
+└── references/
+    ├── evidence-brief.md
+    └── research-workspace.md
 ```
 
 Each `SKILL.md` is an agent entrypoint. The Python script remains the deterministic shared implementation behind the Skills, not the product surface.
@@ -78,6 +99,9 @@ Each `SKILL.md` is an agent entrypoint. The Python script remains the determinis
 .
 ├── skills/rss-ai-digest/        # Portable Skill package
 ├── skills/rss-source-curator/   # Source governance Skill package
+├── skills/subscription-research-agent/
+│                                  # Local-first research orchestration Skill
+├── packages/research-cli/        # v0.3 local research CLI package
 ├── examples/                    # Agent and Skill invocation examples
 ├── docs/                        # Project status and design history
 ├── tests/                       # Regression tests for deterministic behavior
@@ -94,8 +118,13 @@ This repository is meant to be consumed as one or more Skill packages:
 - Agent runtimes should load or copy the needed directories under `skills/`.
 - Use `skills/rss-ai-digest/` for content discovery and digest generation.
 - Use `skills/rss-source-curator/` for source governance and registry maintenance.
+- Use `skills/subscription-research-agent/` for local-first evidence brief orchestration.
 - Humans and maintainers should treat [`README.md`](./README.md), [`AGENTS.md`](./AGENTS.md), and [`CHANGELOG.md`](./CHANGELOG.md) as project-level documents.
 - Runtime-specific wrappers should live outside the Skill core unless the project explicitly starts a packaging phase.
+
+## Research CLI
+
+`packages/research-cli/` is the v0.3 local-first `subscription-research` CLI package location. It manages research workspaces, SQLite schema, RSS evidence ingestion, entity extraction, and evidence brief generation. For `v0.3`, it calls the existing Python RSS worker instead of rewriting RSS parsing in TypeScript.
 
 ## Skill Capabilities
 
@@ -129,7 +158,7 @@ Digest JSON includes:
 
 ## Agent Workflow
 
-1. Choose the relevant Skill entrypoint: [`rss-ai-digest`](./skills/rss-ai-digest/SKILL.md) for content discovery and digests, or [`rss-source-curator`](./skills/rss-source-curator/SKILL.md) for source governance.
+1. Choose the relevant Skill entrypoint: [`rss-ai-digest`](./skills/rss-ai-digest/SKILL.md) for content discovery and digests, [`rss-source-curator`](./skills/rss-source-curator/SKILL.md) for source governance, or [`subscription-research-agent`](./skills/subscription-research-agent/SKILL.md) for evidence brief workflows.
 2. Use [`skills/rss-ai-digest/references/base-feeds.opml`](./skills/rss-ai-digest/references/base-feeds.opml) when a starter source list is needed.
 3. Keep runtime files such as `feeds.json`, `seen.json`, and `source-health.json` outside Git.
 4. Prefer Markdown output for user-facing digests and JSON output for agent pipelines.
@@ -150,6 +179,14 @@ The CLI contract is intentionally file-based. Callers pass explicit registry, st
 | `evaluate-sources` | Score source quality from registry and health data. |
 | `curate-sources` | Generate reviewable source governance actions. |
 | `apply-source-patch` | Dry-run or apply reviewed registry patches to an explicit output file. |
+
+The `subscription-research` CLI contract for `v0.3` adds local research workspace commands:
+
+| Command | Purpose |
+| --- | --- |
+| `init` | Initialize a local research workspace. |
+| `ingest rss` | Archive RSS evidence into the research workspace. |
+| `brief evidence` | Generate a source-backed evidence brief from local workspace data. |
 
 Minimal bootstrap:
 
@@ -196,6 +233,7 @@ More prompt-level examples are in [examples/README.md](./examples/README.md).
 
 - Keep core behavior platform-neutral.
 - Do not make `rss-ai-digest` depend on Codex, Claude, Cursor, OpenClaw, n8n, GitHub Actions, or cron.
+- Do not make `subscription-research-agent` depend on Obsidian, a hosted database, or any single notes app.
 - Put repeatable behavior in `scripts/`.
 - Put schemas, scoring rules, source lists, and automation recipes in `references/`.
 - Keep runtime wrappers separate from the Skill core.
@@ -205,6 +243,7 @@ More prompt-level examples are in [examples/README.md](./examples/README.md).
 
 - Feed registries, seen-state files, and source-health files may reveal reading interests.
 - Runtime files such as `feeds.json`, `seen.json`, `source-health.json`, `digest.md`, and `rss-output/` are ignored by Git by default.
+- Research workspaces can include private reading history, entity lists, and draft briefs; keep `research-workspace/` out of Git by default.
 - Notification integrations should not send digest or feed data externally unless the user explicitly requests that channel.
 - `apply-source-patch` writes only to an explicit output file and should be used after reviewing curation results.
 
@@ -214,11 +253,14 @@ Primary Skill docs:
 
 - [`rss-ai-digest` entrypoint](./skills/rss-ai-digest/SKILL.md)
 - [`rss-source-curator` entrypoint](./skills/rss-source-curator/SKILL.md)
+- [`subscription-research-agent` entrypoint](./skills/subscription-research-agent/SKILL.md)
 - [`rss-ai-digest` feed registry and state schema](./skills/rss-ai-digest/references/feed-registry.md)
 - [`rss-ai-digest` scoring rules](./skills/rss-ai-digest/references/scoring.md)
 - [`rss-ai-digest` automation recipes](./skills/rss-ai-digest/references/automation.md)
 - [`rss-source-curator` source governance](./skills/rss-source-curator/references/source-governance.md)
 - [`rss-source-curator` registry maintenance](./skills/rss-source-curator/references/registry-maintenance.md)
+- [`subscription-research-agent` research workspace](./skills/subscription-research-agent/references/research-workspace.md)
+- [`subscription-research-agent` evidence brief contract](./skills/subscription-research-agent/references/evidence-brief.md)
 - [`rss-ai-digest` source metadata seed](./skills/rss-ai-digest/references/source-metadata.json)
 
 Project and maintenance docs:
@@ -241,6 +283,7 @@ Run the test suite:
 
 ```bash
 python3 -m unittest tests/test_rss_monitor.py -v
+cd packages/research-cli && npm test
 ```
 
 Validate the Skill package if the local validator dependencies are available:
@@ -248,6 +291,7 @@ Validate the Skill package if the local validator dependencies are available:
 ```bash
 python3 /path/to/skill-creator/scripts/quick_validate.py skills/rss-ai-digest
 python3 /path/to/skill-creator/scripts/quick_validate.py skills/rss-source-curator
+python3 /path/to/skill-creator/scripts/quick_validate.py skills/subscription-research-agent
 ```
 
 Check basic whitespace issues:
@@ -256,7 +300,7 @@ Check basic whitespace issues:
 git diff --check
 ```
 
-The runtime script uses the Python standard library for the MVP. No project dependency installation is required for the included tests.
+The RSS runtime script uses the Python standard library. The v0.3 research CLI uses Node dependencies isolated under `packages/research-cli/`.
 
 ## Roadmap
 
