@@ -30,6 +30,21 @@ Initialize a workspace:
 subscription-research init --workspace research-workspace
 ```
 
+Archive RSS evidence with the default Node RSS runtime:
+
+```bash
+subscription-research ingest rss \
+  --workspace research-workspace \
+  --registry feeds.json \
+  --since 24h \
+  --keywords "llm,agent,rag,evals,inference" \
+  --should-keywords "benchmark,reliability,architecture" \
+  --exclude-keywords "webinar,coupon,sponsor,hiring,job,press release" \
+  --min-score 7
+```
+
+Use `--rss-runtime python` only for compatibility checks against the legacy RSS worker.
+
 Generate an evidence brief:
 
 ```bash

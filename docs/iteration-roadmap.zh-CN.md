@@ -83,7 +83,7 @@
 `subscription-research-agent` 和 `packages/research-cli` 已实现：
 
 - `subscription-research init`：初始化本地 research workspace。
-- `subscription-research ingest rss`：调用 RSS worker，将订阅 evidence 归档到本地 workspace。
+- `subscription-research ingest rss`：默认使用 Node RSS runtime，将订阅 evidence 归档到本地 workspace；可通过 `--rss-runtime python` 使用兼容 worker。
 - `subscription-research brief evidence`：从本地数据生成 evidence brief。
 - evidence brief 已支持清洗后的摘要和 `must_keyword_mode`，宽泛日报不再默认要求所有 must keyword 同时命中。
 - `subscription-research source-health`：汇总多次 ingest 形成的源健康历史。

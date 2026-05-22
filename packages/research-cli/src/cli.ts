@@ -32,6 +32,7 @@ program
   .argument("<channel>", "Channel type, for v0.3 use rss")
   .requiredOption("--workspace <path>", "Workspace directory")
   .requiredOption("--registry <path>", "RSS feed registry JSON file")
+  .option("--rss-runtime <runtime>", "RSS runtime: node or python", "node")
   .option("--script-path <path>", "Path to rss_monitor.py")
   .option("--python <command>", "Python executable", "python3")
   .option("--since <window>", "Relative or absolute time window", "7d")
@@ -47,6 +48,7 @@ program
     const result = await ingestRss({
       workspace: requiredString(options.workspace, "workspace"),
       registry: requiredString(options.registry, "registry"),
+      rssRuntime: rssRuntime(optionalString(options.rssRuntime) ?? "node"),
       scriptPath: optionalString(options.scriptPath),
       python: optionalString(options.python),
       since: optionalString(options.since),
@@ -149,4 +151,9 @@ function optionalNumber(value: string | number | undefined): number | undefined 
 function keywordMode(value: string): "any" | "all" {
   if (value === "any" || value === "all") return value;
   throw new Error(`Unsupported must keyword mode: ${value}`);
+}
+
+function rssRuntime(value: string): "node" | "python" {
+  if (value === "node" || value === "python") return value;
+  throw new Error(`Unsupported RSS runtime: ${value}`);
 }

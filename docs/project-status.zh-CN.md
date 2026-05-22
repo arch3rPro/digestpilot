@@ -33,8 +33,8 @@
 ### 项目与 Skill 基础
 
 - 已建立标准 Skill 结构：`skills/rss-ai-digest/SKILL.md`、`skills/rss-source-curator/SKILL.md` 和 `skills/subscription-research-agent/SKILL.md`。
-- 已提供平台中立的 CLI 实现：`skills/rss-ai-digest/scripts/rss_monitor.py`。
-- 已新增本地研究 CLI：`packages/research-cli/`。
+- 已提供平台中立的 Python 兼容 CLI：`skills/rss-ai-digest/scripts/rss_monitor.py`。
+- 已新增本地研究 CLI：`packages/research-cli/`，其中 RSS ingest 默认使用 Node runtime。
 - 已提供 README、CHANGELOG、AGENTS.md、CLAUDE.md 和设计/验证文档。
 - 已保持核心行为与具体运行时解耦，不依赖 Codex、Claude 或特定插件市场。
 - 已提供 OpenAI/Codex 风格的可选 UI metadata：`skills/rss-ai-digest/agents/openai.yaml`。

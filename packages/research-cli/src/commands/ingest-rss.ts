@@ -5,7 +5,9 @@ import { fileURLToPath } from "node:url";
 import type { RssDigestEnvelope, SourceHealthSummary } from "../types.js";
 import { archiveEntries, type ArchiveResult } from "../articles/archive.js";
 import { loadEntityConfig } from "../entities/config.js";
+import { runNodeRssDigest } from "../rss/node-runtime.js";
 import { runRssDigest } from "../rss/python-worker.js";
+import type { FeedFetcher } from "../rss/types.js";
 import { openResearchDb } from "../workspace/db.js";
 import { getWorkspacePaths } from "../workspace/paths.js";
 
@@ -21,6 +23,7 @@ export interface IngestRssEnvelopeOptions {
 export interface IngestRssCommandOptions {
   workspace: string;
   registry: string;
+  rssRuntime?: "node" | "python";
   scriptPath?: string;
   python?: string;
   since?: string;
@@ -29,11 +32,13 @@ export interface IngestRssCommandOptions {
   shouldKeywords?: string;
   excludeKeywords?: string;
   minScore?: number;
+  fetcher?: FeedFetcher;
 }
 
 export interface IngestRunCriteria {
   channel?: string;
   registry?: string;
+  rss_runtime?: string;
   since?: string;
   keywords?: string;
   must_keywords?: string;
@@ -68,25 +73,41 @@ export async function ingestRssEnvelope(options: IngestRssEnvelopeOptions): Prom
 export async function ingestRss(options: IngestRssCommandOptions): Promise<ArchiveResult> {
   const paths = getWorkspacePaths(options.workspace);
   const startedAt = new Date().toISOString();
-  const envelope = await runRssDigest({
-    python: options.python,
-    scriptPath: options.scriptPath ?? defaultRssMonitorPath(),
-    registry: options.registry,
-    state: paths.seenPath,
-    health: paths.sourceHealthPath,
-    since: options.since,
-    keywords: options.keywords,
-    mustKeywords: options.mustKeywords,
-    shouldKeywords: options.shouldKeywords,
-    excludeKeywords: options.excludeKeywords,
-    minScore: options.minScore
-  });
+  const runtime = options.rssRuntime ?? "node";
+  const envelope =
+    runtime === "python"
+      ? await runRssDigest({
+          python: options.python,
+          scriptPath: options.scriptPath ?? defaultRssMonitorPath(),
+          registry: options.registry,
+          state: paths.seenPath,
+          health: paths.sourceHealthPath,
+          since: options.since,
+          keywords: options.keywords,
+          mustKeywords: options.mustKeywords,
+          shouldKeywords: options.shouldKeywords,
+          excludeKeywords: options.excludeKeywords,
+          minScore: options.minScore
+        })
+      : await runNodeRssDigest({
+          registry: options.registry,
+          state: paths.seenPath,
+          health: paths.sourceHealthPath,
+          since: options.since,
+          keywords: options.keywords,
+          mustKeywords: options.mustKeywords,
+          shouldKeywords: options.shouldKeywords,
+          excludeKeywords: options.excludeKeywords,
+          minScore: options.minScore,
+          fetcher: options.fetcher
+        });
   return ingestRssEnvelope({
     workspace: options.workspace,
     envelope,
     criteria: {
       channel: "rss",
       registry: options.registry,
+      rss_runtime: runtime,
       since: options.since,
       keywords: options.keywords,
       must_keywords: options.mustKeywords,

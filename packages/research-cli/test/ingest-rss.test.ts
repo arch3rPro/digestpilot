@@ -6,7 +6,8 @@ import { join } from "node:path";
 import test from "node:test";
 import Database from "better-sqlite3";
 import { initWorkspace } from "../src/commands/init.js";
-import { defaultRssMonitorPath, ingestRssEnvelope } from "../src/commands/ingest-rss.js";
+import { defaultRssMonitorPath, ingestRss, ingestRssEnvelope } from "../src/commands/ingest-rss.js";
+import type { FeedFetcher } from "../src/rss/types.js";
 import type { RssDigestEnvelope } from "../src/types.js";
 
 test("ingestRssEnvelope archives entries to JSONL and SQLite", async () => {
@@ -218,4 +219,60 @@ test("ingestRssEnvelope persists conservative source attribution", async () => {
 test("defaultRssMonitorPath resolves from the package location instead of cwd", () => {
   assert.match(defaultRssMonitorPath(), /skills\/rss-ai-digest\/scripts\/rss_monitor\.py$/);
   assert.equal(existsSync(defaultRssMonitorPath()), true);
+});
+
+test("ingestRss uses Node runtime by default and archives RSS entries", async () => {
+  const root = await mkdtemp(join(tmpdir(), "subscription-research-"));
+  const workspace = join(root, "workspace");
+  const registry = join(root, "feeds.json");
+  try {
+    await initWorkspace({ workspace });
+    await writeFile(
+      registry,
+      JSON.stringify({
+        feeds: [{ id: "ai-feed", title: "AI Feed", url: "https://example.com/feed.xml", base_score: 6 }]
+      }),
+      "utf8"
+    );
+    const fetcher: FeedFetcher = async () => ({
+      async text() {
+        return `
+          <rss version="2.0">
+            <channel><title>AI Feed</title>
+              <item>
+                <title>LLM evals in production</title>
+                <link>https://example.com/llm-evals</link>
+                <pubDate>Thu, 21 May 2026 08:00:00 GMT</pubDate>
+                <description>Reliability benchmark notes.</description>
+              </item>
+            </channel>
+          </rss>
+        `;
+      }
+    });
+
+    const result = await ingestRss({
+      workspace,
+      registry,
+      keywords: "llm",
+      shouldKeywords: "benchmark",
+      minScore: 8,
+      fetcher
+    });
+
+    assert.equal(result.entriesArchived, 1);
+    assert.equal(result.stats?.entries_reported, 1);
+
+    const db = new Database(join(workspace, "data/research.db"), { readonly: true });
+    try {
+      const run = db.prepare("select criteria_json from research_runs where run_type = 'rss_ingest'").get() as {
+        criteria_json: string;
+      };
+      assert.equal(JSON.parse(run.criteria_json).rss_runtime, "node");
+    } finally {
+      db.close();
+    }
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
 });
