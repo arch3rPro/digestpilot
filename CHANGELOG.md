@@ -2,13 +2,13 @@
 
 All notable project changes are recorded here.
 
-## v0.3.0 - Unreleased
+## v0.3.0 - 2026-05-22
 
 ### Added
 
 - Added the `subscription-research-agent` Skill for local-first evidence research workflows.
 - Added a Chinese implemented-features summary and iteration roadmap for the RSS Agent Skills suite.
-- Added `v0.3.0` release notes and aligned the release target with the local-first research Agent scope.
+- Added `v0.3.0` release notes and aligned the release with the local-first research Agent scope.
 - Added research workspace and evidence brief references for subscription-backed research orchestration.
 - Added a daily research report contract for Agent-written reports synthesized from evidence briefs.
 - Added SQLite persistence for RSS ingest runs, including criteria, RSS worker stats, source health summary, archived entries, and entity link counts.
@@ -27,7 +27,7 @@ All notable project changes are recorded here.
 ### Changed
 
 - Expanded the project direction from an RSS Skills suite toward a local-first subscription research Agent toolkit.
-- Carried the prepared `v0.2.0` RSS Skills suite scope forward into the `v0.3.0` release target.
+- Carried the prepared `v0.2.0` RSS Skills suite scope forward into the `v0.3.0` release.
 - Made the research workspace daily-report path explicit in the TypeScript workspace contract.
 - Advanced the research workspace schema to version 2 with migration support for RSS ingest run metadata.
 - Advanced the research workspace schema to version 3 with migration support for article attribution metadata.
@@ -42,7 +42,9 @@ All notable project changes are recorded here.
 - Removed `--rss-runtime python`, `--script-path`, and `--python` ingest options.
 - Removed Python RSS monitor unit tests after moving parser and command coverage to Node tests.
 
-## v0.2.0 - Unreleased
+## v0.2.0 - Folded into v0.3.0
+
+This checkpoint was not released as a separate tag. Its scope was carried forward into `v0.3.0`.
 
 ### Added
 

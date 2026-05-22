@@ -101,7 +101,7 @@
 - 已完成真实 RSS 全量回归验证，92-feed digest 优化后约 14-16 秒完成。
 - 已通过 Skill validator 验证 3 个 Skill 包。
 - 已发布 `v0.1.0` 稳定检查点。
-- `v0.3.0` release notes / changelog 已准备，并包含此前 `v0.2.0` 的 RSS Skills suite 范围，但尚未创建 release tag。
+- `v0.3.0` release notes / changelog 已准备，并包含此前 `v0.2.0` 的 RSS Skills suite 范围。
 
 ## 当前能力边界
 
@@ -131,12 +131,12 @@
 
 目标：让当前已合并功能有清晰版本边界，降低后续拆 Skill 或插件化时的认知成本。
 
-- 将此前 `v0.2.0` source curator scope 合并进 `v0.3.0` 一次发布。
-- 更新 `VERSION`、release notes 和 changelog 的实际状态。
-- 在发布前运行 Node tests、typecheck、Skill validation 和 `git diff --check`。
+- 已将此前 `v0.2.0` source curator scope 合并进 `v0.3.0` 一次发布。
+- 已更新 `VERSION`、release notes 和 changelog 的实际状态。
+- 发布前需运行 Node tests、typecheck、Skill validation 和 `git diff --check`。
 - 发布后把本地安装目录与仓库 Skill 目录再次同步。
 
-建议：短期重点已经转向 research Agent，优先发布 `v0.3.0`，并在 release note 中说明 `v0.2.0` 能力已被包含。
+建议：短期重点已经转向 research Agent，完成 `v0.3.0` 后继续进入真实本地日报验证。
 
 ### P1：真实本地研究工作流加固
 
@@ -232,7 +232,7 @@
 
 建议按以下顺序推进：
 
-1. 做一次 `v0.3.0` 发布前验证，跳过单独 `v0.2.0` release。
+1. 完成 `v0.3.0` 发布前验证、tag 和 GitHub release。
 2. 连续跑真实 AI/技术研究日报，验证 evidence brief、日报质量和 source-health history。
 3. 补强日报质量 checklist 与 daily report contract。
 4. 再决定下一批拆分 Skill：优先 `rss-feed-discovery` 或 `rss-alert-monitor`，暂缓 publisher 和插件市场 packaging。

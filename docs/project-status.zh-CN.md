@@ -14,7 +14,7 @@
 
 - 已发布 `v0.1.0` 作为拆分前稳定检查点。
 - Phase 2 已引入第二个正式 Skill：`rss-source-curator`。
-- `v0.2.0` 的 RSS Skills suite 范围已并入准备中的 `v0.3.0` release target。
+- `v0.2.0` 的 RSS Skills suite 范围已并入 `v0.3.0`。
 - `rss-ai-digest` 继续负责内容发现和日报。
 - `rss-source-curator` 负责源质量治理和 registry 维护。
 
@@ -164,7 +164,7 @@
 
 ### 后续多 Skill 扩展
 
-当前已完成 RSS Skills Suite Phase 2 的主要文档与功能准备，正式 Skills 包括 `rss-ai-digest` 和 `rss-source-curator`。这部分能力已并入准备中的 `v0.3.0` release target。以下 Roadmap Skill 尚未实现：
+当前已完成 RSS Skills Suite Phase 2 的主要文档与功能准备，正式 Skills 包括 `rss-ai-digest` 和 `rss-source-curator`。这部分能力已并入 `v0.3.0`。以下 Roadmap Skill 尚未实现：
 
 - `rss-alert-monitor`：关键词、作者、项目、主题监控。
 - `rss-digest-publisher`：发布到邮件、飞书、Slack、Obsidian 或 webhook。
@@ -295,9 +295,9 @@ RSS digest 侧仍使用 JSON 文件作为轻量状态层。`subscription-researc
 
 优先级最高的方向：
 
-1. 对 `v0.3.0` 做发布前审阅、验证、打 tag 和发布。
+1. 完成 `v0.3.0` 发布验证、tag 和 GitHub release。
 2. 继续用真实本地日报验证 research CLI、evidence brief、daily report contract 和 source-health history。
-3. 实现 source-health history 到可审阅 registry patch 的闭环。
+3. 增强 source-health history 到可审阅 registry patch 的治理策略。
 4. 继续增强内容质量筛选：扩展噪声源 metadata、布尔表达式、语义去重和 LLM rerank。
 5. 规划后续独立 Skills，例如 `rss-alert-monitor`、`rss-digest-publisher` 和 `rss-feed-discovery`。
 
