@@ -32,7 +32,9 @@ subscription-research source-health \
   --format patch > source-health-curation.json
 ```
 
-The patch output follows the same `actions[].registry_patch` shape accepted by `apply-source-patch`. Persistent `disable_candidate` sources become `disable` actions with `enabled: false`; `watch` and `keep` actions do not mutate the registry. By default, disable suggestions require at least three failed observations.
+The patch output follows the same `actions[].registry_patch` shape accepted by `apply-source-patch`. Persistent `disable_candidate` sources become `disable` actions with `enabled: false`; `lower_priority`, `watch`, and `keep` actions do not mutate the registry. By default, disable suggestions require at least three consecutive failed observations.
+
+Use `consecutive_failures`, `last_success_at`, `last_failure_at`, and `maintenance_priority` before applying any patch. A `lower-priority` action means the source is unreliable but still has successful observations.
 
 ## Dry Run
 

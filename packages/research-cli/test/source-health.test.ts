@@ -47,30 +47,87 @@ test("summarizeSourceHealthHistory ranks persistent and intermittent source fail
         summary.map((item) => [item.source_id, item.recommendation, item.observations, item.failures]),
         [
           ["dead", "disable_candidate", 3, 3],
-          ["flaky", "watch", 3, 2],
+          ["flaky", "lower_priority", 3, 2],
           ["good", "keep", 3, 0]
         ]
       );
       assert.equal(summary[0].last_error, "SSL timeout");
+      assert.equal(summary[0].consecutive_failures, 3);
+      assert.equal(summary[0].maintenance_priority, "high");
       assert.equal(summary[0].recommendation_reason, "persistent_failures");
-      assert.equal(summary[1].recommendation_reason, "intermittent_failures");
+      assert.equal(summary[1].recommendation_reason, "repeated_failures_with_recent_success");
+      assert.equal(summary[1].consecutive_failures, 1);
+      assert.equal(summary[1].last_success_at, "2026-05-20T00:00:00Z");
 
       const markdown = renderSourceHealthMarkdown(summary);
       assert.match(markdown, /dead/);
       assert.match(markdown, /disable_candidate/);
       assert.match(markdown, /flaky/);
-      assert.match(markdown, /watch/);
+      assert.match(markdown, /lower_priority/);
 
       const patch = createSourceHealthRegistryPatch(summary);
-      assert.deepEqual(patch.summary, { disable: 1, keep: 1, watch: 1 });
+      assert.deepEqual(patch.summary, { disable: 1, keep: 1, "lower-priority": 1 });
       assert.deepEqual(
         patch.actions.map((item) => [item.id, item.action, item.registry_patch]),
         [
           ["dead", "disable", { id: "dead", set: { enabled: false } }],
-          ["flaky", "watch", {}],
+          ["flaky", "lower-priority", {}],
           ["good", "keep", {}]
         ]
       );
+    } finally {
+      db.close();
+    }
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("summarizeSourceHealthHistory lowers priority for noisy sources before disabling", async () => {
+  const root = await mkdtemp(join(tmpdir(), "subscription-research-"));
+  const workspace = join(root, "workspace");
+
+  try {
+    await initWorkspace({ workspace });
+    await ingestHealthRun(workspace, "2026-05-18T00:00:00Z", {
+      noisy: { status: "healthy", success_count: 1, failure_count: 0 }
+    });
+    await ingestHealthRun(workspace, "2026-05-19T00:00:00Z", {
+      noisy: { status: "failing", success_count: 0, failure_count: 1, last_error: "HTTP 429" }
+    });
+    await ingestHealthRun(workspace, "2026-05-20T00:00:00Z", {
+      noisy: { status: "failing", success_count: 0, failure_count: 1, last_error: "HTTP 429" }
+    });
+    await ingestHealthRun(workspace, "2026-05-21T00:00:00Z", {
+      noisy: { status: "healthy", success_count: 1, failure_count: 0 }
+    });
+    await ingestHealthRun(workspace, "2026-05-22T00:00:00Z", {
+      noisy: { status: "failing", success_count: 0, failure_count: 1, last_error: "HTTP 429" }
+    });
+
+    const db = new Database(join(workspace, "data/research.db"), { readonly: true });
+    try {
+      const summary = summarizeSourceHealthHistory(db, { minObservations: 2, disableObservationThreshold: 3 });
+      assert.deepEqual(
+        summary.map((item) => [
+          item.source_id,
+          item.recommendation,
+          item.observations,
+          item.failures,
+          item.consecutive_failures,
+          item.last_success_at,
+          item.maintenance_priority
+        ]),
+        [["noisy", "lower_priority", 5, 3, 1, "2026-05-21T00:00:00Z", "medium"]]
+      );
+
+      const patch = createSourceHealthRegistryPatch(summary);
+      assert.deepEqual(patch.summary, { "lower-priority": 1 });
+      assert.deepEqual(patch.actions[0].action, "lower-priority");
+      assert.deepEqual(patch.actions[0].registry_patch, {});
+      assert.equal(patch.actions[0].consecutive_failures, 1);
+      assert.equal(patch.actions[0].last_success_at, "2026-05-21T00:00:00Z");
+      assert.equal(patch.actions[0].maintenance_priority, "medium");
     } finally {
       db.close();
     }

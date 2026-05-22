@@ -51,7 +51,7 @@ For RSS ingest runs, rows use `run_type = rss_ingest` and include:
 
 For evidence brief runs, rows use the default `run_type = evidence` and include output Markdown and JSON paths.
 
-Use `subscription-research source-health` to summarize repeated observations into `keep`, `watch`, and `disable_candidate` recommendations.
+Use `subscription-research source-health` to summarize repeated observations into `keep`, `watch`, `lower_priority`, and `disable_candidate` recommendations. The summary includes `consecutive_failures`, `last_success_at`, `last_failure_at`, and `maintenance_priority` so daily-report agents can mention persistent source issues briefly without turning the report into a source-governance memo.
 
 ## Article Attribution
 

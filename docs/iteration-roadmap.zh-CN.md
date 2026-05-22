@@ -158,7 +158,8 @@
 - 已支持按观察次数、失败率和错误类型生成 `keep`、`watch`、`disable` 建议。
 - 已输出治理解释，说明为什么建议 keep、watch 或 disable。
 - 已补充 Node tests 和 Skill reference 文档。
-- 后续可继续补充连续失败次数、最近成功时间、源优先级和 `lower-priority` 建议。
+- 已补充连续失败次数、最近成功时间、最近失败时间、维护优先级和 `lower-priority` 建议。
+- 后续可继续结合 registry 里的源先验分数和标签生成更细的降权 patch。
 
 ### P1：研究日报质量增强
 

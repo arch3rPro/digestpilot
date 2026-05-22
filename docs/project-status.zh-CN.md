@@ -211,7 +211,12 @@
 
 - `subscription-research source-health --format patch` 可基于历史观察生成可审阅 registry patch。
 
-后续仍需增强连续失败次数、最近成功时间、源优先级和 `lower-priority` 等更细粒度治理策略。
+已增强：
+
+- 输出连续失败次数、最近成功时间、最近失败时间和维护优先级。
+- 对有成功记录但失败率偏高的源输出 `lower_priority`，避免直接归入持续失败。
+
+后续仍可结合 registry 里的源先验分数和标签生成更细的降权 patch。
 
 ### RSS 源发现
 
@@ -297,8 +302,8 @@ RSS digest 侧仍使用 JSON 文件作为轻量状态层。`subscription-researc
 
 1. 继续用真实本地日报验证 research CLI、evidence brief、daily report contract 和 source-health history。
 2. 建立日报质量 checklist，并归档多次真实日报验证记录。
-3. 增强 source-health history 到可审阅 registry patch 的治理策略。
-4. 继续增强内容质量筛选：扩展噪声源 metadata、布尔表达式、语义去重和 LLM rerank。
+3. 继续增强内容质量筛选：扩展噪声源 metadata、布尔表达式、语义去重和 LLM rerank。
+4. 规划 feed discovery 和 alert monitor 的拆分边界。
 5. 规划后续独立 Skills，例如 `rss-alert-monitor`、`rss-digest-publisher` 和 `rss-feed-discovery`。
 
 如果目标是继续扩展 RSS Skills 套件，应优先保持共享数据结构、CLI 契约和文档入口一致。
