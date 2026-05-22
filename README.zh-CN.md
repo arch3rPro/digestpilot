@@ -8,14 +8,12 @@
 
 当前仓库是面向 Agent 生态的 RSS Skills 套件。它帮助 Agent 导入订阅源、监控新文章、筛选高信号内容、维护已读状态、评估 RSS 源质量，并准备 evidence brief，同时保持与具体运行时解耦。
 
-## 当前状态
+## 项目形态
 
 | 项目 | 状态 |
 | --- | --- |
-| 稳定发布 | `v0.1.0` 包含 `rss-ai-digest` |
-| 当前工作区 | `rss-ai-digest`、`rss-source-curator`、`subscription-research-agent` |
+| Skills | `rss-ai-digest`、`rss-source-curator`、`subscription-research-agent` |
 | 运行契约 | 标准 Skill 结构 + 确定性本地 CLI |
-| 发布阶段 | `v0.3.0` 已准备，尚未发布；包含此前 `v0.2.0` 套件范围 |
 | 依赖模型 | RSS primitives 使用 Python 标准库；research workspace tooling 使用 Node/TypeScript |
 | 平台支持 | 运行时中立，可被不同 Agent 或调度器包装 |
 
@@ -50,13 +48,7 @@
 | `rss-source-curator` | 评估 RSS 源质量、审查源健康、生成源治理动作，并应用已审阅 registry patch。 |
 | `subscription-research-agent` | 围绕订阅来源编排本地优先 evidence brief 和 Agent 写作的研究日报。 |
 
-## v0.2.0 套件范围
-
-- `rss-ai-digest` 现在支持确定性 digest presets、关键词组和按主题分组的 Markdown 输出。
-- `rss-source-curator` 负责源治理和 registry 维护工作流。
-- 这部分能力已并入准备中的 `v0.3.0`，不再作为单独 release gate。
-
-## v0.3.0 本地优先研究范围
+## 本地优先研究范围
 
 - `subscription-research-agent` 增加本地订阅研究工作流的高层编排入口。
 - evidence brief 被视为带来源依据的上下文包，而不是最终研究结论。
@@ -107,7 +99,7 @@ skills/subscription-research-agent/
 ├── skills/rss-source-curator/   # 源治理 Skill 包
 ├── skills/subscription-research-agent/
 │                                  # 本地优先研究编排 Skill
-├── packages/research-cli/        # v0.3 本地研究 CLI package
+├── packages/research-cli/        # 本地研究 CLI package
 ├── examples/                    # Agent 和 Skill 调用示例
 ├── docs/                        # 项目状态、设计和验证历史
 ├── tests/                       # 行为回归测试
@@ -130,7 +122,7 @@ skills/subscription-research-agent/
 
 ## Research CLI
 
-`packages/research-cli/` 是 v0.3 本地优先 `subscription-research` CLI 的 package 位置。它负责 research workspace、SQLite schema、RSS evidence ingest、ingest-run metadata、per-source health history、entity extraction 和 evidence brief 生成。`v0.3` 阶段继续调用现有 Python RSS worker，不重写 RSS parser。最终研究日报仍由 Agent 基于 evidence brief 写作，并遵循 Skill reference 契约。
+`packages/research-cli/` 是本地优先 `subscription-research` CLI 的 package 位置。它负责 research workspace、SQLite schema、RSS evidence ingest、ingest-run metadata、per-source health history、entity extraction 和 evidence brief 生成。它当前继续调用现有 Python RSS worker 处理 RSS 解析和 digest 生成。最终研究日报仍由 Agent 基于 evidence brief 写作，并遵循 Skill reference 契约。
 
 ## 能力概览
 
@@ -172,7 +164,7 @@ Agent 和 wrapper 可以通过 `scripts/rss_monitor.py` 调用确定性实现。
 | `curate-sources` | 生成可审阅源治理动作。 |
 | `apply-source-patch` | dry-run 或将已审阅 patch 写入明确的输出 registry。 |
 
-`v0.3` 的 `subscription-research` CLI 契约新增本地 research workspace 命令：
+`subscription-research` CLI 契约提供本地 research workspace 命令：
 
 | 命令 | 用途 |
 | --- | --- |
@@ -258,14 +250,10 @@ python3 skills/rss-ai-digest/scripts/rss_monitor.py digest \
 
 - [项目状态](./docs/project-status.zh-CN.md)
 - [已实现功能与迭代路线图](./docs/iteration-roadmap.zh-CN.md)
-- [v0.3.0 release notes](./docs/releases/v0.3.0.md)
-- [v0.2.0 release notes](./docs/releases/v0.2.0.md)
-- [v0.1.0 release notes](./docs/releases/v0.1.0.md)
 - [Agent 指令](./AGENTS.md)
 - [Claude Code 指令](./CLAUDE.md)
 - [贡献说明](./CONTRIBUTING.md)
 - [更新日志](./CHANGELOG.md)
-- [Release checklist](./docs/release-checklist.md)
 - [许可证](./LICENSE)
 
 设计和实现历史保存在 [`docs/superpowers/`](./docs/superpowers/) 下。它们是规划和验证归档，不是主要使用文档。

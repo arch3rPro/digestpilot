@@ -8,14 +8,12 @@ Portable RSS-related Skills and local-first subscription research workflows for 
 
 This repository is an RSS Skills suite for agent ecosystems. It is designed for agents that need to import subscriptions, monitor new articles, rank high-signal items, maintain seen-state, review RSS source quality, and prepare evidence briefs without depending on one runtime.
 
-## Status
+## Project Shape
 
 | Area | Status |
 | --- | --- |
-| Stable release | `v0.1.0` includes `rss-ai-digest` |
-| Current workspace | `rss-ai-digest`, `rss-source-curator`, `subscription-research-agent` |
+| Skills | `rss-ai-digest`, `rss-source-curator`, `subscription-research-agent` |
 | Runtime contract | Standard Skill layout plus deterministic local CLIs |
-| Release stage | `v0.3.0` is prepared but unreleased; it includes the earlier `v0.2.0` suite scope |
 | Dependency model | Python standard library for RSS primitives; Node/TypeScript for research workspace tooling |
 | Platform support | Agent-runtime neutral; wrappers can be added without changing the Skill core |
 
@@ -50,13 +48,7 @@ Do not treat this repository as a full RSS reader, notification service, schedul
 | `rss-source-curator` | Evaluate RSS source quality, review feed health, generate curation actions, and apply reviewed registry patches. |
 | `subscription-research-agent` | Orchestrate local-first evidence briefs and Agent-written daily reports from subscription sources. |
 
-## v0.2.0 Suite Scope
-
-- `rss-ai-digest` now supports deterministic digest presets, keyword groups, and topic-grouped Markdown output.
-- `rss-source-curator` owns source governance and registry maintenance workflows.
-- This scope is carried forward into the prepared `v0.3.0` release instead of being treated as a separate release gate.
-
-## v0.3.0 Local-First Research Scope
+## Local-First Research Scope
 
 - `subscription-research-agent` adds the high-level orchestration layer for local subscription research workflows.
 - Evidence briefs are treated as source-backed context packages, not final research conclusions.
@@ -107,7 +99,7 @@ Each `SKILL.md` is an agent entrypoint. The Python script remains the determinis
 ├── skills/rss-source-curator/   # Source governance Skill package
 ├── skills/subscription-research-agent/
 │                                  # Local-first research orchestration Skill
-├── packages/research-cli/        # v0.3 local research CLI package
+├── packages/research-cli/        # Local research CLI package
 ├── examples/                    # Agent and Skill invocation examples
 ├── docs/                        # Project status and design history
 ├── tests/                       # Regression tests for deterministic behavior
@@ -130,7 +122,7 @@ This repository is meant to be consumed as one or more Skill packages:
 
 ## Research CLI
 
-`packages/research-cli/` is the v0.3 local-first `subscription-research` CLI package location. It manages research workspaces, SQLite schema, RSS evidence ingestion, ingest-run metadata, per-source health history, entity extraction, and evidence brief generation. For `v0.3`, it calls the existing Python RSS worker instead of rewriting RSS parsing in TypeScript. Final daily reports remain Agent-written synthesis artifacts, guided by the Skill reference contract.
+`packages/research-cli/` is the local-first `subscription-research` CLI package location. It manages research workspaces, SQLite schema, RSS evidence ingestion, ingest-run metadata, per-source health history, entity extraction, and evidence brief generation. It currently calls the existing Python RSS worker for RSS parsing and digest generation. Final daily reports remain Agent-written synthesis artifacts, guided by the Skill reference contract.
 
 ## Skill Capabilities
 
@@ -186,7 +178,7 @@ The CLI contract is intentionally file-based. Callers pass explicit registry, st
 | `curate-sources` | Generate reviewable source governance actions. |
 | `apply-source-patch` | Dry-run or apply reviewed registry patches to an explicit output file. |
 
-The `subscription-research` CLI contract for `v0.3` adds local research workspace commands:
+The `subscription-research` CLI contract adds local research workspace commands:
 
 | Command | Purpose |
 | --- | --- |
@@ -299,14 +291,10 @@ Project and maintenance docs:
 
 - [Project status](./docs/project-status.zh-CN.md)
 - [Implemented features and iteration roadmap](./docs/iteration-roadmap.zh-CN.md)
-- [v0.3.0 release notes](./docs/releases/v0.3.0.md)
-- [v0.2.0 release notes](./docs/releases/v0.2.0.md)
-- [v0.1.0 release notes](./docs/releases/v0.1.0.md)
 - [Agent instructions](./AGENTS.md)
 - [Claude Code instructions](./CLAUDE.md)
 - [Contributing](./CONTRIBUTING.md)
 - [Change log](./CHANGELOG.md)
-- [Release checklist](./docs/release-checklist.md)
 - [License](./LICENSE)
 
 Design and implementation history lives under [`docs/superpowers/`](./docs/superpowers/). Treat those files as planning and validation archives, not the primary usage guide.
@@ -334,7 +322,7 @@ Check basic whitespace issues:
 git diff --check
 ```
 
-The RSS runtime script uses the Python standard library. The v0.3 research CLI uses Node dependencies isolated under `packages/research-cli/`.
+The RSS runtime script uses the Python standard library. The research CLI uses Node dependencies isolated under `packages/research-cli/`.
 
 ## Roadmap
 
