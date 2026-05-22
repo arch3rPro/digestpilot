@@ -2,6 +2,14 @@
 
 All notable project changes are recorded here.
 
+## Unreleased
+
+### Changed
+
+- Reframed README files around Agent routing and Skill workflow contracts instead of developer-first CLI usage.
+- Refined `subscription-research source-health` recommendations with `lower_priority`, consecutive failure counts, recent success/failure timestamps, and maintenance priority.
+- Updated source governance and research workspace references for the expanded source-health history fields.
+
 ## v0.3.0 - 2026-05-22
 
 ### Added

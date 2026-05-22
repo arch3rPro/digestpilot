@@ -74,7 +74,7 @@
 - 缺少 health 的源会被视为 `unknown/watch`，不会被误判为低质量源。
 - `curate-sources` 生成 `keep`、`watch`、`lower-priority`、`disable`、`remove` 等可审阅动作。
 - `apply-source-patch` 支持 dry-run 或将已审阅 patch 写入新的 registry 文件。
-- `subscription-research source-health` 可基于多次 ingest 的历史观察输出 `keep`、`watch`、`disable_candidate` 等建议。
+- `subscription-research source-health` 可基于多次 ingest 的历史观察输出 `keep`、`watch`、`lower_priority`、`disable_candidate` 等建议。
 
 当前治理策略是“建议优先、人工审阅后应用”，避免无审阅自动删除或禁用源。
 

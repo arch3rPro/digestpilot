@@ -28,7 +28,7 @@
 - Node/TypeScript `subscription-research` CLI 是 `v0.3` 的本地执行层，用于 workspace 初始化、RSS evidence ingest、entity extraction 和 evidence brief generation。
 - RSS ingest run 已写入 SQLite `research_runs`，记录筛选条件、RSS runtime stats、source health 摘要、归档数量和实体链接数量。
 - article archive 和 evidence brief 已支持保守来源归因字段：`commentary_source`、`original_source` 和 `original_url`。
-- RSS ingest 会写入每个源的历史健康观察，`subscription-research source-health` 可按多次观察输出 `keep`、`watch`、`disable_candidate` 建议。
+- RSS ingest 会写入每个源的历史健康观察，`subscription-research source-health` 可按多次观察输出 `keep`、`watch`、`lower_priority`、`disable_candidate` 建议。
 
 ### 项目与 Skill 基础
 
