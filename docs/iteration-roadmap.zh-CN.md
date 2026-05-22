@@ -83,7 +83,7 @@
 `subscription-research-agent` 和 `packages/research-cli` 已实现：
 
 - `subscription-research init`：初始化本地 research workspace。
-- `subscription-research ingest rss`：默认使用 Node RSS runtime，将订阅 evidence 归档到本地 workspace；可通过 `--rss-runtime python` 使用兼容 worker。
+- `subscription-research ingest rss`：使用 Node RSS runtime，将订阅 evidence 归档到本地 workspace。
 - `subscription-research brief evidence`：从本地数据生成 evidence brief。
 - evidence brief 已支持清洗后的摘要和 `must_keyword_mode`，宽泛日报不再默认要求所有 must keyword 同时命中。
 - `subscription-research source-health`：汇总多次 ingest 形成的源健康历史。
@@ -97,8 +97,7 @@
 
 ### 5. 测试、验证与发布基础
 
-- Python RSS monitor 单元测试已覆盖 OPML、RSS、Atom、筛选、评分、去重、health、failed feeds、并发抓取、排序、源评估和源 patch。
-- Node research CLI 测试已覆盖 workspace 初始化、RSS ingest、entity extraction、evidence brief 和 source health。
+- Node research CLI 测试已覆盖 workspace 初始化、RSS ingest、direct RSS commands、OPML/RSS/Atom fixtures、筛选、评分、去重、health、源评估、source patch、entity extraction、evidence brief 和 source health。
 - 已完成真实 RSS 全量回归验证，92-feed digest 优化后约 14-16 秒完成。
 - 已通过 Skill validator 验证 3 个 Skill 包。
 - 已发布 `v0.1.0` 稳定检查点。
@@ -134,7 +133,7 @@
 
 - 将此前 `v0.2.0` source curator scope 合并进 `v0.3.0` 一次发布。
 - 更新 `VERSION`、release notes 和 changelog 的实际状态。
-- 在发布前运行 Python tests、Node tests、typecheck、Skill validation 和 `git diff --check`。
+- 在发布前运行 Node tests、typecheck、Skill validation 和 `git diff --check`。
 - 发布后把本地安装目录与仓库 Skill 目录再次同步。
 
 建议：短期重点已经转向 research Agent，优先发布 `v0.3.0`，并在 release note 中说明 `v0.2.0` 能力已被包含。

@@ -16,7 +16,6 @@ Use this skill to turn RSS/Atom feeds and OPML files into high-signal AI and tec
 - For keyword, author, project, or topic monitoring, run `subscription-research rss check-new`.
 - For OPML import, run `subscription-research rss import-opml`, then evaluate the resulting registry.
 - For source cleanup or feed quality review, prefer `rss-source-curator`.
-- For backwards compatibility, direct digest and source-governance commands remain available through `scripts/rss_monitor.py`.
 - For reviewable source governance actions, run `subscription-research rss curate-sources`.
 - For safely applying reviewed source governance patches, run `subscription-research rss apply-source-patch`.
 - For scheduled checks, read `references/automation.md` and provide a platform-neutral recipe.
@@ -35,8 +34,6 @@ subscription-research ingest rss \
   --exclude-keywords "webinar,coupon,sponsor,hiring,job,press release" \
   --min-score 7
 ```
-
-Use `--rss-runtime python` only when checking compatibility with the legacy worker or when the Node runtime is not available.
 
 Import OPML into a registry:
 

@@ -9,14 +9,12 @@ Keep the repository platform-neutral. Do not make core behavior depend on Codex,
 ## Repository Layout
 
 - `skills/rss-ai-digest/SKILL.md`: main Skill entrypoint and workflow routing.
-- `skills/rss-ai-digest/scripts/rss_monitor.py`: Python compatibility RSS/Atom/OPML CLI and parity oracle.
 - `skills/rss-ai-digest/references/`: feed registry, scoring, automation, and base OPML references.
 - `skills/rss-source-curator/SKILL.md`: source governance Skill entrypoint.
 - `skills/rss-source-curator/references/`: source governance and registry maintenance references.
 - `skills/subscription-research-agent/SKILL.md`: local-first research orchestration Skill entrypoint.
 - `skills/subscription-research-agent/references/`: research workspace, evidence brief, and daily report contract references.
 - `packages/research-cli/`: Node/TypeScript CLI package for research workspace, SQLite, RSS runtime, ingestion archive, and evidence brief generation.
-- `tests/test_rss_monitor.py`: regression tests for the RSS monitor script.
 - `README.md`: human-facing project overview and quick start.
 - `README.zh-CN.md`: Chinese project overview.
 - `VERSION`: current release version.
@@ -29,13 +27,7 @@ Keep the repository platform-neutral. Do not make core behavior depend on Codex,
 
 ## Development Commands
 
-Run the test suite before committing code changes:
-
-```bash
-python3 -m unittest tests/test_rss_monitor.py -v
-```
-
-Run the research CLI test suite and typecheck when `packages/research-cli/` exists or when changing the research CLI contract:
+Run the research CLI test suite and typecheck before committing code changes:
 
 ```bash
 cd packages/research-cli && npm test
@@ -59,13 +51,13 @@ git diff --check
 ## Coding Guidelines
 
 - Prefer the Node/TypeScript research CLI for distributable workflows.
-- Keep compatibility scripts platform-neutral and callable from any agent runtime.
+- Keep deterministic CLI behavior platform-neutral and callable from any agent runtime.
 - Keep research workspace tooling local-first and file-based; do not require hosted storage or a single notes app.
 - Keep final research daily reports Agent-written; deterministic tooling should prepare evidence and stable workspace paths, not pretend to produce final conclusions on its own.
 - Use explicit file paths for registry, state, health, and output files.
 - Keep local runtime outputs out of Git. Examples: `feeds.json`, `seen.json`, `source-health.json`, `digest.md`, `latest.json`, `rss-output/`, `research-workspace/`.
 - Preserve the standard Skill layout: `skills/<skill-name>/SKILL.md`.
-- Put repeatable compatibility behavior in `scripts/`; put schemas, scoring rules, and workflow references in `references/`.
+- Put repeatable deterministic behavior in `packages/research-cli/`; put schemas, scoring rules, and workflow references in `references/`.
 - Do not add runtime-specific entrypoints unless the project explicitly starts a plugin-packaging phase.
 
 ## Documentation Guidelines
@@ -79,11 +71,8 @@ git diff --check
 
 ## Testing Guidelines
 
-- Add or update tests when changing `rss_monitor.py` behavior.
 - Add or update Node tests when changing `packages/research-cli/` behavior.
-- Add or update parity tests when Node RSS behavior intentionally tracks Python RSS behavior.
 - Test OPML behavior with `skills/rss-ai-digest/references/base-feeds.opml` when changing import logic.
-- If tests create Python caches, remove or ignore them before finishing.
 - Do not rely on network access for unit tests.
 
 ## Security And Privacy

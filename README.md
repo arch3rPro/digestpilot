@@ -14,7 +14,7 @@ This repository is an RSS Skills suite for agent ecosystems. It is designed for 
 | --- | --- |
 | Skills | `rss-ai-digest`, `rss-source-curator`, `subscription-research-agent` |
 | Runtime contract | Standard Skill layout plus deterministic local CLIs |
-| Dependency model | Node/TypeScript research CLI with a built-in RSS runtime; Python RSS worker kept for compatibility |
+| Dependency model | Node/TypeScript research CLI with a built-in RSS runtime |
 | Platform support | Agent-runtime neutral; wrappers can be added without changing the Skill core |
 
 ## Agent Use Cases
@@ -65,13 +65,12 @@ Do not treat this repository as a full RSS reader, notification service, schedul
 skills/rss-ai-digest/
 ├── SKILL.md
 ├── agents/openai.yaml
-├── references/
-│   ├── automation.md
-│   ├── base-feeds.opml
-│   ├── feed-registry.md
-│   ├── scoring.md
-│   └── source-metadata.json
-└── scripts/rss_monitor.py
+└── references/
+    ├── automation.md
+    ├── base-feeds.opml
+    ├── feed-registry.md
+    ├── scoring.md
+    └── source-metadata.json
 
 skills/rss-source-curator/
 ├── SKILL.md
@@ -89,7 +88,7 @@ skills/subscription-research-agent/
     └── research-workspace.md
 ```
 
-Each `SKILL.md` is an agent entrypoint. The `subscription-research` CLI is the preferred local workflow surface; `rss_monitor.py` remains a compatibility worker and parity oracle.
+Each `SKILL.md` is an agent entrypoint. The `subscription-research` CLI is the shared deterministic runtime for local workflows and RSS operations.
 
 ## Repository Layout
 
@@ -122,7 +121,7 @@ This repository is meant to be consumed as one or more Skill packages:
 
 ## Research CLI
 
-`packages/research-cli/` is the local-first `subscription-research` CLI package location. It manages research workspaces, SQLite schema, RSS evidence ingestion, ingest-run metadata, per-source health history, entity extraction, and evidence brief generation. RSS ingest now defaults to the Node runtime and can still call the Python worker with `--rss-runtime python` for compatibility and parity checks. Final daily reports remain Agent-written synthesis artifacts, guided by the Skill reference contract.
+`packages/research-cli/` is the local-first `subscription-research` CLI package location. It manages research workspaces, SQLite schema, RSS evidence ingestion, ingest-run metadata, per-source health history, entity extraction, and evidence brief generation. RSS ingest and direct RSS commands use the Node/TypeScript runtime. Final daily reports remain Agent-written synthesis artifacts, guided by the Skill reference contract.
 
 ## Skill Capabilities
 
@@ -164,7 +163,7 @@ Digest JSON includes:
 
 ## CLI Contract
 
-Agents and wrappers should prefer the `subscription-research` CLI for research workflows. The legacy `scripts/rss_monitor.py` CLI remains available for compatibility, parity checks, and direct Skill-level RSS operations.
+Agents and wrappers should use the `subscription-research` CLI for research workflows and direct Skill-level RSS operations.
 
 The CLI contract is intentionally file-based. Callers pass explicit registry, state, health, patch, and output paths so the same Skill can run under different agent runtimes or schedulers.
 
@@ -240,18 +239,6 @@ subscription-research rss curate-sources \
   --format json
 ```
 
-Python compatibility runtime:
-
-```bash
-subscription-research ingest rss \
-  --workspace research-workspace \
-  --registry feeds.json \
-  --rss-runtime python \
-  --since 24h \
-  --keywords "llm,agent" \
-  --min-score 7
-```
-
 ```bash
 subscription-research rss apply-source-patch \
   --registry feeds.json \
@@ -267,7 +254,7 @@ More prompt-level examples are in [examples/README.md](./examples/README.md).
 - Keep core behavior platform-neutral.
 - Do not make `rss-ai-digest` depend on Codex, Claude, Cursor, OpenClaw, n8n, GitHub Actions, or cron.
 - Do not make `subscription-research-agent` depend on Obsidian, a hosted database, or any single notes app.
-- Put repeatable Skill-local compatibility behavior in `scripts/`; prefer the Node CLI package for distributable workflows.
+- Put repeatable deterministic behavior in the Node CLI package and keep Skill references runtime-neutral.
 - Put schemas, scoring rules, source lists, and automation recipes in `references/`.
 - Keep runtime wrappers separate from the Skill core.
 - Keep additional RSS Skills aligned with the published suite contract.
@@ -314,8 +301,8 @@ Design and implementation history lives under [`docs/superpowers/`](./docs/super
 Run the test suite:
 
 ```bash
-python3 -m unittest tests/test_rss_monitor.py -v
 cd packages/research-cli && npm test
+cd packages/research-cli && npm run typecheck
 ```
 
 Validate the Skill package if the local validator dependencies are available:
@@ -332,7 +319,7 @@ Check basic whitespace issues:
 git diff --check
 ```
 
-The primary RSS research runtime is implemented in the Node CLI package. The Python RSS script remains in place for compatibility tests and direct Skill-level workflows.
+The primary RSS research runtime is implemented in the Node CLI package.
 
 ## Roadmap
 

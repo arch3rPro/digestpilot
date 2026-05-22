@@ -33,8 +33,7 @@
 ### 项目与 Skill 基础
 
 - 已建立标准 Skill 结构：`skills/rss-ai-digest/SKILL.md`、`skills/rss-source-curator/SKILL.md` 和 `skills/subscription-research-agent/SKILL.md`。
-- 已提供平台中立的 Python 兼容 CLI：`skills/rss-ai-digest/scripts/rss_monitor.py`。
-- 已新增本地研究 CLI：`packages/research-cli/`，其中 RSS ingest 默认使用 Node runtime。
+- 已提供本地研究 CLI：`packages/research-cli/`，其中 RSS ingest 和直接 RSS 命令统一使用 Node runtime。
 - 已提供 README、CHANGELOG、AGENTS.md、CLAUDE.md 和设计/验证文档。
 - 已保持核心行为与具体运行时解耦，不依赖 Codex、Claude 或特定插件市场。
 - 已提供 OpenAI/Codex 风格的可选 UI metadata：`skills/rss-ai-digest/agents/openai.yaml`。
@@ -142,21 +141,22 @@
 
 ### 测试与验证
 
-- 已有 Python 单元测试覆盖：
-  - OPML 导入。
-  - RSS 和 Atom 解析。
+- 当前 Node research CLI 单元测试覆盖：
+  - workspace 初始化。
+  - RSS ingest 和 direct RSS commands。
+  - OPML、RSS 和 Atom fixture 解析。
   - 关键词、作者、日期筛选。
   - token-aware keyword matching。
   - phrase matching。
   - 评分逻辑。
   - seen-state 去重。
-  - health 持久化。
+  - health 持久化和 source health 历史。
   - failed feeds 输出。
   - 并发抓取。
   - deterministic ordering。
-  - source evaluation。
-- 当前 Python RSS monitor 测试数量：44 个。
-- 当前 Node research CLI 测试数量：14 个。
+  - source evaluation 和 source patch。
+  - entity extraction、article attribution 和 evidence brief。
+- 当前 Node research CLI 测试数量：35 个。
 - Skill validator 已通过。
 - 已有 post-optimization validation 文档记录真实性能和输出表现。
 

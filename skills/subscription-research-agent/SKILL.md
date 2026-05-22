@@ -43,8 +43,6 @@ subscription-research ingest rss \
   --min-score 7
 ```
 
-Use `--rss-runtime python` only for compatibility checks against the legacy RSS worker.
-
 Generate an evidence brief:
 
 ```bash

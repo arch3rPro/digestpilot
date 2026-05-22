@@ -14,4 +14,4 @@ subscription-research rss digest --registry feeds.json --state seen.json --since
 subscription-research rss curate-sources --registry feeds.json --health source-health.json
 ```
 
-RSS ingest and direct RSS registry commands use the Node RSS runtime by default. The project Python worker remains available from a local checkout for compatibility checks through `subscription-research ingest rss --rss-runtime python`.
+RSS ingest and direct RSS registry commands use the Node/TypeScript RSS runtime.
