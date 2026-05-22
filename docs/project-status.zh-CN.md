@@ -1,6 +1,6 @@
 # RSS Agent Skills 项目状态
 
-日期：2026-05-21
+日期：2026-05-22
 
 ## 当前定位
 
@@ -28,6 +28,7 @@
 - Node/TypeScript `subscription-research` CLI 是 `v0.3` 的本地执行层，用于 workspace 初始化、RSS evidence ingest、entity extraction 和 evidence brief generation。
 - RSS ingest run 已写入 SQLite `research_runs`，记录筛选条件、RSS runtime stats、source health 摘要、归档数量和实体链接数量。
 - article archive 和 evidence brief 已支持保守来源归因字段：`commentary_source`、`original_source` 和 `original_url`。
+- evidence brief 已支持日报写作指导：source diversification、priority buckets、duplicate merge hints、attribution labels 和 low-confidence markers。
 - RSS ingest 会写入每个源的历史健康观察，`subscription-research source-health` 可按多次观察输出 `keep`、`watch`、`lower_priority`、`disable_candidate` 建议。
 
 ### 项目与 Skill 基础
@@ -155,8 +156,8 @@
   - 并发抓取。
   - deterministic ordering。
   - source evaluation 和 source patch。
-  - entity extraction、article attribution 和 evidence brief。
-- 当前 Node research CLI 测试数量：35 个。
+  - entity extraction、article attribution、evidence brief 和 daily-report guidance。
+- 当前 Node research CLI 测试数量：37 个。
 - Skill validator 已通过。
 - 已有 post-optimization validation 文档记录真实性能和输出表现。
 

@@ -24,6 +24,14 @@ Do not use this contract as a replacement for evidence gathering. Generate or re
 
 For local-day reports, prefer a fresh or report-specific seen-state so dedupe does not suppress current-day items.
 
+When the evidence brief contains `daily_report_guidance`, use it as the first routing layer:
+
+- Treat `priority_buckets.lead` as candidate lead stories, not a required exhaustive list.
+- Use `priority_buckets.supporting` for context, caveats, and shorter mentions.
+- Use `priority_buckets.watch` only when the item is relevant but should not anchor a judgment.
+- Follow `merge_hints` to combine related release notes, reposts, and same-event commentary into one story.
+- Follow `style_notes` unless the user gives a more specific writing preference.
+
 ## Required Sections
 
 Use standard Markdown. Keep section names readable and stable:
@@ -69,6 +77,8 @@ If `original_source` is empty, do not infer one in the final report.
 - Explain why each selected item matters to the user or research theme.
 - Mention source coverage briefly, but do not turn the daily report into a source-maintenance report.
 - Do not cite scores as truth; use them as ranking signals.
+- Prefer evidence brief priority buckets over raw score order when choosing final top items.
+- Merge related evidence items before writing `重点资讯`; do not repeat every package release or repost as a separate story.
 - Avoid making claims that require full article reading when only RSS metadata or summaries were available.
 - Prefer original-source wording when `original_source` is present, but still credit the commentary source when the subscription item is a commentary link.
 - Keep notification, publishing, and external sharing outside this Skill unless the user explicitly requests a channel.
@@ -92,6 +102,7 @@ For Chinese daily reports:
 - Include `标题`、`来源`、`作者`、`链接`、`摘要`、`解读` for each top item when practical.
 - Use `今日核心判断` for synthesis and `后续跟踪问题` for open questions.
 - Use `信息源覆盖` for a one- or two-line coverage note, not detailed source governance.
+- Use short Chinese judgment sentences before item lists, so the report reads like a research daily rather than exported RSS rows.
 
 ## Output Location
 

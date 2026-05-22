@@ -281,3 +281,117 @@ test("createEvidenceBrief includes original and commentary source attribution", 
     await rm(root, { recursive: true, force: true });
   }
 });
+
+test("createEvidenceBrief adds daily-report guidance and diversifies repeated source items", async () => {
+  const root = await mkdtemp(join(tmpdir(), "subscription-research-"));
+  const workspace = join(root, "workspace");
+  try {
+    await initWorkspace({ workspace });
+    await ingestRssEnvelope({
+      workspace,
+      envelope: {
+        entries: [
+          {
+            title: "Datasette Agent 0.1a4",
+            link: "https://example.com/datasette-agent-4",
+            feed_id: "simon",
+            feed_title: "Simon Willison",
+            published_at: "2026-05-22T05:00:00Z",
+            summary: "Agent release with LLM tool improvements.",
+            topic: "AI / LLM",
+            score: 10,
+            score_reasons: ["trusted_source", "should_keyword_match"]
+          },
+          {
+            title: "Datasette Agent Charts 0.1a3",
+            link: "https://example.com/datasette-agent-charts-3",
+            feed_id: "simon",
+            feed_title: "Simon Willison",
+            published_at: "2026-05-22T04:00:00Z",
+            summary: "Related Datasette Agent chart release.",
+            topic: "AI / LLM",
+            score: 10,
+            score_reasons: ["trusted_source", "should_keyword_match"]
+          },
+          {
+            title: "Datasette Agent Sprites 0.1a0",
+            link: "https://example.com/datasette-agent-sprites",
+            feed_id: "simon",
+            feed_title: "Simon Willison",
+            published_at: "2026-05-22T03:00:00Z",
+            summary: "Related Datasette Agent sandbox release.",
+            topic: "AI / LLM",
+            score: 10,
+            score_reasons: ["trusted_source", "should_keyword_match"]
+          },
+          {
+            title: "llm-gemini 0.32",
+            link: "https://example.com/llm-gemini",
+            feed_id: "simon",
+            feed_title: "Simon Willison",
+            published_at: "2026-05-22T02:00:00Z",
+            summary: "Gemini model plugin update.",
+            topic: "AI / LLM",
+            score: 10,
+            score_reasons: ["trusted_source", "should_keyword_match"]
+          },
+          {
+            title: "Gemini Agent Runtime Architecture",
+            link: "https://example.com/gemini-agent-runtime",
+            feed_id: "other-ai",
+            feed_title: "Other AI Lab",
+            published_at: "2026-05-22T01:00:00Z",
+            summary: "Original architecture notes for an AI agent runtime.",
+            topic: "AI / LLM",
+            score: 9,
+            score_reasons: ["technical_depth_signal", "should_keyword_match"]
+          }
+        ]
+      }
+    });
+
+    const result = await createEvidenceBrief({
+      workspace,
+      question: "AI 技术日报",
+      since: "7d",
+      shouldKeywords: "agent,llm,gemini,architecture",
+      limit: 4
+    });
+
+    const json = JSON.parse(await readFile(result.jsonPath, "utf8")) as {
+      evidence_items: Array<{
+        title: string;
+        source: string;
+        priority_bucket?: string;
+        attribution_label?: string;
+        merge_key?: string;
+      }>;
+      daily_report_guidance?: {
+        priority_buckets: { lead: string[]; supporting: string[]; watch: string[] };
+        merge_hints: Array<{ merge_key: string; primary_title: string; related_titles: string[] }>;
+        style_notes: string[];
+      };
+    };
+    const markdown = await readFile(result.markdownPath, "utf8");
+
+    assert.ok(json.evidence_items.some((item) => item.source === "Other AI Lab"));
+    assert.ok(json.evidence_items.every((item) => item.priority_bucket));
+    assert.ok(json.evidence_items.every((item) => item.attribution_label));
+    assert.ok(json.daily_report_guidance);
+    assert.ok(json.daily_report_guidance.priority_buckets.lead.length > 0);
+    assert.equal(
+      json.daily_report_guidance.priority_buckets.lead.filter((title) => title.toLowerCase().includes("datasette")).length,
+      1
+    );
+    assert.ok(
+      json.daily_report_guidance.merge_hints.some(
+        (hint) => hint.merge_key === "datasette agent" && hint.related_titles.length >= 1
+      )
+    );
+    assert.match(markdown, /## Daily Report Guidance/);
+    assert.match(markdown, /### Merge Hints/);
+    assert.match(markdown, /Attribution:/);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});

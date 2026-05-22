@@ -2,7 +2,7 @@
 
 日期：2026-05-22
 
-代码基线：`main` / `619531c`
+代码基线：`main`
 
 ## 当前定位
 
@@ -143,8 +143,9 @@
 
 目标：把“能跑通”推进到“可稳定用于日常研究日报”。
 
-- 连续运行 3-5 次真实 AI/技术日报，积累 source health observations。
-- 将每次日报的 evidence brief、日报成品、source-health summary 和失败原因归档为小型验证记录。
+- 已完成 1 次真实 AI/技术日报链路回归：92 个源中 84 个成功、8 个失败，抓取 2537 条，筛后归档 60 条。
+- 已将本次 evidence brief、source-health 摘要、失败原因和优化结论整理为小型验证记录。
+- 后续继续运行 2-4 次真实 AI/技术日报，积累 source health observations。
 - 建立日报质量 checklist：来源覆盖、原始来源归因、重复内容、标题党过滤、中文摘要可读性、后续问题质量。
 - 已调整 daily report contract，让 Agent 更稳定地区分事实、判断、风险和待跟踪问题，并减少源治理信息在日报中的占比。
 - 增加针对真实失败模式的回归样例，但单元测试继续避免依赖网络。
@@ -165,11 +166,11 @@
 
 目标：提升日报从“条目罗列”到“研究判断”的稳定性。
 
-- 在 evidence brief 中提供更清晰的 priority buckets。
-- 增加重复主题合并提示，避免多个源转载同一事件时日报膨胀。
-- 强化 `commentary_source` 与 `original_source` 的展示规则。
+- 已在 evidence brief 中提供更清晰的 priority buckets。
+- 已增加重复主题合并提示，避免多个源转载同一事件或同组 release note 时日报膨胀。
+- 已强化 `commentary_source` 与 `original_source` 的展示规则，并增加 Agent 可直接消费的 attribution label。
 - 为中文日报补充推荐文风：短标题、关键信息、影响判断、行动建议。
-- 增加“低置信度/仅二手来源”标记，降低误读转载内容的风险。
+- 已增加“低置信度/仅二手来源”标记，降低误读转载内容的风险。
 
 ### P2：正文获取与内容质量过滤
 

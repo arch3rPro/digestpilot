@@ -38,7 +38,7 @@ export function selectEvidence(db: ResearchDatabase, options: SelectEvidenceOpti
     )
     .all(minScore, sinceIso, sinceIso, Math.max(options.limit * 5, options.limit)) as Array<Record<string, unknown>>;
 
-  return rows
+  const candidates = rows
     .filter((row) => {
       const text = `${row.title || ""} ${row.summary || ""} ${row.topic || ""}`.toLowerCase();
       if (excludeTerms.some((term) => text.includes(term))) return false;
@@ -51,31 +51,114 @@ export function selectEvidence(db: ResearchDatabase, options: SelectEvidenceOpti
       if (terms.length === 0) return true;
       return terms.some((term) => text.includes(term));
     })
-    .slice(0, options.limit)
     .map((row) => {
       const why = parseReasons(row.score_reasons_json);
       const matchedTerms = terms.filter((term) =>
         `${row.title || ""} ${row.summary || ""} ${row.topic || ""}`.toLowerCase().includes(term)
       );
+      const score = Number(row.score || 0);
+      const source = String(row.source || "");
+      const originalSource = String(row.original_source || "");
+      const commentarySource = String(row.commentary_source || "");
+      const publishedAt = String(row.published_at || "");
       return {
         article_id: String(row.id),
         title: String(row.title || ""),
         link: String(row.link || ""),
-        source: String(row.source || ""),
+        source,
         summary: cleanSummary(String(row.summary || "")),
-        commentary_source: String(row.commentary_source || ""),
-        original_source: String(row.original_source || ""),
+        commentary_source: commentarySource,
+        original_source: originalSource,
         original_url: String(row.original_url || ""),
-        published_at: String(row.published_at || ""),
+        published_at: publishedAt,
         topic: String(row.topic || "Other"),
         entities: loadArticleEntities(db, String(row.id)),
-        score: Number(row.score || 0),
+        score,
         why_selected: [...why, ...matchedTerms.map((term) => `matched:${term}`)],
         evidence_type: "analysis",
-        usefulness: Number(row.score || 0) >= 8 ? "high" : "medium"
+        usefulness: score >= 8 ? "high" : "medium",
+        priority_bucket: priorityBucket(score, why, publishedAt),
+        attribution_label: attributionLabel({ source, originalSource, commentarySource }),
+        merge_key: mergeKey(String(row.title || ""), String(row.topic || "")),
+        low_confidence: isLowConfidence(score, why, publishedAt)
       };
     });
+
+  return diversifyBySource(candidates, options.limit);
 }
+
+function diversifyBySource(items: EvidenceItem[], limit: number): EvidenceItem[] {
+  const sourceLimit = Math.max(3, Math.ceil(limit * 0.35));
+  const selected: EvidenceItem[] = [];
+  const deferred: EvidenceItem[] = [];
+  const sourceCounts = new Map<string, number>();
+
+  for (const item of items) {
+    const key = item.source || "unknown";
+    const count = sourceCounts.get(key) ?? 0;
+    if (count < sourceLimit) {
+      selected.push(item);
+      sourceCounts.set(key, count + 1);
+    } else {
+      deferred.push(item);
+    }
+    if (selected.length >= limit) return selected;
+  }
+
+  return [...selected, ...deferred].slice(0, limit);
+}
+
+function priorityBucket(score: number, reasons: string[], publishedAt: string): "lead" | "supporting" | "watch" {
+  if (score >= 9 && publishedAt && reasons.some(isStrongSelectionReason)) return "lead";
+  if (score >= 7) return "supporting";
+  return "watch";
+}
+
+function isStrongSelectionReason(reason: string): boolean {
+  return ["trusted_source", "technical_depth_signal", "ai_or_engineering_relevance", "title_should_keyword_match"].includes(reason);
+}
+
+function attributionLabel(input: { source: string; originalSource: string; commentarySource: string }): string {
+  if (input.originalSource && input.commentarySource) return `${input.originalSource} via ${input.commentarySource}`;
+  if (input.originalSource) return input.originalSource;
+  if (input.commentarySource) return input.commentarySource;
+  return input.source || "unknown source";
+}
+
+function isLowConfidence(score: number, reasons: string[], publishedAt: string): boolean {
+  if (!publishedAt) return true;
+  if (score < 7) return true;
+  return !reasons.some(isStrongSelectionReason);
+}
+
+function mergeKey(title: string, topic: string): string {
+  const normalized = `${title} ${topic}`
+    .toLowerCase()
+    .replace(/\b\d+(?:\.\d+)*(?:a\d+|b\d+|rc\d+)?\b/g, " ")
+    .replace(/[^a-z0-9]+/g, " ");
+  const tokens = normalized
+    .split(/\s+/)
+    .map((token) => token.trim())
+    .filter((token) => token.length > 2 && !MERGE_STOP_WORDS.has(token));
+  if (tokens.includes("datasette") && tokens.includes("agent")) return "datasette agent";
+  return tokens.slice(0, 3).join(" ") || "general";
+}
+
+const MERGE_STOP_WORDS = new Set([
+  "the",
+  "and",
+  "for",
+  "with",
+  "from",
+  "into",
+  "release",
+  "update",
+  "notes",
+  "more",
+  "new",
+  "llm",
+  "ai"
+]);
 
 function cleanSummary(value: string, maxLength = 360): string {
   const withoutTags = value

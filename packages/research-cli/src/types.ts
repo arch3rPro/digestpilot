@@ -78,4 +78,8 @@ export interface EvidenceItem {
   why_selected: string[];
   evidence_type: string;
   usefulness: string;
+  priority_bucket: "lead" | "supporting" | "watch";
+  attribution_label: string;
+  merge_key: string;
+  low_confidence: boolean;
 }

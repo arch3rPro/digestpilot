@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { renderEvidenceMarkdown, type EvidenceBrief } from "../evidence/render.js";
+import { buildDailyReportGuidance, renderEvidenceMarkdown, type EvidenceBrief } from "../evidence/render.js";
 import type { SourceHealthSummary } from "../types.js";
 import { selectEvidence } from "../evidence/select.js";
 import { openResearchDb } from "../workspace/db.js";
@@ -53,6 +53,7 @@ export async function createEvidenceBrief(
       },
       key_signals: [],
       evidence_items: evidence,
+      daily_report_guidance: buildDailyReportGuidance(evidence),
       source_notes: {},
       gaps: [],
       suggested_next_questions: []
