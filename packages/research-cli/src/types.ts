@@ -55,6 +55,7 @@ export interface WorkspacePaths {
   articlesJsonlPath: string;
   sourcesJsonPath: string;
   sourceHealthPath: string;
+  contentCacheDir: string;
   seenPath: string;
   workspaceConfigPath: string;
   entitiesConfigPath: string;

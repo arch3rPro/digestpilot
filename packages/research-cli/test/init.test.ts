@@ -16,6 +16,7 @@ test("initWorkspace creates directories, config files, and schema", async () => 
 
     for (const path of [
       "data",
+      "data/content-cache",
       "notes/briefs",
       "notes/daily",
       "notes/weekly",
@@ -43,6 +44,7 @@ test("initWorkspace creates directories, config files, and schema", async () => 
       assert.deepEqual(
         tables.map((row) => row.name),
         [
+          "article_content",
           "article_entities",
           "article_topics",
           "articles",
@@ -57,7 +59,7 @@ test("initWorkspace creates directories, config files, and schema", async () => 
       );
 
       const version = db.prepare("select version from schema_version").get() as { version: number };
-      assert.equal(version.version, 4);
+      assert.equal(version.version, 5);
 
       const runColumns = db.prepare("pragma table_info(research_runs)").all() as Array<{ name: string }>;
       assert.deepEqual(
@@ -70,6 +72,13 @@ test("initWorkspace creates directories, config files, and schema", async () => 
       assert.deepEqual(
         ["commentary_source", "original_source", "original_url"].every((column) =>
           articleColumns.some((row) => row.name === column)
+        ),
+        true
+      );
+      const contentColumns = db.prepare("pragma table_info(article_content)").all() as Array<{ name: string }>;
+      assert.deepEqual(
+        ["article_id", "url", "excerpt", "text_content", "content_length", "status", "fetched_at"].every((column) =>
+          contentColumns.some((row) => row.name === column)
         ),
         true
       );
@@ -117,7 +126,7 @@ test("initWorkspace migrates version 1 research metadata tables", async () => {
       const version = migrated
         .prepare("select version from schema_version order by version desc limit 1")
         .get() as { version: number };
-      assert.equal(version.version, 4);
+      assert.equal(version.version, 5);
 
       const columns = migrated.prepare("pragma table_info(research_runs)").all() as Array<{ name: string }>;
       for (const column of [
@@ -135,6 +144,11 @@ test("initWorkspace migrates version 1 research metadata tables", async () => {
       for (const column of ["commentary_source", "original_source", "original_url"]) {
         assert.equal(articleColumns.some((row) => row.name === column), true);
       }
+
+      const tables = migrated.prepare("select name from sqlite_master where type = 'table'").all() as Array<{
+        name: string;
+      }>;
+      assert.equal(tables.some((row) => row.name === "article_content"), true);
     } finally {
       migrated.close();
     }

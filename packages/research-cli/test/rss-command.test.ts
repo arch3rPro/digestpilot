@@ -6,6 +6,8 @@ import test from "node:test";
 import {
   applySourceRegistryPatch,
   curateSourceRegistry,
+  discoverFeeds,
+  discoverFeedPages,
   evaluateSourceRegistry,
   fetchRss,
   importOpml
@@ -66,6 +68,151 @@ test("fetchRss returns normalized entries and source health", async () => {
   } finally {
     await rm(root, { recursive: true, force: true });
   }
+});
+
+test("discoverFeeds fetches a page and returns feed candidates", async () => {
+  const fetcher: FeedFetcher = async () => ({
+    async text() {
+      return `
+        <html>
+          <head>
+            <title>Product Strategy Notes</title>
+            <link rel="alternate" type="application/rss+xml" href="/feed.xml">
+          </head>
+        </html>
+      `;
+    }
+  });
+
+  const result = await discoverFeeds({ url: "https://example.com/notes", fetcher });
+
+  assert.deepEqual(result.feeds, [
+    {
+      id: "example-com-feed-xml",
+      title: "Product Strategy Notes",
+      url: "https://example.com/feed.xml",
+      source_page: "https://example.com/notes",
+      type: "rss"
+    }
+  ]);
+  assert.equal(result.source_page, "https://example.com/notes");
+});
+
+test("discoverFeeds can validate discovered feeds and produce registry patches", async () => {
+  const fetcher: FeedFetcher = async (url) => ({
+    async text() {
+      if (url.endsWith("/feed.xml")) {
+        return `
+          <rss version="2.0">
+            <channel><title>Product Strategy Notes</title>
+              <item><title>Roadmap strategy update</title><link>https://example.com/roadmap</link></item>
+            </channel>
+          </rss>
+        `;
+      }
+      return `
+        <html>
+          <head>
+            <title>Product Strategy Notes</title>
+            <link rel="alternate" type="application/rss+xml" href="/feed.xml">
+          </head>
+        </html>
+      `;
+    }
+  });
+
+  const result = await discoverFeeds({ url: "https://example.com/notes", validate: true, fetcher });
+
+  assert.equal(result.feeds[0].validation?.status, "valid");
+  assert.equal(result.feeds[0].validation?.item_count, 1);
+  assert.equal(result.feeds[0].validation?.sample_title, "Roadmap strategy update");
+  assert.deepEqual(result.registry_patches, [
+    {
+      id: "example-com-feed-xml",
+      set: {
+        title: "Product Strategy Notes",
+        url: "https://example.com/feed.xml",
+        enabled: true
+      }
+    }
+  ]);
+});
+
+test("applySourceRegistryPatch can add feeds from discovery registry patches", async () => {
+  const root = await mkdtemp(join(tmpdir(), "subscription-research-rss-command-"));
+  try {
+    const registry = join(root, "feeds.json");
+    const patch = join(root, "discovery.json");
+    const output = join(root, "feeds.discovered.json");
+    await writeFile(registry, JSON.stringify({ feeds: [] }), "utf8");
+    await writeFile(
+      patch,
+      JSON.stringify({
+        registry_patches: [
+          {
+            id: "example-com-feed-xml",
+            set: {
+              title: "Product Strategy Notes",
+              url: "https://example.com/feed.xml",
+              enabled: true
+            }
+          }
+        ]
+      }),
+      "utf8"
+    );
+
+    const dryRun = await applySourceRegistryPatch({ registry, patch });
+    assert.equal(dryRun.summary.add, 1);
+    assert.equal(dryRun.registry.feeds[0].id, "example-com-feed-xml");
+
+    const applied = await applySourceRegistryPatch({ registry, patch, output, apply: true });
+    assert.equal(applied.dry_run, false);
+    const persisted = JSON.parse(await readFile(output, "utf8")) as { feeds: Array<{ id: string; url: string }> };
+    assert.deepEqual(persisted.feeds, [
+      {
+        id: "example-com-feed-xml",
+        title: "Product Strategy Notes",
+        url: "https://example.com/feed.xml",
+        enabled: true
+      }
+    ]);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("discoverFeedPages aggregates and dedupes feeds across page URLs", async () => {
+  const fetcher: FeedFetcher = async (url) => ({
+    async text() {
+      if (url === "https://example.com/product") {
+        return `
+          <html><head>
+            <title>Product Blog</title>
+            <link rel="alternate" type="application/rss+xml" href="/feed.xml">
+          </head></html>
+        `;
+      }
+      return `
+        <html><head>
+          <title>Duplicate Product Blog</title>
+          <link rel="alternate" type="application/rss+xml" href="https://example.com/feed.xml">
+        </head></html>
+      `;
+    }
+  });
+
+  const result = await discoverFeedPages({
+    urls: ["https://example.com/product", "https://example.com/about"],
+    fetcher
+  });
+
+  assert.equal(result.pages.length, 2);
+  assert.deepEqual(
+    result.feeds.map((feed) => feed.url),
+    ["https://example.com/feed.xml"]
+  );
+  assert.equal(result.registry_patches.length, 1);
 });
 
 test("source governance commands evaluate, curate, and apply reviewed patches", async () => {

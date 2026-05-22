@@ -66,8 +66,9 @@ The shared runtime is the Node/TypeScript `subscription-research` CLI in [`packa
 Common commands by responsibility:
 
 - Digest and monitoring: `subscription-research rss import-opml`, `subscription-research rss digest`, `subscription-research rss check-new`
+- Feed discovery: `subscription-research rss discover`
 - Source maintenance: `subscription-research rss evaluate-sources`, `subscription-research rss curate-sources`, `subscription-research rss apply-source-patch`, `subscription-research source-health`
-- Deep research: `subscription-research init`, `subscription-research ingest rss`, `subscription-research brief evidence`
+- Deep research: `subscription-research init`, `subscription-research ingest rss`, `subscription-research content fetch`, `subscription-research brief evidence`
 
 Prompt-level examples are in [examples/README.md](./examples/README.md). CLI details belong in the Skill references and package README, not in this project overview.
 

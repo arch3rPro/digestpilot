@@ -112,7 +112,7 @@ export interface SourceCurationResult {
 
 export interface SourcePatchResult {
   dry_run: boolean;
-  summary: { set: number; remove: number; skipped: number };
+  summary: { add: number; set: number; remove: number; skipped: number };
   operations: Array<Record<string, unknown>>;
   skipped: Array<{ id: string; reason: string }>;
   registry: RssRegistry;

@@ -1,16 +1,21 @@
 #!/usr/bin/env node
+import { readFile } from "node:fs/promises";
 import { Command } from "commander";
 import { createEvidenceBrief } from "./commands/brief-evidence.js";
+import { enrichArticleContent } from "./commands/enrich-content.js";
 import { ingestRss } from "./commands/ingest-rss.js";
 import { initWorkspace } from "./commands/init.js";
 import {
   applySourceRegistryPatch,
   curateSourceRegistry,
+  discoverFeedPages,
+  discoverFeeds,
   digestRss,
   evaluateSourceRegistry,
   fetchRss,
   importOpml
 } from "./commands/rss.js";
+import { extractDiscoveryUrls } from "./rss/discovery.js";
 import { renderJson, renderMarkdownDigest, renderMarkdownDigestResult, renderMarkdownSourceCuration, renderMarkdownSourcePatchResult } from "./rss/render.js";
 import {
   createSourceHealthRegistryPatch,
@@ -126,6 +131,31 @@ program
     }
   });
 
+const content = program.command("content").description("Fetch and enrich archived article content.");
+
+content
+  .command("fetch")
+  .description("Fetch archived article HTML, extract readable content, and cache it locally.")
+  .requiredOption("--workspace <path>", "Workspace directory")
+  .option("--since <window>", "Relative or absolute time window")
+  .option("--min-score <number>", "Minimum archived article score", parseInteger, 0)
+  .option("--limit <number>", "Maximum articles to enrich", parseInteger, 20)
+  .option("--article-id <id>", "Only enrich one archived article")
+  .option("--timeout <seconds>", "Per-article timeout in seconds", parseInteger, 20)
+  .option("--refetch", "Refetch content even when fetched content already exists")
+  .action(async (options: Record<string, string | number | boolean | undefined>) => {
+    const result = await enrichArticleContent({
+      workspace: requiredString(options.workspace, "workspace"),
+      since: optionalString(options.since),
+      minScore: optionalNumber(options.minScore),
+      limit: optionalNumber(options.limit),
+      articleId: optionalString(options.articleId),
+      timeout: optionalNumber(options.timeout),
+      refetch: options.refetch === true
+    });
+    console.log(JSON.stringify(result, null, 2));
+  });
+
 const rss = program.command("rss").description("Run direct RSS registry workflows with the Node runtime.");
 
 rss
@@ -158,6 +188,30 @@ rss
     });
     const format = outputFormat(optionalString(options.format) ?? "json");
     process.stdout.write(format === "markdown" ? renderMarkdownDigest(result.entries, "Fetched RSS Entries") : renderJson(result));
+  });
+
+rss
+  .command("discover")
+  .description("Discover RSS or Atom feed links from one web page or a URL list.")
+  .option("--url <url>", "Web page URL to inspect")
+  .option("--input <path>", "Text or Markdown file containing page URLs to inspect")
+  .option("--timeout <seconds>", "Page fetch timeout in seconds", parseInteger, 20)
+  .option("--validate", "Fetch discovered feeds and verify they parse")
+  .action(async (options: Record<string, string | number | boolean | undefined>) => {
+    const urls = await discoveryUrls(options);
+    const result =
+      urls.length === 1
+        ? await discoverFeeds({
+            url: urls[0],
+            timeout: optionalNumber(options.timeout),
+            validate: options.validate === true
+          })
+        : await discoverFeedPages({
+            urls,
+            timeout: optionalNumber(options.timeout),
+            validate: options.validate === true
+          });
+    process.stdout.write(renderJson(result));
   });
 
 rss
@@ -319,6 +373,21 @@ function sourceRegistryOptions(options: Record<string, string | number | undefin
 function outputFormat(value: string): "json" | "markdown" {
   if (value === "json" || value === "markdown") return value;
   throw new Error(`Unsupported output format: ${value}`);
+}
+
+async function discoveryUrls(options: Record<string, string | number | boolean | undefined>): Promise<string[]> {
+  const urls: string[] = [];
+  const directUrl = optionalString(options.url);
+  if (directUrl) urls.push(directUrl);
+  const input = optionalString(options.input);
+  if (input) {
+    urls.push(...extractDiscoveryUrls(await readFile(input, "utf8")));
+  }
+  const uniqueUrls = [...new Set(urls)];
+  if (uniqueUrls.length === 0) {
+    throw new Error("Missing required option: url or input");
+  }
+  return uniqueUrls;
 }
 
 function markSeenPolicy(value: string): "reported-only" | "all-filtered" | "none" {

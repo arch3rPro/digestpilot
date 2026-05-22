@@ -35,6 +35,24 @@ Each evidence item should include:
 - `merge_key`
 - `low_confidence`
 
+When `subscription-research content fetch` has enriched an article, the `summary` field should prefer the cleaned full-text excerpt. When no enriched content exists, keep the RSS summary fallback.
+
+## Optional Full-Text Enrichment
+
+Use full-text enrichment when RSS summaries are too thin for research synthesis:
+
+```bash
+subscription-research content fetch \
+  --workspace research-workspace \
+  --since 7d \
+  --min-score 7 \
+  --limit 20
+```
+
+The command stores extracted content in SQLite `article_content` and a local `data/content-cache/` JSON cache. It should be run after RSS ingest and before `subscription-research brief evidence`.
+
+Do not treat enrichment as required for ordinary digest output. It is a research-quality step for deeper evidence, not a source maintenance workflow.
+
 ## Daily Report Guidance Fields
 
 When the brief is used for a research daily or memo, it should include:

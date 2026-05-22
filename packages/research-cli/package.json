@@ -20,9 +20,12 @@
     "prepack": "npm run build"
   },
   "dependencies": {
+    "@mozilla/readability": "^0.6.0",
+    "@types/jsdom": "^28.0.3",
     "better-sqlite3": "^11.8.1",
     "commander": "^13.1.0",
-    "fast-xml-parser": "^5.8.0"
+    "fast-xml-parser": "^5.8.0",
+    "jsdom": "^29.1.1"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.12",

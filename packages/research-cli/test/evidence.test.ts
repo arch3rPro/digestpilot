@@ -3,6 +3,7 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
+import Database from "better-sqlite3";
 import { createEvidenceBrief } from "../src/commands/brief-evidence.js";
 import { ingestRssEnvelope } from "../src/commands/ingest-rss.js";
 import { initWorkspace } from "../src/commands/init.js";
@@ -277,6 +278,73 @@ test("createEvidenceBrief includes original and commentary source attribution", 
     const markdown = await readFile(result.markdownPath, "utf8");
     assert.match(markdown, /Original source: WSJ/);
     assert.match(markdown, /Commentary source: Daring Fireball/);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("createEvidenceBrief prefers enriched content excerpts over RSS summaries", async () => {
+  const root = await mkdtemp(join(tmpdir(), "subscription-research-"));
+  const workspace = join(root, "workspace");
+  try {
+    await initWorkspace({ workspace });
+    await ingestRssEnvelope({
+      workspace,
+      envelope: {
+        entries: [
+          {
+            title: "Agent product workflow",
+            link: "https://example.com/agent-product-workflow",
+            feed_id: "product-feed",
+            feed_title: "Product Feed",
+            published_at: new Date().toISOString(),
+            summary: "Short RSS teaser.",
+            topic: "Product / Business",
+            score: 8,
+            score_reasons: ["should_keyword_match"]
+          }
+        ]
+      }
+    });
+
+    const db = new Database(join(workspace, "data/research.db"));
+    try {
+      const article = db.prepare("select id from articles").get() as { id: string };
+      db.prepare(
+        `
+        insert into article_content (
+          article_id, url, title, excerpt, text_content, content_length, status, error, fetched_at, raw_json
+        )
+        values (?, ?, ?, ?, ?, ?, 'fetched', '', ?, '{}')
+      `
+      ).run(
+        article.id,
+        "https://example.com/agent-product-workflow",
+        "Agent product workflow",
+        "Enriched excerpt about product managers designing agent workflows with evidence and rollback.",
+        "Full article text about product managers designing agent workflows with evidence and rollback.",
+        86,
+        new Date().toISOString()
+      );
+    } finally {
+      db.close();
+    }
+
+    const result = await createEvidenceBrief({
+      workspace,
+      question: "agent product workflow",
+      since: "1d",
+      mustKeywords: "agent,product",
+      limit: 10
+    });
+
+    const markdown = await readFile(result.markdownPath, "utf8");
+    const json = JSON.parse(await readFile(result.jsonPath, "utf8")) as {
+      evidence_items: Array<{ summary: string }>;
+    };
+    assert.match(markdown, /Enriched excerpt about product managers/);
+    assert.doesNotMatch(markdown, /Short RSS teaser/);
+    assert.equal(json.evidence_items[0].summary.startsWith("Enriched excerpt"), true);
   } finally {
     await rm(root, { recursive: true, force: true });
   }

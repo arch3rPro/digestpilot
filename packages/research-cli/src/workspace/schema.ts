@@ -1,6 +1,6 @@
 import type { ResearchDatabase } from "./db.js";
 
-const SCHEMA_VERSION = 4;
+const SCHEMA_VERSION = 5;
 
 const statements = [
   `create table if not exists schema_version (
@@ -41,6 +41,21 @@ const statements = [
     first_seen_at text not null,
     last_seen_at text not null,
     foreign key(source_id) references sources(id)
+  )`,
+  `create table if not exists article_content (
+    article_id text primary key,
+    url text not null,
+    title text,
+    byline text,
+    site_name text,
+    excerpt text,
+    text_content text,
+    content_length integer not null default 0,
+    status text not null,
+    error text,
+    fetched_at text not null,
+    raw_json text not null default '{}',
+    foreign key(article_id) references articles(id)
   )`,
   `create table if not exists entities (
     id text primary key,
@@ -136,6 +151,7 @@ export function applySchema(db: ResearchDatabase): void {
 
     migrateResearchRuns(db);
     migrateArticles(db);
+    migrateArticleContent(db);
 
     const row = db
       .prepare("select version from schema_version order by version desc limit 1")
@@ -150,6 +166,26 @@ export function applySchema(db: ResearchDatabase): void {
   });
 
   transaction();
+}
+
+function migrateArticleContent(db: ResearchDatabase): void {
+  db.prepare(
+    `create table if not exists article_content (
+      article_id text primary key,
+      url text not null,
+      title text,
+      byline text,
+      site_name text,
+      excerpt text,
+      text_content text,
+      content_length integer not null default 0,
+      status text not null,
+      error text,
+      fetched_at text not null,
+      raw_json text not null default '{}',
+      foreign key(article_id) references articles(id)
+    )`
+  ).run();
 }
 
 function migrateArticles(db: ResearchDatabase): void {

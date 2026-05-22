@@ -66,8 +66,9 @@
 按职责划分的常用命令：
 
 - Digest 与监控：`subscription-research rss import-opml`、`subscription-research rss digest`、`subscription-research rss check-new`
+- Feed discovery：`subscription-research rss discover`
 - 源维护：`subscription-research rss evaluate-sources`、`subscription-research rss curate-sources`、`subscription-research rss apply-source-patch`、`subscription-research source-health`
-- 深度研究：`subscription-research init`、`subscription-research ingest rss`、`subscription-research brief evidence`
+- 深度研究：`subscription-research init`、`subscription-research ingest rss`、`subscription-research content fetch`、`subscription-research brief evidence`
 
 Prompt 级示例见 [examples/README.md](./examples/README.md)。CLI 细节应放在 Skill references 和 package README 中，不放在项目首页里。
 

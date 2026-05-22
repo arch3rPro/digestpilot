@@ -21,6 +21,7 @@ export function getWorkspacePaths(workspace: string): WorkspacePaths {
     articlesJsonlPath: join(dataDir, "articles.jsonl"),
     sourcesJsonPath: join(dataDir, "sources.json"),
     sourceHealthPath: join(dataDir, "source-health.json"),
+    contentCacheDir: join(dataDir, "content-cache"),
     seenPath: join(dataDir, "seen.json"),
     workspaceConfigPath: join(configDir, "workspace.json"),
     entitiesConfigPath: join(configDir, "entities.json"),
@@ -32,6 +33,7 @@ export function getWorkspacePaths(workspace: string): WorkspacePaths {
 export function workspaceDirectories(paths: WorkspacePaths): string[] {
   return [
     paths.dataDir,
+    paths.contentCacheDir,
     paths.briefsDir,
     paths.dailyDir,
     join(paths.notesDir, "weekly"),

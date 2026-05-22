@@ -58,6 +58,7 @@ export function extractSourcePatches(payload: unknown): SourceRegistryPatch[] {
   if (!payload || typeof payload !== "object") return [];
   const record = payload as Record<string, unknown>;
   if (Array.isArray(record.patches)) return extractSourcePatches(record.patches);
+  if (Array.isArray(record.registry_patches)) return extractSourcePatches(record.registry_patches);
   const patches: SourceRegistryPatch[] = [];
   if (Array.isArray(record.actions)) {
     for (const action of record.actions) {
@@ -73,11 +74,18 @@ export function applySourcePatches(registry: RssRegistry, patches: SourceRegistr
   const nextRegistry: RssRegistry = { feeds: registry.feeds.map((feed) => ({ ...feed })) };
   const operations: Array<Record<string, unknown>> = [];
   const skipped: Array<{ id: string; reason: string }> = [];
-  const summary = { set: 0, remove: 0, skipped: 0 };
+  const summary = { add: 0, set: 0, remove: 0, skipped: 0 };
 
   for (const patch of patches) {
     const index = nextRegistry.feeds.findIndex((feed) => feed.id === patch.id);
     if (index < 0) {
+      if (patch.set?.url && !patch.remove) {
+        const added = { ...patch.set, id: patch.id, url: patch.set.url };
+        nextRegistry.feeds.push(added);
+        operations.push({ id: patch.id, action: "add", after: added });
+        summary.add += 1;
+        continue;
+      }
       skipped.push({ id: patch.id, reason: "source not found" });
       summary.skipped += 1;
       continue;

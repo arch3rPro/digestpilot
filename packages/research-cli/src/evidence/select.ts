@@ -25,11 +25,13 @@ export function selectEvidence(db: ResearchDatabase, options: SelectEvidenceOpti
     .prepare(
       `
     select
-      a.id, a.title, a.link, a.published_at, a.topic, a.score, a.score_reasons_json, a.summary,
+      a.id, a.title, a.link, a.published_at, a.topic, a.score, a.score_reasons_json,
+      coalesce(nullif(ac.excerpt, ''), a.summary) as summary,
       a.commentary_source, a.original_source, a.original_url,
       s.title as source
     from articles a
     left join sources s on s.id = a.source_id
+    left join article_content ac on ac.article_id = a.id and ac.status = 'fetched'
     where coalesce(a.score, 0) >= ?
       and (? is null or a.published_at >= ?)
     order by coalesce(a.score, 0) desc, a.published_at desc, a.title asc

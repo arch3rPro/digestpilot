@@ -125,6 +125,22 @@
 - 插件市场 packaging、Claude plugin packaging 或多 runtime 安装器。
 - 多用户、多 workspace profile、长期趋势 dashboard 或 Web UI。
 
+## 当前观察到的问题
+
+### 普通日报仍偏慢
+
+2026-05-22 的“产品经理方向昨日报”真实使用暴露出一个体验问题：如果每次用户要日报时都临时全量抓取基础 OPML，会因为 92 个 feed 并发请求、失败源等待超时、沙箱/网络重试以及多轮筛选而变慢。
+
+这不是日报内容质量问题，也不应该通过源治理报告或深度研究流程解决。它属于 `rss-ai-digest` 的快速查询体验问题。
+
+需要改进为：
+
+- 先由定时任务或手动 ingest 将 RSS 条目归档到本地 SQLite。
+- 普通日报、重点资讯和方向查询优先查询本地 archive，而不是实时全量抓取。
+- 为产品经理、AI、工程、安全等方向维护较小的 source profile 或 registry subset。
+- 在一次请求内复用抓取结果，避免因为调整关键词或分类重复抓取同一批 feed。
+- 将实时抓取作为 fallback，而不是默认查询路径。
+
 ## 后续迭代任务
 
 ### P0：版本与发布卫生（已完成）
@@ -173,26 +189,50 @@
 - 已增加“低置信度/仅二手来源”标记，降低误读转载内容的风险。
 - 已将日报质量 checklist 同步到 evidence brief 和 `subscription-research-agent` Skill reference。
 
-### P2：正文获取与内容质量过滤
+### P1：普通日报查询性能优化（待做）
+
+目标：让“日报/重点资讯/快速查询”从实时全量抓取转为 archive-first，提升交互速度并降低重复网络请求。
+
+- 新增 archive-first 普通日报路径：优先从 SQLite 或本地归档读取昨天/今天的条目。
+- 为 `rss-ai-digest` 增加明确的“本地归档查询”工作流说明。
+- 增加 CLI 查询能力，例如按日期、topic、关键词、source profile 从 archive 中筛选条目。
+- 在一次日报请求中复用抓取结果，避免产品方向、关键词方向、全量方向多次重复抓取。
+- 支持 source profile：例如 `product-manager`、`ai`、`engineering`、`security`。
+- 为产品经理方向补充和维护更合适的订阅源池，而不是只依赖基础技术博客 OPML。
+- 将实时 RSS 抓取保留为 fallback，并在 fallback 时使用更短 timeout、更小 source set。
+- 补充一次真实回归：对比 realtime full-fetch 与 archive-first 查询的耗时和输出质量。
+
+验收标准：
+
+- 已有本地归档时，普通日报输出不需要重新抓取 92 个 feed。
+- 同一日期和方向的二次查询应接近秒级。
+- 日报正文只呈现资讯内容，不输出源治理、失败源列表或维护建议。
+
+### P2：正文获取与内容质量过滤（进行中）
 
 目标：从 feed metadata 级别推进到正文级 evidence。
 
-- 引入可选正文抓取，不作为基础 digest 的硬依赖。
-- 增加 HTML 清洗和 readability extraction。
-- 为正文抓取建立缓存，避免重复访问和不必要网络请求。
+- 已引入可选正文抓取，不作为基础 digest 的硬依赖。
+- 已增加基于 `@mozilla/readability` 和 `jsdom` 的 HTML readability extraction。
+- 已为正文抓取建立 SQLite `article_content` 表和 `data/content-cache/` JSON 缓存。
+- 已新增 `subscription-research content fetch`，可对已归档文章按 `since`、`min-score`、`limit` 和 `article-id` 做正文 enrichment。
+- 已让 evidence brief 在存在 enrichment 时优先使用 cleaned full-text excerpt，缺失时继续使用 RSS summary。
 - 支持正文级关键词、实体和主题提取。
 - 加入长文截断、引用边界和来源保真策略。
 - 为 LLM rerank 预留接口，但不让核心流程依赖特定 LLM provider。
 
-### P2：RSS feed discovery
+### P2：RSS feed discovery（进行中）
 
 目标：降低优质源维护成本。
 
 - 新增 `rss-feed-discovery` Skill 或 CLI 子命令。
-- 从网页 HTML 的 RSS/Atom link 自动发现 feed。
-- 从 GitHub Awesome list、博客列表和目录页抽取候选源。
-- 对候选源做解析、健康检查、主题推断和初始评分。
-- 输出可审阅 OPML 或 registry patch，而不是直接污染主 registry。
+- 已新增 `subscription-research rss discover --url ...`，可从网页 HTML 的 RSS/Atom alternate link 自动发现 feed 候选。
+- 已支持 `--input candidate-pages.md` 从 URL 列表或 Markdown 列表批量发现源，并对跨页面重复 feed 去重。
+- 已支持 `--validate`，可抓取候选 feed、验证 RSS/Atom 是否可解析，并输出可审阅 registry patch 候选。
+- 已打通 discovery patch 与 `apply-source-patch`：审阅后的 `registry_patches` 可以新增到 registry，也可以继续走 dry-run。
+- 从 GitHub Awesome list、博客列表和目录页抽取候选源的第一阶段已覆盖 URL/Markdown 列表；后续可增加更强的目录结构解析。
+- 对候选源做健康检查、主题推断和初始评分。
+- 输出可审阅 OPML。
 
 ### P2：监控与告警拆分
 
@@ -236,9 +276,10 @@
 
 建议按以下顺序推进：
 
-1. 进入 P2 正文获取与内容质量过滤，补齐全文 evidence 能力。
-2. 或进入 P2 `rss-feed-discovery`，降低优质源扩展成本。
-3. 或规划 P2 `rss-alert-monitor`，将日报和监控拆成不同 Skill。
-4. 暂缓 publisher 和插件市场 packaging，直到 P2 数据契约更稳定。
+1. 优先完成 P1 普通日报查询性能优化，把常用日报改成 archive-first。
+2. 然后进入 P2 正文获取与内容质量过滤，补齐全文 evidence 能力。
+3. 或进入 P2 `rss-feed-discovery`，降低优质源扩展成本，尤其补齐产品经理方向源池。
+4. 或规划 P2 `rss-alert-monitor`，将日报和监控拆成不同 Skill。
+5. 暂缓 publisher 和插件市场 packaging，直到 P2 数据契约更稳定。
 
-P1 已完成。下一阶段应在 P2 中选择一条主线推进。
+研究日报与源治理 P1 已完成。普通日报性能 P1 是当前新增的高优先级收尾任务，完成后再进入 P2 主线。

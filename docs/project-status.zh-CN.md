@@ -31,6 +31,8 @@
 - evidence brief 已支持研究日报写作指导：source diversification、priority buckets、duplicate merge hints、attribution labels、low-confidence markers 和 quality checklist。
 - 普通 RSS 日报、重点资讯和快速查询已明确归入 `rss-ai-digest`；源维护归入 `rss-source-curator`；深度研究归入 `subscription-research-agent`。
 - RSS ingest 会写入每个源的历史健康观察，`subscription-research source-health` 可按多次观察输出 `keep`、`watch`、`lower_priority`、`disable_candidate` 建议。
+- P2 正文 enrichment 已启动：`subscription-research content fetch` 可对已归档文章抓取正文、做 readability extraction，并写入 SQLite `article_content` 与 `data/content-cache/`。
+- evidence brief 在存在正文 enrichment 时会优先使用 cleaned full-text excerpt；没有 enrichment 时继续使用 RSS summary。
 
 ### 项目与 Skill 基础
 
@@ -63,6 +65,8 @@
 - `subscription-research rss curate-sources`：生成可审阅源治理动作和 registry patch 建议，不直接修改源文件。
 - `apply-source-patch`：对已审阅的源治理 patch 做 dry-run 或写入新的 registry 文件。
 - `subscription-research source-health`：汇总多次 ingest 形成的历史源健康观察。
+- `subscription-research content fetch`：对 research workspace 中已归档文章进行可选正文抓取、readability extraction、SQLite 写入和本地 cache。
+- `subscription-research rss discover`：从网页 HTML 中发现 RSS/Atom alternate feed 候选。
 
 ### 筛选能力
 
@@ -132,6 +136,13 @@
 - 支持 `--max-workers`。
 - 单个 feed 失败不会中断整个 digest。
 - 已完成 92-feed 全量回归验证：优化后全量 digest 约 14-16 秒完成，旧串行路径约 2 分钟。
+- 真实“产品经理方向昨日报”使用表明：如果每次日报都临时全量抓取 92 个 feed，并且为补齐方向结果重复多轮筛选，交互体验仍会偏慢。
+
+当前性能结论：
+
+- 全量实时抓取适合作为刷新或 fallback，不适合作为每次普通日报的默认交互路径。
+- 普通日报、重点资讯和方向查询应优先从本地归档或 SQLite 查询。
+- 产品经理等垂直方向需要更小、更准确的 source profile，避免每次扫描完整基础 OPML。
 
 ### 输出格式
 
@@ -164,6 +175,24 @@
 - P1 本地研究日报主线已完成 3 次真实回归，并验证多次 source-health observations。
 
 ## 尚未实现功能
+
+### 普通日报 archive-first 查询
+
+尚未实现从本地归档直接生成普通日报的快速路径。
+
+当前问题：
+
+- 用户临时请求日报时，默认仍容易走实时全量 RSS 抓取。
+- 如果方向关键词过窄，Agent 可能需要重复运行不同筛选条件，导致同一批 feed 被多次抓取。
+- `product-tech` preset 可以筛选产品/商业技术内容，但还不是产品经理方向的完整源池。
+
+待实现：
+
+- 按日期、关键词、topic、source profile 查询 SQLite/archive 中的 RSS 条目。
+- 为普通日报增加 archive-first workflow，只有本地归档缺失或用户要求刷新时才实时抓取。
+- 支持 `product-manager` 等方向 source profile 或 registry subset。
+- 在同一次日报工作流中缓存抓取 envelope，避免重复网络请求。
+- 增加性能回归记录：对比实时全量抓取和本地 archive 查询耗时。
 
 ### 后续多 Skill 扩展
 
@@ -223,14 +252,20 @@
 
 ### RSS 源发现
 
-尚未实现 feed discovery。
+已实现 feed discovery 的第一阶段：
 
-当前不能自动：
+- `subscription-research rss discover --url ...` 可抓取网页并解析 RSS/Atom `<link rel="alternate">`。
+- `subscription-research rss discover --input candidate-pages.md` 可从 URL 列表或 Markdown 列表批量检查候选页面，并合并去重发现到的 feed。
+- 输出候选 feed 的 `id`、`title`、`url`、`source_page` 和 `type`，不直接写入主 registry。
+- `--validate` 可继续抓取候选 feed，验证是否能被 RSS/Atom parser 解析，记录 `valid` / `invalid`、条目数量、样例标题和错误信息。
+- discovery 输出包含 `registry_patches`，可作为人工审阅后的 registry patch 候选。
+- `apply-source-patch` 已支持从 discovery 的 `registry_patches` 新增源到 registry，仍默认 dry-run，显式 `--apply` 才写出结果。
 
-- 从网站 HTML 发现 RSS/Atom link。
-- 从 GitHub Awesome list 或博客列表批量发现源。
+尚未实现：
+
+- 更强的 GitHub Awesome list 结构解析，例如按 section 自动生成 category/tag。
 - 从网页目录生成 OPML。
-- 验证候选源后自动加入 registry。
+- 候选源主题推断和初始质量评分。
 
 ### 更高级筛选
 
@@ -243,13 +278,17 @@
 
 ### 内容处理与摘要
 
-当前处理的是 feed entry 元数据和 feed summary，不做完整正文处理。`subscription-research-agent` 已提供日报写作契约，但日报综合仍由 Agent 基于 evidence brief 完成。
+当前已启动 P2 正文 enrichment：在 RSS ingest 之后，可用 `subscription-research content fetch` 对已归档文章抓取正文并做 readability extraction。结果写入 `article_content`，并缓存到 `data/content-cache/`。`subscription-research-agent` 已提供日报写作契约，日报综合仍由 Agent 基于 evidence brief 完成。
+
+已实现：
+
+- 可选正文抓取。
+- 基于 `@mozilla/readability` 和 `jsdom` 的 HTML 正文清洗与可读性抽取。
+- 正文 excerpt 持久化到 SQLite 和本地 JSON cache。
+- evidence brief 优先使用正文 enrichment excerpt，缺失时回退 RSS summary。
 
 尚未实现：
 
-- 正文抓取。
-- HTML 正文清洗。
-- 可读性抽取。
 - 长 summary 截断模式。
 - deterministic CLI 自动中文摘要。
 - deterministic CLI 自动生成最终日报。
@@ -303,9 +342,10 @@ RSS digest 侧仍使用 JSON 文件作为轻量状态层。`subscription-researc
 
 优先级最高的方向：
 
-1. 继续增强普通 RSS 日报质量：更好的重复合并、噪声过滤和快速阅读结构。
-2. 规划 feed discovery 和 alert monitor 的拆分边界。
-3. 进入 P2 正文抓取、readability extraction 和正文级 evidence。
-4. 后续再规划 `rss-digest-publisher`、插件包装和多 runtime 分发。
+1. 完成普通日报 archive-first 查询，解决每次临时全量抓取导致的慢体验。
+2. 继续增强普通 RSS 日报质量：更好的重复合并、噪声过滤和快速阅读结构。
+3. 规划 feed discovery 和 alert monitor 的拆分边界。
+4. 进入 P2 正文抓取、readability extraction 和正文级 evidence。
+5. 后续再规划 `rss-digest-publisher`、插件包装和多 runtime 分发。
 
 如果目标是继续扩展 RSS Skills 套件，应优先保持共享数据结构、CLI 契约和文档入口一致。
