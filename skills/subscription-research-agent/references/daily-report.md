@@ -30,7 +30,10 @@ When the evidence brief contains `daily_report_guidance`, use it as the first ro
 - Use `priority_buckets.supporting` for context, caveats, and shorter mentions.
 - Use `priority_buckets.watch` only when the item is relevant but should not anchor a judgment.
 - Follow `merge_hints` to combine related release notes, reposts, and same-event commentary into one story.
+- Check `quality_checklist` before delivering the final report.
 - Follow `style_notes` unless the user gives a more specific writing preference.
+
+For the full quality gate, see [`daily-report-quality.md`](./daily-report-quality.md).
 
 ## Required Sections
 

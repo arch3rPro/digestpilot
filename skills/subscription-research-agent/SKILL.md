@@ -20,7 +20,8 @@ Use this skill to orchestrate local-first research workflows around subscription
 - For a daily research report or subscription daily, generate or read an evidence brief first, then follow `references/daily-report.md`.
 - For workspace structure, read `references/research-workspace.md`.
 - For evidence brief fields, read `references/evidence-brief.md`.
-- For daily report quality and structure, read `references/daily-report.md`.
+- For daily report structure, read `references/daily-report.md`.
+- For the daily report quality gate, read `references/daily-report-quality.md`.
 
 ## Core Commands
 

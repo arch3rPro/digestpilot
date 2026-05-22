@@ -8,9 +8,10 @@ All notable project changes are recorded here.
 
 - Reframed README files around Agent routing and Skill workflow contracts instead of developer-first CLI usage.
 - Improved evidence brief output for Agent-written daily reports with source diversification, daily-report priority buckets, duplicate story merge hints, attribution labels, and low-confidence markers.
+- Added a structured daily-report quality checklist to evidence brief output and `subscription-research-agent` references.
 - Refined `subscription-research source-health` recommendations with `lower_priority`, consecutive failure counts, recent success/failure timestamps, and maintenance priority.
 - Updated source governance and research workspace references for the expanded source-health history fields.
-- Added a P1 real RSS daily-report regression record and updated daily report guidance to keep source maintenance details out of report bodies.
+- Added a P1 real RSS daily-report regression record covering three real local runs and updated daily report guidance to keep source maintenance details out of report bodies.
 
 ## v0.3.0 - 2026-05-22
 

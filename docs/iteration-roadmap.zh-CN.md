@@ -139,18 +139,18 @@
 
 建议：短期重点已经转向 research Agent，下一阶段进入真实本地日报验证。
 
-### P1：真实本地研究工作流加固
+### P1：真实本地研究工作流加固（已完成）
 
 目标：把“能跑通”推进到“可稳定用于日常研究日报”。
 
-- 已完成 1 次真实 AI/技术日报链路回归：92 个源中 84 个成功、8 个失败，抓取 2537 条，筛后归档 60 条。
-- 已将本次 evidence brief、source-health 摘要、失败原因和优化结论整理为小型验证记录。
-- 后续继续运行 2-4 次真实 AI/技术日报，积累 source health observations。
-- 建立日报质量 checklist：来源覆盖、原始来源归因、重复内容、标题党过滤、中文摘要可读性、后续问题质量。
+- 已完成 3 次真实 AI/技术日报链路回归，覆盖 `72h` AI、`24h` AI 和 `72h` 工程/系统主题。
+- 已将 evidence brief、source-health 摘要、失败原因和优化结论整理为小型验证记录。
+- 已在同一个临时 research workspace 连续运行 2 次真实 ingest，积累 source health observations 并验证 `source-health --min-observations 2`。
+- 已建立日报质量 checklist：来源覆盖、原始来源归因、重复内容、噪声过滤、中文摘要可读性、后续问题质量。
 - 已调整 daily report contract，让 Agent 更稳定地区分事实、判断、风险和待跟踪问题，并减少源治理信息在日报中的占比。
-- 增加针对真实失败模式的回归样例，但单元测试继续避免依赖网络。
+- 已增加针对真实失败模式的回归样例，单元测试继续避免依赖网络。
 
-### P1：源健康历史到 registry patch 的闭环
+### P1：源健康历史到 registry patch 的闭环（已完成）
 
 目标：让 source health history 能自然进入可审阅维护流程。
 
@@ -160,17 +160,18 @@
 - 已输出治理解释，说明为什么建议 keep、watch 或 disable。
 - 已补充 Node tests 和 Skill reference 文档。
 - 已补充连续失败次数、最近成功时间、最近失败时间、维护优先级和 `lower-priority` 建议。
-- 后续可继续结合 registry 里的源先验分数和标签生成更细的降权 patch。
+- P1 范围已闭环；后续结合 registry 源先验分数和标签生成更细降权 patch 进入常规 P2/P3 源治理增强。
 
-### P1：研究日报质量增强
+### P1：研究日报质量增强（已完成）
 
 目标：提升日报从“条目罗列”到“研究判断”的稳定性。
 
 - 已在 evidence brief 中提供更清晰的 priority buckets。
 - 已增加重复主题合并提示，避免多个源转载同一事件或同组 release note 时日报膨胀。
 - 已强化 `commentary_source` 与 `original_source` 的展示规则，并增加 Agent 可直接消费的 attribution label。
-- 为中文日报补充推荐文风：短标题、关键信息、影响判断、行动建议。
+- 已为中文日报补充推荐文风：短标题、关键信息、影响判断、行动建议。
 - 已增加“低置信度/仅二手来源”标记，降低误读转载内容的风险。
+- 已将日报质量 checklist 同步到 evidence brief 和 `subscription-research-agent` Skill reference。
 
 ### P2：正文获取与内容质量过滤
 
@@ -235,9 +236,9 @@
 
 建议按以下顺序推进：
 
-1. 连续跑真实 AI/技术研究日报，验证 evidence brief、日报质量和 source-health history。
-2. 补强日报质量 checklist 与 daily report contract。
-3. 增强 source-health history 到可审阅 registry patch 的治理策略。
-4. 再决定下一批拆分 Skill：优先 `rss-feed-discovery` 或 `rss-alert-monitor`，暂缓 publisher 和插件市场 packaging。
+1. 进入 P2 正文获取与内容质量过滤，补齐全文 evidence 能力。
+2. 或进入 P2 `rss-feed-discovery`，降低优质源扩展成本。
+3. 或规划 P2 `rss-alert-monitor`，将日报和监控拆成不同 Skill。
+4. 暂缓 publisher 和插件市场 packaging，直到 P2 数据契约更稳定。
 
-当前最值得优先投入的是 P1。它能直接提高本地研究工作流的可用性，也能为后续 feed discovery、publisher 和插件化提供更稳定的数据契约。
+P1 已完成。下一阶段应在 P2 中选择一条主线推进。

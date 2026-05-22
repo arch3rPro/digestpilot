@@ -370,6 +370,7 @@ test("createEvidenceBrief adds daily-report guidance and diversifies repeated so
         priority_buckets: { lead: string[]; supporting: string[]; watch: string[] };
         merge_hints: Array<{ merge_key: string; primary_title: string; related_titles: string[] }>;
         style_notes: string[];
+        quality_checklist: Array<{ id: string; check: string }>;
       };
     };
     const markdown = await readFile(result.markdownPath, "utf8");
@@ -388,8 +389,20 @@ test("createEvidenceBrief adds daily-report guidance and diversifies repeated so
         (hint) => hint.merge_key === "datasette agent" && hint.related_titles.length >= 1
       )
     );
+    assert.deepEqual(
+      json.daily_report_guidance.quality_checklist.map((item) => item.id),
+      [
+        "source_coverage",
+        "original_attribution",
+        "duplicate_merge",
+        "noise_filtering",
+        "chinese_readability",
+        "follow_up_quality"
+      ]
+    );
     assert.match(markdown, /## Daily Report Guidance/);
     assert.match(markdown, /### Merge Hints/);
+    assert.match(markdown, /### Quality Checklist/);
     assert.match(markdown, /Attribution:/);
   } finally {
     await rm(root, { recursive: true, force: true });

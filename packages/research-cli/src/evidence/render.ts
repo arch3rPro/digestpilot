@@ -15,6 +15,13 @@ export interface DailyReportGuidance {
   };
   merge_hints: EvidenceMergeHint[];
   style_notes: string[];
+  quality_checklist: DailyReportQualityCheck[];
+}
+
+export interface DailyReportQualityCheck {
+  id: string;
+  check: string;
+  evidence_hint: string;
 }
 
 export interface EvidenceBrief {
@@ -66,6 +73,9 @@ export function renderEvidenceMarkdown(brief: EvidenceBrief): string {
     "",
     "### Writing Notes",
     ...brief.daily_report_guidance.style_notes.map((note) => `- ${note}`),
+    "",
+    "### Quality Checklist",
+    ...brief.daily_report_guidance.quality_checklist.map((item) => `- ${item.id}: ${item.check}`),
     "",
     "## Evidence Items"
   ];
@@ -132,9 +142,43 @@ export function buildDailyReportGuidance(items: EvidenceItem[]): DailyReportGuid
       "Merge closely related release notes into one story instead of repeating every package update.",
       "Use source-health details only as brief coverage context; keep maintenance actions out of the daily report.",
       "When a feed item is commentary on another publication, cite the original source and mention the commentary source separately."
-    ]
+    ],
+    quality_checklist: DAILY_REPORT_QUALITY_CHECKLIST
   };
 }
+
+export const DAILY_REPORT_QUALITY_CHECKLIST: DailyReportQualityCheck[] = [
+  {
+    id: "source_coverage",
+    check: "State scanned, succeeded, failed, and selected evidence counts briefly.",
+    evidence_hint: "Use Scope and source_health_summary."
+  },
+  {
+    id: "original_attribution",
+    check: "Preserve original source and commentary source boundaries for every main item.",
+    evidence_hint: "Use attribution_label, original_source, commentary_source, and original_url."
+  },
+  {
+    id: "duplicate_merge",
+    check: "Merge repeated release notes, reposts, and same-event commentary before writing top items.",
+    evidence_hint: "Use merge_hints and merge_key."
+  },
+  {
+    id: "noise_filtering",
+    check: "Do not promote low-confidence, weak keyword, promotional, or off-theme items as main claims.",
+    evidence_hint: "Use low_confidence, why_selected, priority_bucket, and selection criteria."
+  },
+  {
+    id: "chinese_readability",
+    check: "Write concise Chinese judgments and summaries, preserving original titles when useful.",
+    evidence_hint: "Use style_notes and the user language preference."
+  },
+  {
+    id: "follow_up_quality",
+    check: "End with concrete follow-up questions tied to unresolved evidence, not generic research prompts.",
+    evidence_hint: "Use gaps, low-confidence items, and repeated source clusters."
+  }
+];
 
 function bucketTitles(items: EvidenceItem[], bucket: EvidenceItem["priority_bucket"], relatedTitles: Set<string>): string[] {
   return items.filter((item) => item.priority_bucket === bucket && !relatedTitles.has(item.title)).map((item) => item.title);
