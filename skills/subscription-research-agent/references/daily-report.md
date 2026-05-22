@@ -32,7 +32,7 @@ Use standard Markdown. Keep section names readable and stable:
 2. `今日核心判断` or `Key Judgments`
 3. `重点资讯` or `Top Items`
 4. `建议阅读顺序` or `Recommended Reading Order`
-5. `信息源健康` or `Source Health`
+5. `信息源覆盖` or `Source Coverage`
 6. `后续跟踪问题` or `Follow-up Questions`
 
 ## Top Item Fields
@@ -67,11 +67,21 @@ If `original_source` is empty, do not infer one in the final report.
 - Separate evidence-backed claims from interpretation.
 - Prefer fewer high-signal items over broad coverage.
 - Explain why each selected item matters to the user or research theme.
-- Mention source failures and coverage gaps.
+- Mention source coverage briefly, but do not turn the daily report into a source-maintenance report.
 - Do not cite scores as truth; use them as ranking signals.
 - Avoid making claims that require full article reading when only RSS metadata or summaries were available.
 - Prefer original-source wording when `original_source` is present, but still credit the commentary source when the subscription item is a commentary link.
 - Keep notification, publishing, and external sharing outside this Skill unless the user explicitly requests a channel.
+
+## Source Coverage Guidance
+
+Daily reports are for subscribed information, not source governance. Keep source coverage short:
+
+- Include scanned, succeeded, failed, and evidence item counts when available.
+- Mention only material coverage gaps that affect interpretation.
+- Do not list every failed source by default.
+- Do not include disable/remove recommendations in a daily report.
+- For feed repair, health history, or registry patches, route the user to `rss-source-curator`.
 
 ## Chinese Report Style
 
@@ -81,6 +91,7 @@ For Chinese daily reports:
 - Preserve original English titles unless the user asks for translated titles.
 - Include `标题`、`来源`、`作者`、`链接`、`摘要`、`解读` for each top item when practical.
 - Use `今日核心判断` for synthesis and `后续跟踪问题` for open questions.
+- Use `信息源覆盖` for a one- or two-line coverage note, not detailed source governance.
 
 ## Output Location
 

@@ -17,6 +17,7 @@ Each evidence item should include:
 
 - `title`
 - `source`
+- `summary`
 - `commentary_source`
 - `original_source`
 - `original_url`
@@ -28,6 +29,8 @@ Each evidence item should include:
 - `why_selected`
 - `evidence_type`
 - `usefulness`
+
+Selection criteria should record whether `must_keywords` were interpreted as `any` or `all`. Daily-report workflows should usually use `any` so a broad AI topic list does not require every term to appear in the same article. Use `all` only for narrow research questions such as `llm,evals`.
 
 ## Agent Responsibilities
 

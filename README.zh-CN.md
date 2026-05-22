@@ -183,12 +183,15 @@ Agent 和 wrapper 可以通过 `scripts/rss_monitor.py` 调用确定性实现。
 
 CLI 本身不直接生成最终研究报告。Agent 应基于 evidence brief，并参考 `subscription-research-agent` 的日报契约写作日报。
 
+宽泛日报场景优先使用 `--should-keywords` 或 `--must-keyword-mode any`。只有在每个 must keyword 都必须同时出现在同一条 evidence 中时，才使用 `--must-keyword-mode all`。
+
 源健康历史：
 
 ```bash
 subscription-research source-health \
   --workspace research-workspace \
   --min-observations 2 \
+  --disable-threshold 3 \
   --format markdown
 ```
 
@@ -198,6 +201,7 @@ subscription-research source-health \
 subscription-research source-health \
   --workspace research-workspace \
   --min-observations 2 \
+  --disable-threshold 3 \
   --format patch > source-health-curation.json
 ```
 

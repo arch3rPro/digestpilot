@@ -15,6 +15,7 @@ All notable project changes are recorded here.
 - Added conservative article source attribution for commentary and original sources in the research CLI archive and evidence brief output.
 - Added per-source health observation history and `subscription-research source-health` summaries for repeated source failure review.
 - Added `subscription-research source-health --format patch` to generate reviewable registry patch envelopes from repeated source-health observations.
+- Improved evidence brief quality with cleaned summaries, configurable must-keyword matching, quieter source-health daily report guidance, and safer source-health disable thresholds.
 - Added the `packages/research-cli` Node/TypeScript CLI package for local workspace initialization, SQLite-backed evidence archive, RSS evidence ingest, entity extraction, and evidence brief generation.
 - Added public documentation for the v0.3 local-first subscription research Agent direction.
 

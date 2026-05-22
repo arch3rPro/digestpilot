@@ -67,6 +67,7 @@ program
   .requiredOption("--question <text>", "Research question")
   .option("--since <window>", "Relative or absolute time window", "7d")
   .option("--must-keywords <csv>", "Required keyword CSV")
+  .option("--must-keyword-mode <mode>", "Must keyword mode: any or all", "any")
   .option("--should-keywords <csv>", "Optional keyword CSV")
   .option("--exclude-keywords <csv>", "Excluded keyword CSV")
   .option("--min-score <number>", "Minimum score", parseInteger, 7)
@@ -80,6 +81,7 @@ program
       question: requiredString(options.question, "question"),
       since: optionalString(options.since) ?? "7d",
       mustKeywords: optionalString(options.mustKeywords),
+      mustKeywordMode: keywordMode(optionalString(options.mustKeywordMode) ?? "any"),
       shouldKeywords: optionalString(options.shouldKeywords),
       excludeKeywords: optionalString(options.excludeKeywords),
       minScore: optionalNumber(options.minScore),
@@ -93,6 +95,7 @@ program
   .description("Summarize historical source health observations from the research workspace.")
   .requiredOption("--workspace <path>", "Workspace directory")
   .option("--min-observations <number>", "Minimum observations before making a recommendation", parseInteger, 2)
+  .option("--disable-threshold <number>", "Failed observations required before suggesting disable", parseInteger, 3)
   .option("--format <format>", "Output format: json, markdown, or patch", "json")
   .action(async (options: Record<string, string | number | undefined>) => {
     const format = optionalString(options.format) ?? "json";
@@ -103,7 +106,8 @@ program
     const db = openResearchDb(paths.databasePath);
     try {
       const result = summarizeSourceHealthHistory(db, {
-        minObservations: optionalNumber(options.minObservations) ?? 2
+        minObservations: optionalNumber(options.minObservations) ?? 2,
+        disableObservationThreshold: optionalNumber(options.disableThreshold) ?? 3
       });
       if (format === "markdown") {
         console.log(renderSourceHealthMarkdown(result));
@@ -140,4 +144,9 @@ function optionalString(value: string | number | undefined): string | undefined 
 
 function optionalNumber(value: string | number | undefined): number | undefined {
   return typeof value === "number" ? value : undefined;
+}
+
+function keywordMode(value: string): "any" | "all" {
+  if (value === "any" || value === "all") return value;
+  throw new Error(`Unsupported must keyword mode: ${value}`);
 }

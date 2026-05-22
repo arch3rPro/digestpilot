@@ -79,6 +79,35 @@ test("summarizeSourceHealthHistory ranks persistent and intermittent source fail
   }
 });
 
+test("summarizeSourceHealthHistory does not disable after a single failed observation", async () => {
+  const root = await mkdtemp(join(tmpdir(), "subscription-research-"));
+  const workspace = join(root, "workspace");
+
+  try {
+    await initWorkspace({ workspace });
+    await ingestHealthRun(workspace, "2026-05-21T00:00:00Z", {
+      transient: { status: "failing", success_count: 0, failure_count: 1, last_error: "SSL timeout" }
+    });
+
+    const db = new Database(join(workspace, "data/research.db"), { readonly: true });
+    try {
+      const summary = summarizeSourceHealthHistory(db, { minObservations: 1 });
+      assert.deepEqual(
+        summary.map((item) => [item.source_id, item.recommendation, item.observations, item.failures]),
+        [["transient", "watch", 1, 1]]
+      );
+
+      const patch = createSourceHealthRegistryPatch(summary);
+      assert.deepEqual(patch.summary, { watch: 1 });
+      assert.deepEqual(patch.actions[0].registry_patch, {});
+    } finally {
+      db.close();
+    }
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
 async function ingestHealthRun(
   workspace: string,
   generatedAt: string,

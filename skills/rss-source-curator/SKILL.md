@@ -36,6 +36,7 @@ Review repeated source failures from a research workspace:
 subscription-research source-health \
   --workspace research-workspace \
   --min-observations 2 \
+  --disable-threshold 3 \
   --format markdown
 ```
 
@@ -45,6 +46,7 @@ Generate reviewable registry patches from repeated source failures:
 subscription-research source-health \
   --workspace research-workspace \
   --min-observations 2 \
+  --disable-threshold 3 \
   --format patch > source-health-curation.json
 ```
 

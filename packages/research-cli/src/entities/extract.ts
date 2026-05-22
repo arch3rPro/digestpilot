@@ -73,6 +73,10 @@ function isUsefulCandidate(candidate: string): boolean {
   if (/^\d/.test(candidate)) return false;
   if (/^\d{4}$/.test(candidate)) return false;
   if (/^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\/?\d*$/i.test(candidate)) return false;
+  if (/^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2}$/i.test(candidate)) return false;
+  if (/^Sections?\s+\d+/i.test(candidate)) return false;
+  if (/^(AND|DESC|FROM|LIKE|LIMIT|ORDER|SELECT|WHERE)$/i.test(candidate)) return false;
+  if (/^(MUST|SHOULD|NOT|READ|REVIEW|COPYEDIT|COMPLETE|LEGAL|PLANNING)$/i.test(candidate)) return false;
   if (/^[A-Z]{1,2}$/.test(candidate)) return false;
   if (/^[A-Z]{2,}$/.test(candidate) && candidate.length > 10) return false;
   return true;

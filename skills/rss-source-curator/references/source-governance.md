@@ -32,7 +32,7 @@ When a local research workspace is available, `subscription-research source-heal
 
 - `keep`: repeated successful observations.
 - `watch`: intermittent failures that need more observations or timeout/retry tuning.
-- `disable_candidate`: persistent failures across the available observations.
+- `disable_candidate`: persistent failures across enough observations. The default CLI threshold is three failed observations.
 
 `disable_candidate` is still not permission to mutate a registry. It is a review signal for `rss-source-curator`.
 

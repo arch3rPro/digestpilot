@@ -9,6 +9,7 @@ export interface EvidenceBrief {
   evidence_count: number;
   selection_criteria: {
     must_keywords: string[];
+    must_keyword_mode?: "any" | "all";
     should_keywords: string[];
     exclude_keywords: string[];
     min_score: number;
@@ -31,7 +32,7 @@ export function renderEvidenceMarkdown(brief: EvidenceBrief): string {
     `- Sources scanned: ${brief.sources_scanned}`,
     `- Source health: ${brief.source_health_summary.succeeded} succeeded, ${brief.source_health_summary.failed} failed`,
     `- Evidence items: ${brief.evidence_count}`,
-    `- Selection criteria: must=${brief.selection_criteria.must_keywords.join(", ") || "none"}; should=${brief.selection_criteria.should_keywords.join(", ") || "none"}`,
+    `- Selection criteria: must=${brief.selection_criteria.must_keywords.join(", ") || "none"} (${brief.selection_criteria.must_keyword_mode || "any"}); should=${brief.selection_criteria.should_keywords.join(", ") || "none"}`,
     "",
     "## Key Signals",
     "- Agent-fillable from evidence.",
@@ -53,6 +54,9 @@ export function renderEvidenceMarkdown(brief: EvidenceBrief): string {
     }
     lines.push(`- Link: ${item.link}`);
     lines.push(`- Published: ${item.published_at}`);
+    if (item.summary) {
+      lines.push(`- Summary: ${item.summary}`);
+    }
     lines.push(`- Topic: ${item.topic}`);
     lines.push(`- Entities: ${item.entities.join(", ") || "none"}`);
     lines.push(`- Score: ${item.score}`);
@@ -64,7 +68,7 @@ export function renderEvidenceMarkdown(brief: EvidenceBrief): string {
 
   lines.push("## Source Notes", "- Strong sources:", "- Weak/noisy sources:");
   if (brief.source_health_summary.failed_sample.length > 0) {
-    lines.push("- Failed sources:");
+    lines.push("- Failed sources for maintenance review:");
     for (const item of brief.source_health_summary.failed_sample) {
       lines.push(`  - ${item.id}: ${item.error}`);
     }

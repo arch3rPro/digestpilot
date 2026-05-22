@@ -56,3 +56,24 @@ test("extractEntities filters URL fragments and date-like candidates", () => {
   assert.equal(names.includes("May/19"), false);
   assert.equal(names.includes("2026"), false);
 });
+
+test("extractEntities filters common SQL and document control words", () => {
+  const entities = extractEntities(
+    {
+      title: "Datasette Agent queries",
+      summary: "SELECT title FROM articles WHERE score ORDER DESC. Sections 3 and 4 use MUST and SHOULD."
+    },
+    { entities: [] }
+  );
+  const names = entities.map((entity) => entity.name);
+
+  assert.ok(names.includes("Datasette Agent"));
+  assert.equal(names.includes("SELECT"), false);
+  assert.equal(names.includes("FROM"), false);
+  assert.equal(names.includes("WHERE"), false);
+  assert.equal(names.includes("ORDER"), false);
+  assert.equal(names.includes("DESC"), false);
+  assert.equal(names.includes("Sections 3"), false);
+  assert.equal(names.includes("MUST"), false);
+  assert.equal(names.includes("SHOULD"), false);
+});

@@ -67,6 +67,7 @@ export interface EvidenceItem {
   title: string;
   link: string;
   source: string;
+  summary: string;
   commentary_source: string;
   original_source: string;
   original_url: string;

@@ -85,6 +85,7 @@
 - `subscription-research init`：初始化本地 research workspace。
 - `subscription-research ingest rss`：调用 RSS worker，将订阅 evidence 归档到本地 workspace。
 - `subscription-research brief evidence`：从本地数据生成 evidence brief。
+- evidence brief 已支持清洗后的摘要和 `must_keyword_mode`，宽泛日报不再默认要求所有 must keyword 同时命中。
 - `subscription-research source-health`：汇总多次 ingest 形成的源健康历史。
 - `subscription-research source-health --format patch`：将源健康历史转换为可审阅 registry patch envelope。
 - SQLite schema migration，当前已包含 ingest run、article attribution、source health observation 等表结构演进。
@@ -145,7 +146,7 @@
 - 连续运行 3-5 次真实 AI/技术日报，积累 source health observations。
 - 将每次日报的 evidence brief、日报成品、source-health summary 和失败原因归档为小型验证记录。
 - 建立日报质量 checklist：来源覆盖、原始来源归因、重复内容、标题党过滤、中文摘要可读性、后续问题质量。
-- 调整 daily report contract，让 Agent 更稳定地区分事实、判断、风险和待跟踪问题。
+- 已调整 daily report contract，让 Agent 更稳定地区分事实、判断、风险和待跟踪问题，并减少源治理信息在日报中的占比。
 - 增加针对真实失败模式的回归样例，但单元测试继续避免依赖网络。
 
 ### P1：源健康历史到 registry patch 的闭环

@@ -22,7 +22,7 @@ test("createEvidenceBrief writes markdown and JSON evidence outputs", async () =
             feed_id: "ai-feed",
             feed_title: "AI Feed",
             published_at: "2026-05-21T00:00:00Z",
-            summary: "Benchmark reliability notes.",
+            summary: "<p>Benchmark &amp; reliability notes.</p>",
             topic: "AI / LLM",
             score: 9,
             score_reasons: ["should_keyword_match"]
@@ -48,9 +48,67 @@ test("createEvidenceBrief writes markdown and JSON evidence outputs", async () =
     };
     assert.match(markdown, /# Evidence Brief:/);
     assert.match(markdown, /LLM evals in production/);
+    assert.match(markdown, /Summary: Benchmark & reliability notes\./);
     assert.equal(json.evidence_items.length, 1);
     assert.equal(json.question, "最近 LLM evals 有哪些新进展？");
     assert.equal(json.source_health_summary.checked, 0);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("createEvidenceBrief defaults must keywords to any mode and supports all mode", async () => {
+  const root = await mkdtemp(join(tmpdir(), "subscription-research-"));
+  const workspace = join(root, "workspace");
+  try {
+    await initWorkspace({ workspace });
+    await ingestRssEnvelope({
+      workspace,
+      envelope: {
+        entries: [
+          {
+            title: "Agent runtime update",
+            link: "https://example.com/agent-runtime",
+            feed_id: "ai-feed",
+            feed_title: "AI Feed",
+            published_at: new Date().toISOString(),
+            summary: "Tool orchestration notes.",
+            topic: "AI / LLM",
+            score: 8
+          }
+        ]
+      }
+    });
+
+    const anyMode = await createEvidenceBrief({
+      workspace,
+      question: "agent or evals",
+      since: "1d",
+      mustKeywords: "agent,evals",
+      limit: 10
+    });
+    const allMode = await createEvidenceBrief({
+      workspace,
+      question: "agent and evals",
+      since: "1d",
+      mustKeywords: "agent,evals",
+      mustKeywordMode: "all",
+      limit: 10
+    });
+
+    const anyJson = JSON.parse(await readFile(anyMode.jsonPath, "utf8")) as {
+      evidence_items: unknown[];
+      selection_criteria: { must_keyword_mode: string };
+    };
+    const allJson = JSON.parse(await readFile(allMode.jsonPath, "utf8")) as {
+      evidence_items: unknown[];
+      selection_criteria: { must_keyword_mode: string };
+    };
+
+    assert.equal(anyJson.selection_criteria.must_keyword_mode, "any");
+    assert.equal(anyJson.evidence_items.length, 1);
+    assert.equal(allJson.selection_criteria.must_keyword_mode, "all");
+    assert.equal(allJson.evidence_items.length, 0);
   } finally {
     await rm(root, { recursive: true, force: true });
   }

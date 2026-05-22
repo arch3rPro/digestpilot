@@ -12,6 +12,7 @@ export interface CreateEvidenceBriefOptions {
   question: string;
   since: string;
   mustKeywords?: string;
+  mustKeywordMode?: "any" | "all";
   shouldKeywords?: string;
   excludeKeywords?: string;
   minScore?: number;
@@ -27,6 +28,7 @@ export async function createEvidenceBrief(
     const evidence = selectEvidence(db, {
       question: options.question,
       mustKeywords: options.mustKeywords,
+      mustKeywordMode: options.mustKeywordMode,
       shouldKeywords: options.shouldKeywords,
       excludeKeywords: options.excludeKeywords,
       since: options.since,
@@ -44,6 +46,7 @@ export async function createEvidenceBrief(
       evidence_count: evidence.length,
       selection_criteria: {
         must_keywords: splitCsv(options.mustKeywords),
+        must_keyword_mode: options.mustKeywordMode ?? "any",
         should_keywords: splitCsv(options.shouldKeywords),
         exclude_keywords: splitCsv(options.excludeKeywords),
         min_score: options.minScore ?? 7

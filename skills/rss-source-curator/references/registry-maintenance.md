@@ -28,10 +28,11 @@ When a local research workspace has repeated ingest runs, source-health history 
 subscription-research source-health \
   --workspace research-workspace \
   --min-observations 2 \
+  --disable-threshold 3 \
   --format patch > source-health-curation.json
 ```
 
-The patch output follows the same `actions[].registry_patch` shape accepted by `apply-source-patch`. Persistent `disable_candidate` sources become `disable` actions with `enabled: false`; `watch` and `keep` actions do not mutate the registry.
+The patch output follows the same `actions[].registry_patch` shape accepted by `apply-source-patch`. Persistent `disable_candidate` sources become `disable` actions with `enabled: false`; `watch` and `keep` actions do not mutate the registry. By default, disable suggestions require at least three failed observations.
 
 ## Dry Run
 

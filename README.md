@@ -197,12 +197,15 @@ The `subscription-research` CLI contract for `v0.3` adds local research workspac
 
 The CLI does not generate final reports by itself. Agents write daily reports from evidence briefs using the `subscription-research-agent` daily report reference.
 
+For broad daily reports, prefer `--should-keywords` or `--must-keyword-mode any`. Use `--must-keyword-mode all` only when every must keyword should appear in the same evidence item.
+
 Source health history:
 
 ```bash
 subscription-research source-health \
   --workspace research-workspace \
   --min-observations 2 \
+  --disable-threshold 3 \
   --format markdown
 ```
 
@@ -212,6 +215,7 @@ Source-health registry patch review:
 subscription-research source-health \
   --workspace research-workspace \
   --min-observations 2 \
+  --disable-threshold 3 \
   --format patch > source-health-curation.json
 ```
 

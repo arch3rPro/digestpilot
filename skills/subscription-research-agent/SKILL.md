@@ -38,8 +38,11 @@ subscription-research brief evidence \
   --question "What changed in LLM evals this week?" \
   --since 7d \
   --must-keywords "llm,evals" \
+  --must-keyword-mode all \
   --should-keywords "benchmark,reliability,agent"
 ```
+
+For broad daily reports, prefer topic words as `--should-keywords` or use `--must-keyword-mode any` so the brief does not require every AI keyword to appear in one article.
 
 Review source health history:
 
@@ -54,4 +57,4 @@ subscription-research source-health \
 
 This skill does not promise a final research conclusion from deterministic tooling alone. Treat generated briefs as evidence packages. The Agent should cite evidence items when writing a memo or report.
 
-Daily reports are Agent-written synthesis artifacts. The CLI prepares evidence; the Agent owns judgment, source caveats, recommended reading order, and follow-up questions.
+Daily reports are Agent-written synthesis artifacts. The CLI prepares evidence; the Agent owns judgment, recommended reading order, and follow-up questions. Keep source-health details concise in daily reports; use `rss-source-curator` for feed maintenance output.

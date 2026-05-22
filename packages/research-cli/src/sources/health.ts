@@ -4,6 +4,7 @@ export type SourceHealthRecommendation = "keep" | "watch" | "disable_candidate";
 
 export interface SourceHealthHistoryOptions {
   minObservations?: number;
+  disableObservationThreshold?: number;
 }
 
 export interface SourceHealthHistoryItem {
@@ -89,7 +90,9 @@ export function summarizeSourceHealthHistory(
   }
 
   return [...groups.entries()]
-    .map(([sourceId, observations]) => summarizeSource(sourceId, observations))
+    .map(([sourceId, observations]) =>
+      summarizeSource(sourceId, observations, options.disableObservationThreshold ?? 3)
+    )
     .filter((item) => item.observations >= minObservations)
     .sort(compareHealthItems);
 }
@@ -125,14 +128,18 @@ export function createSourceHealthRegistryPatch(items: SourceHealthHistoryItem[]
   return { actions, summary: Object.fromEntries(Object.entries(summary).sort()) };
 }
 
-function summarizeSource(sourceId: string, observations: ObservationRow[]): SourceHealthHistoryItem {
+function summarizeSource(
+  sourceId: string,
+  observations: ObservationRow[],
+  disableObservationThreshold: number
+): SourceHealthHistoryItem {
   const failures = observations.filter(isFailedObservation).length;
   const successes = observations.filter(isSuccessfulObservation).length;
   const latest = observations[observations.length - 1];
   const sourceMeta = [...observations].reverse().find((item) => item.title || item.url);
   const latestError = [...observations].reverse().find((item) => item.last_error)?.last_error ?? "";
   const failureRate = observations.length === 0 ? 0 : failures / observations.length;
-  const recommendation = recommendationFor(observations.length, failures);
+  const recommendation = recommendationFor(observations.length, failures, disableObservationThreshold);
   return {
     source_id: sourceId,
     title: sourceMeta?.title || sourceId,
@@ -177,8 +184,12 @@ function statusFor(recommendation: SourceHealthRecommendation): SourceHealthPatc
   return "healthy";
 }
 
-function recommendationFor(observations: number, failures: number): SourceHealthRecommendation {
-  if (observations > 0 && failures === observations) return "disable_candidate";
+function recommendationFor(
+  observations: number,
+  failures: number,
+  disableObservationThreshold: number
+): SourceHealthRecommendation {
+  if (observations >= disableObservationThreshold && failures === observations) return "disable_candidate";
   if (failures > 0) return "watch";
   return "keep";
 }
