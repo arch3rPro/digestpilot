@@ -295,8 +295,8 @@ RSS digest 侧仍使用 JSON 文件作为轻量状态层。`subscription-researc
 
 优先级最高的方向：
 
-1. 完成 `v0.3.0` 发布验证、tag 和 GitHub release。
-2. 继续用真实本地日报验证 research CLI、evidence brief、daily report contract 和 source-health history。
+1. 继续用真实本地日报验证 research CLI、evidence brief、daily report contract 和 source-health history。
+2. 建立日报质量 checklist，并归档多次真实日报验证记录。
 3. 增强 source-health history 到可审阅 registry patch 的治理策略。
 4. 继续增强内容质量筛选：扩展噪声源 metadata、布尔表达式、语义去重和 LLM rerank。
 5. 规划后续独立 Skills，例如 `rss-alert-monitor`、`rss-digest-publisher` 和 `rss-feed-discovery`。
