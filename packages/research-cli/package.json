@@ -1,16 +1,22 @@
 {
   "name": "@subscription-research/cli",
   "version": "0.3.0",
-  "private": true,
+  "private": false,
   "description": "Local-first subscription research workspace CLI.",
   "type": "module",
   "bin": {
     "subscription-research": "./dist/src/cli.js"
   },
+  "files": [
+    "dist/src",
+    "README.md",
+    "package.json"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "test": "npm run build && node --test dist/test/*.test.js",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "prepack": "npm run build"
   },
   "dependencies": {
     "better-sqlite3": "^11.8.1",
