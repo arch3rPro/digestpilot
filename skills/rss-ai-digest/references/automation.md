@@ -7,13 +7,13 @@ Keep automation platform-neutral. The core skill reads files and writes Markdown
 Run a daily digest at 09:00:
 
 ```cron
-0 9 * * * cd /path/to/workspace && python3 skills/rss-ai-digest/scripts/rss_monitor.py digest --registry feeds.json --state seen.json --since 24h --min-score 7 --format markdown > digest.md
+0 9 * * * cd /path/to/workspace && subscription-research rss digest --registry feeds.json --state seen.json --since 24h --min-score 7 --format markdown > digest.md
 ```
 
 Run keyword monitoring every hour:
 
 ```cron
-0 * * * * cd /path/to/workspace && python3 skills/rss-ai-digest/scripts/rss_monitor.py check-new --registry feeds.json --state seen.json --keywords "agents,llm,evals" --format json > latest.json
+0 * * * * cd /path/to/workspace && subscription-research rss check-new --registry feeds.json --state seen.json --keywords "agents,llm,evals" --format json > latest.json
 ```
 
 ## GitHub Actions
@@ -32,10 +32,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-node@v4
         with:
-          python-version: "3.x"
-      - run: python3 skills/rss-ai-digest/scripts/rss_monitor.py digest --registry feeds.json --state seen.json --since 24h --min-score 7 --format markdown > digest.md
+          node-version: "20"
+      - run: cd packages/research-cli && npm ci && npm run build
+      - run: node packages/research-cli/dist/src/cli.js rss digest --registry feeds.json --state seen.json --since 24h --min-score 7 --format markdown > digest.md
       - uses: actions/upload-artifact@v4
         with:
           name: rss-ai-digest

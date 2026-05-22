@@ -16,6 +16,7 @@ export async function runNodeRssDigest(options: NodeDigestOptions): Promise<Node
   const { entries, health: currentHealth } = await fetchRegistryEntries(registry, {
     fetcher: effectiveOptions.fetcher,
     timeoutMs: effectiveOptions.timeoutMs,
+    maxWorkers: effectiveOptions.maxWorkers,
     now
   });
   const health = effectiveOptions.health ? await mergeAndPersistHealth(effectiveOptions.health, currentHealth) : currentHealth;
@@ -49,16 +50,33 @@ export async function runNodeRssDigest(options: NodeDigestOptions): Promise<Node
 
 export async function fetchRegistryEntries(
   registry: RssRegistry,
-  options: { fetcher?: FeedFetcher; timeoutMs?: number; now?: () => Date } = {}
+  options: { fetcher?: FeedFetcher; timeoutMs?: number; maxWorkers?: number; now?: () => Date } = {}
 ): Promise<{ entries: RssEntry[]; health: SourceHealthMap }> {
   const fetcher = options.fetcher ?? fetch;
   const now = options.now ?? (() => new Date());
   const enabledFeeds = registry.feeds.filter((feed) => feed.enabled !== false);
-  const results = await Promise.all(enabledFeeds.map((feed) => fetchOneFeed(feed, { fetcher, timeoutMs: options.timeoutMs, now })));
+  const workerCount = Math.max(1, Math.trunc(options.maxWorkers ?? 8));
+  const results = await mapWithConcurrency(enabledFeeds, workerCount, (feed) =>
+    fetchOneFeed(feed, { fetcher, timeoutMs: options.timeoutMs, now })
+  );
   return {
     entries: sortEntries(results.flatMap((result) => result.entries)),
     health: Object.fromEntries(results.flatMap((result) => Object.entries(result.health)).sort(([left], [right]) => left.localeCompare(right)))
   };
+}
+
+async function mapWithConcurrency<T, R>(items: T[], concurrency: number, mapper: (item: T) => Promise<R>): Promise<R[]> {
+  const results = new Array<R>(items.length);
+  let nextIndex = 0;
+  async function worker(): Promise<void> {
+    while (nextIndex < items.length) {
+      const currentIndex = nextIndex;
+      nextIndex += 1;
+      results[currentIndex] = await mapper(items[currentIndex]);
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(concurrency, items.length) }, () => worker()));
+  return results;
 }
 
 async function fetchOneFeed(

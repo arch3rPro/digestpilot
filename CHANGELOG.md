@@ -19,6 +19,7 @@ All notable project changes are recorded here.
 - Added compact RSS/Atom parity fixtures to keep Node parser output aligned with the Python compatibility worker.
 - Added npm packaging metadata and package-level README for the `subscription-research` CLI.
 - Added direct Node RSS registry commands under `subscription-research rss`: `import-opml`, `fetch`, `digest`, `check-new`, `evaluate-sources`, `curate-sources`, and `apply-source-patch`.
+- Added `--max-workers` concurrency control to Node RSS fetch, digest, and check-new workflows.
 - Improved evidence brief quality with cleaned summaries, configurable must-keyword matching, quieter source-health daily report guidance, and safer source-health disable thresholds.
 - Added the `packages/research-cli` Node/TypeScript CLI package for local workspace initialization, SQLite-backed evidence archive, RSS evidence ingest, entity extraction, and evidence brief generation.
 - Added public documentation for the v0.3 local-first subscription research Agent direction.
@@ -33,6 +34,7 @@ All notable project changes are recorded here.
 - Advanced the research workspace schema to version 4 with per-source health observation history.
 - Made `subscription-research ingest rss` default to the Node RSS runtime while preserving `--rss-runtime python` for compatibility checks.
 - Updated Skill guidance to prefer `subscription-research rss ...` over direct Python worker commands for RSS workflows.
+- Updated source-curator and automation references to use Node RSS commands for current workflows.
 
 ## v0.2.0 - Unreleased
 

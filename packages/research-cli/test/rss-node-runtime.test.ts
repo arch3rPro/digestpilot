@@ -37,6 +37,39 @@ test("fetchRegistryEntries fetches enabled feeds and records isolated failures",
   assert.equal(result.health.disabled, undefined);
 });
 
+test("fetchRegistryEntries respects maxWorkers concurrency", async () => {
+  const registry: RssRegistry = {
+    feeds: [
+      { id: "one", title: "One", url: "https://example.com/one.xml" },
+      { id: "two", title: "Two", url: "https://example.com/two.xml" },
+      { id: "three", title: "Three", url: "https://example.com/three.xml" }
+    ]
+  };
+  let active = 0;
+  let maxActive = 0;
+  const fetcher: FeedFetcher = async () => {
+    active += 1;
+    maxActive = Math.max(maxActive, active);
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    active -= 1;
+    return {
+      async text() {
+        return `
+          <rss version="2.0">
+            <channel><title>Feed</title>
+              <item><title>LLM evals</title><link>https://example.com/a</link><pubDate>Thu, 21 May 2026 08:00:00 GMT</pubDate></item>
+            </channel>
+          </rss>
+        `;
+      }
+    };
+  };
+
+  const result = await fetchRegistryEntries(registry, { fetcher, maxWorkers: 1 });
+  assert.equal(result.entries.length, 3);
+  assert.equal(maxActive, 1);
+});
+
 test("runNodeRssDigest filters, scores, marks seen, and emits digest envelope", async () => {
   const root = await mkdtemp(join(tmpdir(), "subscription-research-node-rss-"));
   try {

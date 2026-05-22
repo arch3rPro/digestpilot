@@ -67,6 +67,7 @@ export interface NodeDigestOptions {
   minScore?: number;
   markSeen?: "none" | "all-filtered" | "reported-only";
   timeoutMs?: number;
+  maxWorkers?: number;
   fetcher?: FeedFetcher;
   now?: () => Date;
 }

@@ -207,7 +207,7 @@ Removal patch shape:
 Dry-run by default:
 
 ```bash
-python3 skills/rss-ai-digest/scripts/rss_monitor.py apply-source-patch \
+subscription-research rss apply-source-patch \
   --registry feeds.json \
   --patch source-curation.json \
   --format markdown
@@ -216,7 +216,7 @@ python3 skills/rss-ai-digest/scripts/rss_monitor.py apply-source-patch \
 Write a reviewed registry to an explicit output file:
 
 ```bash
-python3 skills/rss-ai-digest/scripts/rss_monitor.py apply-source-patch \
+subscription-research rss apply-source-patch \
   --registry feeds.json \
   --patch source-curation.json \
   --output feeds.curated.json \

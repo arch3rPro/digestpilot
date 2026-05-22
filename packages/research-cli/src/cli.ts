@@ -155,10 +155,12 @@ rss
   .requiredOption("--registry <path>", "RSS feed registry JSON file")
   .option("--format <format>", "Output format: json or markdown", "json")
   .option("--timeout <seconds>", "Per-feed timeout in seconds", parseInteger, 20)
+  .option("--max-workers <number>", "Maximum concurrent feed fetches", parseInteger, 8)
   .action(async (options: Record<string, string | number | undefined>) => {
     const result = await fetchRss({
       registry: requiredString(options.registry, "registry"),
-      timeout: optionalNumber(options.timeout)
+      timeout: optionalNumber(options.timeout),
+      maxWorkers: optionalNumber(options.maxWorkers)
     });
     const format = outputFormat(optionalString(options.format) ?? "json");
     process.stdout.write(format === "markdown" ? renderMarkdownDigest(result.entries, "Fetched RSS Entries") : renderJson(result));
@@ -184,6 +186,7 @@ rss
   .option("--format <format>", "Output format: json or markdown", "markdown")
   .option("--mark-seen <policy>", "Seen-state policy: reported-only, all-filtered, or none", "reported-only")
   .option("--timeout <seconds>", "Per-feed timeout in seconds", parseInteger, 20)
+  .option("--max-workers <number>", "Maximum concurrent feed fetches", parseInteger, 8)
   .option("--min-score <number>", "Minimum score", parseInteger, 7)
   .action(async (options: Record<string, string | number | boolean | undefined>) => {
     const result = await digestRss(digestOptions(options, 7));
@@ -211,6 +214,7 @@ rss
   .option("--format <format>", "Output format: json or markdown", "markdown")
   .option("--mark-seen <policy>", "Seen-state policy: reported-only, all-filtered, or none", "reported-only")
   .option("--timeout <seconds>", "Per-feed timeout in seconds", parseInteger, 20)
+  .option("--max-workers <number>", "Maximum concurrent feed fetches", parseInteger, 8)
   .option("--min-score <number>", "Minimum score", parseInteger, 0)
   .action(async (options: Record<string, string | number | boolean | undefined>) => {
     const result = await digestRss(digestOptions(options, 0));
@@ -311,6 +315,7 @@ function digestOptions(options: Record<string, string | number | boolean | undef
     language: optionalString(options.language),
     markSeen: markSeenPolicy(optionalString(options.markSeen) ?? "reported-only"),
     timeout: optionalNumber(options.timeout),
+    maxWorkers: optionalNumber(options.maxWorkers),
     minScore: optionalNumber(options.minScore) ?? defaultMinScore
   };
 }

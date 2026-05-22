@@ -23,6 +23,7 @@ export interface ImportOpmlOptions {
 export interface FetchRssOptions {
   registry: string;
   timeout?: number;
+  maxWorkers?: number;
   fetcher?: FeedFetcher;
 }
 
@@ -57,14 +58,16 @@ export async function fetchRss(options: FetchRssOptions): Promise<{ entries: Rss
   const registry = await loadRssRegistry(options.registry);
   return fetchRegistryEntries(registry, {
     fetcher: options.fetcher,
-    timeoutMs: options.timeout ? options.timeout * 1000 : undefined
+    timeoutMs: options.timeout ? options.timeout * 1000 : undefined,
+    maxWorkers: options.maxWorkers
   });
 }
 
 export async function digestRss(options: DigestRssOptions): Promise<NodeDigestEnvelope> {
   return runNodeRssDigest({
     ...options,
-    timeoutMs: options.timeout ? options.timeout * 1000 : undefined
+    timeoutMs: options.timeout ? options.timeout * 1000 : undefined,
+    maxWorkers: options.maxWorkers
   });
 }
 

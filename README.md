@@ -227,6 +227,7 @@ subscription-research ingest rss \
   --keywords "llm,agent,rag,evals,inference" \
   --should-keywords "benchmark,reliability,architecture" \
   --exclude-keywords "webinar,coupon,sponsor,hiring,job,press release" \
+  --max-workers 8 \
   --min-score 7
 ```
 
