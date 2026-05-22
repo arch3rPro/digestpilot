@@ -5,7 +5,11 @@ import { join } from "node:path";
 import test from "node:test";
 import Database from "better-sqlite3";
 import { ingestRssEnvelope } from "../src/commands/ingest-rss.js";
-import { summarizeSourceHealthHistory, renderSourceHealthMarkdown } from "../src/sources/health.js";
+import {
+  createSourceHealthRegistryPatch,
+  summarizeSourceHealthHistory,
+  renderSourceHealthMarkdown
+} from "../src/sources/health.js";
 import { initWorkspace } from "../src/commands/init.js";
 
 test("summarizeSourceHealthHistory ranks persistent and intermittent source failures", async () => {
@@ -56,6 +60,17 @@ test("summarizeSourceHealthHistory ranks persistent and intermittent source fail
       assert.match(markdown, /disable_candidate/);
       assert.match(markdown, /flaky/);
       assert.match(markdown, /watch/);
+
+      const patch = createSourceHealthRegistryPatch(summary);
+      assert.deepEqual(patch.summary, { disable: 1, keep: 1, watch: 1 });
+      assert.deepEqual(
+        patch.actions.map((item) => [item.id, item.action, item.registry_patch]),
+        [
+          ["dead", "disable", { id: "dead", set: { enabled: false } }],
+          ["flaky", "watch", {}],
+          ["good", "keep", {}]
+        ]
+      );
     } finally {
       db.close();
     }

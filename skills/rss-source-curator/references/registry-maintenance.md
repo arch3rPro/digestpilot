@@ -22,6 +22,17 @@ python3 skills/rss-ai-digest/scripts/rss_monitor.py curate-sources \
   --format json > source-curation.json
 ```
 
+When a local research workspace has repeated ingest runs, source-health history can also generate a compatible reviewable patch envelope:
+
+```bash
+subscription-research source-health \
+  --workspace research-workspace \
+  --min-observations 2 \
+  --format patch > source-health-curation.json
+```
+
+The patch output follows the same `actions[].registry_patch` shape accepted by `apply-source-patch`. Persistent `disable_candidate` sources become `disable` actions with `enabled: false`; `watch` and `keep` actions do not mutate the registry.
+
 ## Dry Run
 
 ```bash

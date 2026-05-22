@@ -15,7 +15,7 @@ This repository is an RSS Skills suite for agent ecosystems. It is designed for 
 | Stable release | `v0.1.0` includes `rss-ai-digest` |
 | Current workspace | `rss-ai-digest`, `rss-source-curator`, `subscription-research-agent` |
 | Runtime contract | Standard Skill layout plus deterministic local CLIs |
-| Release stage | `v0.2.0` is prepared but unreleased; `v0.3.0` is in active development |
+| Release stage | `v0.3.0` is prepared but unreleased; it includes the earlier `v0.2.0` suite scope |
 | Dependency model | Python standard library for RSS primitives; Node/TypeScript for research workspace tooling |
 | Platform support | Agent-runtime neutral; wrappers can be added without changing the Skill core |
 
@@ -50,11 +50,11 @@ Do not treat this repository as a full RSS reader, notification service, schedul
 | `rss-source-curator` | Evaluate RSS source quality, review feed health, generate curation actions, and apply reviewed registry patches. |
 | `subscription-research-agent` | Orchestrate local-first evidence briefs and Agent-written daily reports from subscription sources. |
 
-## v0.2.0 Prepared Scope
+## v0.2.0 Suite Scope
 
 - `rss-ai-digest` now supports deterministic digest presets, keyword groups, and topic-grouped Markdown output.
 - `rss-source-curator` owns source governance and registry maintenance workflows.
-- `v0.2.0` is prepared for release review and remains unreleased until a release tag is created.
+- This scope is carried forward into the prepared `v0.3.0` release instead of being treated as a separate release gate.
 
 ## v0.3.0 Local-First Research Scope
 
@@ -206,6 +206,15 @@ subscription-research source-health \
   --format markdown
 ```
 
+Source-health registry patch review:
+
+```bash
+subscription-research source-health \
+  --workspace research-workspace \
+  --min-observations 2 \
+  --format patch > source-health-curation.json
+```
+
 Minimal bootstrap:
 
 ```bash
@@ -285,6 +294,8 @@ Primary Skill docs:
 Project and maintenance docs:
 
 - [Project status](./docs/project-status.zh-CN.md)
+- [Implemented features and iteration roadmap](./docs/iteration-roadmap.zh-CN.md)
+- [v0.3.0 release notes](./docs/releases/v0.3.0.md)
 - [v0.2.0 release notes](./docs/releases/v0.2.0.md)
 - [v0.1.0 release notes](./docs/releases/v0.1.0.md)
 - [Agent instructions](./AGENTS.md)

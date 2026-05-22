@@ -36,6 +36,8 @@ When a local research workspace is available, `subscription-research source-heal
 
 `disable_candidate` is still not permission to mutate a registry. It is a review signal for `rss-source-curator`.
 
+Use `subscription-research source-health --format patch` to convert repeated observations into a reviewable patch envelope. The command only suggests changes. It does not write or modify a registry.
+
 ## Safety Rule
 
 Recommendations are not permission to mutate a registry. Use `apply-source-patch` only after review.

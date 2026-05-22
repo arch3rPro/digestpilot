@@ -14,6 +14,7 @@ Use this skill to review and maintain RSS source quality. Keep the workflow port
 - Run commands from the repository root with `python3 skills/rss-ai-digest/scripts/rss_monitor.py`.
 - For source quality scoring, use `evaluate-sources`.
 - For source health history from a local research workspace, use `subscription-research source-health`.
+- For source-health patch proposals from repeated observations, use `subscription-research source-health --format patch`.
 - For human review, use `curate-sources --format markdown`.
 - For patch application, first generate machine-readable curation with `curate-sources --format json > source-curation.json`, then use `apply-source-patch`.
 - For source status semantics, read `references/source-governance.md`.
@@ -36,6 +37,15 @@ subscription-research source-health \
   --workspace research-workspace \
   --min-observations 2 \
   --format markdown
+```
+
+Generate reviewable registry patches from repeated source failures:
+
+```bash
+subscription-research source-health \
+  --workspace research-workspace \
+  --min-observations 2 \
+  --format patch > source-health-curation.json
 ```
 
 Generate human-readable curation actions:
@@ -61,7 +71,7 @@ Apply reviewed patches to a new registry:
 ```bash
 python3 skills/rss-ai-digest/scripts/rss_monitor.py apply-source-patch \
   --registry feeds.json \
-  --patch source-curation.json \
+  --patch source-health-curation.json \
   --output feeds.curated.json \
   --apply
 ```

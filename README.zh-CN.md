@@ -15,7 +15,7 @@
 | 稳定发布 | `v0.1.0` 包含 `rss-ai-digest` |
 | 当前工作区 | `rss-ai-digest`、`rss-source-curator`、`subscription-research-agent` |
 | 运行契约 | 标准 Skill 结构 + 确定性本地 CLI |
-| 发布阶段 | `v0.2.0` 已准备，尚未发布；`v0.3.0` 正在开发 |
+| 发布阶段 | `v0.3.0` 已准备，尚未发布；包含此前 `v0.2.0` 套件范围 |
 | 依赖模型 | RSS primitives 使用 Python 标准库；research workspace tooling 使用 Node/TypeScript |
 | 平台支持 | 运行时中立，可被不同 Agent 或调度器包装 |
 
@@ -50,11 +50,11 @@
 | `rss-source-curator` | 评估 RSS 源质量、审查源健康、生成源治理动作，并应用已审阅 registry patch。 |
 | `subscription-research-agent` | 围绕订阅来源编排本地优先 evidence brief 和 Agent 写作的研究日报。 |
 
-## v0.2.0 准备范围
+## v0.2.0 套件范围
 
 - `rss-ai-digest` 现在支持确定性 digest presets、关键词组和按主题分组的 Markdown 输出。
 - `rss-source-curator` 负责源治理和 registry 维护工作流。
-- `v0.2.0` 已进入发布审阅准备状态，但在创建 release tag 前仍视为未发布。
+- 这部分能力已并入准备中的 `v0.3.0`，不再作为单独 release gate。
 
 ## v0.3.0 本地优先研究范围
 
@@ -192,6 +192,15 @@ subscription-research source-health \
   --format markdown
 ```
 
+基于源健康历史生成可审阅 registry patch：
+
+```bash
+subscription-research source-health \
+  --workspace research-workspace \
+  --min-observations 2 \
+  --format patch > source-health-curation.json
+```
+
 最小初始化：
 
 ```bash
@@ -244,6 +253,8 @@ python3 skills/rss-ai-digest/scripts/rss_monitor.py digest \
 项目维护文档：
 
 - [项目状态](./docs/project-status.zh-CN.md)
+- [已实现功能与迭代路线图](./docs/iteration-roadmap.zh-CN.md)
+- [v0.3.0 release notes](./docs/releases/v0.3.0.md)
 - [v0.2.0 release notes](./docs/releases/v0.2.0.md)
 - [v0.1.0 release notes](./docs/releases/v0.1.0.md)
 - [Agent 指令](./AGENTS.md)

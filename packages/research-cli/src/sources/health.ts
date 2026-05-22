@@ -8,6 +8,8 @@ export interface SourceHealthHistoryOptions {
 
 export interface SourceHealthHistoryItem {
   source_id: string;
+  title: string;
+  url: string;
   observations: number;
   successes: number;
   failures: number;
@@ -18,8 +20,36 @@ export interface SourceHealthHistoryItem {
   last_error: string;
 }
 
+export interface SourceHealthRegistryPatch {
+  id: string;
+  set?: Record<string, unknown>;
+  remove?: boolean;
+}
+
+export interface SourceHealthPatchAction {
+  id: string;
+  title: string;
+  url: string;
+  action: "keep" | "watch" | "disable";
+  status: "healthy" | "degraded" | "failing";
+  reason: string;
+  observations: number;
+  failures: number;
+  failure_rate: number;
+  last_observed_at: string;
+  last_error: string;
+  registry_patch: SourceHealthRegistryPatch | Record<string, never>;
+}
+
+export interface SourceHealthPatchEnvelope {
+  actions: SourceHealthPatchAction[];
+  summary: Record<string, number>;
+}
+
 interface ObservationRow {
   source_id: string;
+  title: string | null;
+  url: string | null;
   status: string;
   success_count: number;
   failure_count: number;
@@ -35,9 +65,18 @@ export function summarizeSourceHealthHistory(
   const rows = db
     .prepare(
       `
-      select source_id, status, success_count, failure_count, last_error, observed_at
+      select
+        source_health_observations.source_id,
+        sources.title as title,
+        sources.url as url,
+        source_health_observations.status,
+        source_health_observations.success_count,
+        source_health_observations.failure_count,
+        source_health_observations.last_error,
+        source_health_observations.observed_at
       from source_health_observations
-      order by source_id asc, observed_at asc
+      left join sources on sources.id = source_health_observations.source_id
+      order by source_health_observations.source_id asc, source_health_observations.observed_at asc
     `
     )
     .all() as ObservationRow[];
@@ -77,15 +116,27 @@ export function renderSourceHealthMarkdown(items: SourceHealthHistoryItem[]): st
   return `${lines.join("\n")}`;
 }
 
+export function createSourceHealthRegistryPatch(items: SourceHealthHistoryItem[]): SourceHealthPatchEnvelope {
+  const actions = items.map(toPatchAction);
+  const summary: Record<string, number> = {};
+  for (const item of actions) {
+    summary[item.action] = (summary[item.action] ?? 0) + 1;
+  }
+  return { actions, summary: Object.fromEntries(Object.entries(summary).sort()) };
+}
+
 function summarizeSource(sourceId: string, observations: ObservationRow[]): SourceHealthHistoryItem {
   const failures = observations.filter(isFailedObservation).length;
   const successes = observations.filter(isSuccessfulObservation).length;
   const latest = observations[observations.length - 1];
+  const sourceMeta = [...observations].reverse().find((item) => item.title || item.url);
   const latestError = [...observations].reverse().find((item) => item.last_error)?.last_error ?? "";
   const failureRate = observations.length === 0 ? 0 : failures / observations.length;
   const recommendation = recommendationFor(observations.length, failures);
   return {
     source_id: sourceId,
+    title: sourceMeta?.title || sourceId,
+    url: sourceMeta?.url || "",
     observations: observations.length,
     successes,
     failures,
@@ -95,6 +146,35 @@ function summarizeSource(sourceId: string, observations: ObservationRow[]): Sour
     last_observed_at: latest?.observed_at ?? "",
     last_error: latestError
   };
+}
+
+function toPatchAction(item: SourceHealthHistoryItem): SourceHealthPatchAction {
+  const action = actionFor(item.recommendation);
+  return {
+    id: item.source_id,
+    title: item.title,
+    url: item.url,
+    action,
+    status: statusFor(item.recommendation),
+    reason: item.recommendation_reason,
+    observations: item.observations,
+    failures: item.failures,
+    failure_rate: item.failure_rate,
+    last_observed_at: item.last_observed_at,
+    last_error: item.last_error,
+    registry_patch: action === "disable" ? { id: item.source_id, set: { enabled: false } } : {}
+  };
+}
+
+function actionFor(recommendation: SourceHealthRecommendation): SourceHealthPatchAction["action"] {
+  if (recommendation === "disable_candidate") return "disable";
+  return recommendation;
+}
+
+function statusFor(recommendation: SourceHealthRecommendation): SourceHealthPatchAction["status"] {
+  if (recommendation === "disable_candidate") return "failing";
+  if (recommendation === "watch") return "degraded";
+  return "healthy";
 }
 
 function recommendationFor(observations: number, failures: number): SourceHealthRecommendation {
