@@ -20,15 +20,16 @@
 
 ### Local-first Subscription Research Agent
 
-- `v0.3` 引入 `subscription-research-agent` 作为研究编排 Skill。
+- `v0.3` 引入 `subscription-research-agent` 作为深度研究编排 Skill。
 - 新增 research workspace、evidence brief 与 daily report 契约文档。
 - 本地 research workspace 使用 SQLite、JSONL、JSON 和 Markdown。
 - CLI 生成 evidence brief，不直接生成最终研究报告。
-- 研究日报由 Agent 基于 evidence brief 写作，遵循稳定章节、来源边界、阅读顺序和后续问题契约。
+- 研究日报或研究 memo 由 Agent 基于 evidence brief 写作，遵循稳定章节、来源边界、阅读顺序和后续问题契约。
 - Node/TypeScript `subscription-research` CLI 是 `v0.3` 的本地执行层，用于 workspace 初始化、RSS evidence ingest、entity extraction 和 evidence brief generation。
 - RSS ingest run 已写入 SQLite `research_runs`，记录筛选条件、RSS runtime stats、source health 摘要、归档数量和实体链接数量。
 - article archive 和 evidence brief 已支持保守来源归因字段：`commentary_source`、`original_source` 和 `original_url`。
-- evidence brief 已支持日报写作指导：source diversification、priority buckets、duplicate merge hints、attribution labels、low-confidence markers 和 quality checklist。
+- evidence brief 已支持研究日报写作指导：source diversification、priority buckets、duplicate merge hints、attribution labels、low-confidence markers 和 quality checklist。
+- 普通 RSS 日报、重点资讯和快速查询已明确归入 `rss-ai-digest`；源维护归入 `rss-source-curator`；深度研究归入 `subscription-research-agent`。
 - RSS ingest 会写入每个源的历史健康观察，`subscription-research source-health` 可按多次观察输出 `keep`、`watch`、`lower_priority`、`disable_candidate` 建议。
 
 ### 项目与 Skill 基础
@@ -302,10 +303,9 @@ RSS digest 侧仍使用 JSON 文件作为轻量状态层。`subscription-researc
 
 优先级最高的方向：
 
-1. 继续用真实本地日报验证 research CLI、evidence brief、daily report contract 和 source-health history。
-2. 建立日报质量 checklist，并归档多次真实日报验证记录。
-3. 继续增强内容质量筛选：扩展噪声源 metadata、布尔表达式、语义去重和 LLM rerank。
-4. 规划 feed discovery 和 alert monitor 的拆分边界。
-5. 规划后续独立 Skills，例如 `rss-alert-monitor`、`rss-digest-publisher` 和 `rss-feed-discovery`。
+1. 继续增强普通 RSS 日报质量：更好的重复合并、噪声过滤和快速阅读结构。
+2. 规划 feed discovery 和 alert monitor 的拆分边界。
+3. 进入 P2 正文抓取、readability extraction 和正文级 evidence。
+4. 后续再规划 `rss-digest-publisher`、插件包装和多 runtime 分发。
 
 如果目标是继续扩展 RSS Skills 套件，应优先保持共享数据结构、CLI 契约和文档入口一致。

@@ -12,15 +12,15 @@ This repository is designed for agents, not as a standalone RSS app. An agent sh
 
 | User intent | Skill to load | Deterministic step | Agent output |
 | --- | --- | --- | --- |
-| "Prepare an AI/technical RSS digest." | [`rss-ai-digest`](./skills/rss-ai-digest/SKILL.md) | Import OPML, fetch RSS/Atom, filter, score, dedupe. | Markdown or JSON digest with selection reasons. |
+| "Prepare an AI/technical RSS digest." | [`rss-ai-digest`](./skills/rss-ai-digest/SKILL.md) | Import OPML, fetch RSS/Atom, filter, score, dedupe. | Quick Markdown or JSON digest focused on article content. |
 | "Monitor new posts for a topic." | [`rss-ai-digest`](./skills/rss-ai-digest/SKILL.md) | Run `check-new` with explicit state paths. | New matching entries, with seen-state updated according to policy. |
 | "Review or clean up my sources." | [`rss-source-curator`](./skills/rss-source-curator/SKILL.md) | Evaluate source health and generate reviewable patches. | Keep/watch/disable/remove recommendations. |
-| "Create a subscription-backed research daily." | [`subscription-research-agent`](./skills/subscription-research-agent/SKILL.md) | Ingest evidence into a local workspace and generate an evidence brief. | Agent-written daily report with source caveats and follow-up questions. |
+| "Create a subscription-backed research memo." | [`subscription-research-agent`](./skills/subscription-research-agent/SKILL.md) | Ingest evidence into a local workspace and generate an evidence brief. | Agent-written research synthesis with evidence, caveats, and follow-up questions. |
 
 ## Agent Workflow
 
 1. Load the matching Skill entrypoint under `skills/<skill-name>/SKILL.md`.
-2. Read only the reference files needed for the task, such as feed schema, scoring, source governance, evidence brief, or daily report contracts.
+2. Read only the reference files needed for the task, such as feed schema, scoring, digest output, source governance, evidence brief, or research report contracts.
 3. Use explicit file paths for feed registries, seen-state, source-health, workspace, output, and patches.
 4. Treat CLI output as evidence and state, not as the final research judgment.
 5. Write the final user-facing artifact in the requested language and format.
@@ -30,12 +30,13 @@ This repository is designed for agents, not as a standalone RSS app. An agent sh
 
 ### rss-ai-digest
 
-Use for content discovery and monitoring. It covers RSS 2.0, Atom, OPML import, keyword/date/author/category/language filtering, scoring, topic grouping, seen-state dedupe, and Markdown or JSON digest output.
+Use for content discovery, daily news, key information, and monitoring. It covers RSS 2.0, Atom, OPML import, keyword/date/author/category/language filtering, scoring, topic grouping, seen-state dedupe, and Markdown or JSON digest output.
 
 Primary references:
 
 - [Feed registry](./skills/rss-ai-digest/references/feed-registry.md)
 - [Scoring](./skills/rss-ai-digest/references/scoring.md)
+- [Digest report output](./skills/rss-ai-digest/references/digest-report.md)
 - [Automation recipes](./skills/rss-ai-digest/references/automation.md)
 - [Base OPML](./skills/rss-ai-digest/references/base-feeds.opml)
 
@@ -50,30 +51,23 @@ Primary references:
 
 ### subscription-research-agent
 
-Use for local research workflows around subscription evidence. Deterministic tooling prepares workspace data and evidence briefs; the agent writes the final memo or daily report.
+Use for deep research workflows around subscription evidence. Deterministic tooling prepares workspace data and evidence briefs; the agent writes the final memo or research synthesis. Ordinary daily digests should stay in `rss-ai-digest`.
 
 Primary references:
 
 - [Research workspace](./skills/subscription-research-agent/references/research-workspace.md)
 - [Evidence brief](./skills/subscription-research-agent/references/evidence-brief.md)
-- [Daily report](./skills/subscription-research-agent/references/daily-report.md)
+- [Research daily or memo](./skills/subscription-research-agent/references/daily-report.md)
 
 ## Deterministic Runtime
 
 The shared runtime is the Node/TypeScript `subscription-research` CLI in [`packages/research-cli`](./packages/research-cli/README.md). It is file-based so different agent runtimes can call it without changing the Skill contract.
 
-Common commands:
+Common commands by responsibility:
 
-- `subscription-research rss import-opml`
-- `subscription-research rss digest`
-- `subscription-research rss check-new`
-- `subscription-research rss evaluate-sources`
-- `subscription-research rss curate-sources`
-- `subscription-research rss apply-source-patch`
-- `subscription-research init`
-- `subscription-research ingest rss`
-- `subscription-research brief evidence`
-- `subscription-research source-health`
+- Digest and monitoring: `subscription-research rss import-opml`, `subscription-research rss digest`, `subscription-research rss check-new`
+- Source maintenance: `subscription-research rss evaluate-sources`, `subscription-research rss curate-sources`, `subscription-research rss apply-source-patch`, `subscription-research source-health`
+- Deep research: `subscription-research init`, `subscription-research ingest rss`, `subscription-research brief evidence`
 
 Prompt-level examples are in [examples/README.md](./examples/README.md). CLI details belong in the Skill references and package README, not in this project overview.
 

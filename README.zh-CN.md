@@ -6,21 +6,21 @@
 
 面向 Agent 生态的可移植 RSS Skills 与本地优先订阅研究工作流。
 
-这个仓库不是独立 RSS 应用，而是给 Agent 使用的 Skill 套件。Agent 应先加载对应的 `SKILL.md`，按需读取 references，用确定性 CLI 准备 evidence 和状态，最后由 Agent 写出用户需要的 digest、源评估或研究日报。
+这个仓库不是独立 RSS 应用，而是给 Agent 使用的 Skill 套件。Agent 应先加载对应的 `SKILL.md`，按需读取 references，用确定性 CLI 准备内容、evidence 和状态，最后由 Agent 写出用户需要的 digest、源评估或研究综合。
 
 ## Agent 路由
 
 | 用户意图 | 加载的 Skill | 确定性步骤 | Agent 输出 |
 | --- | --- | --- | --- |
-| “做一份 AI/技术 RSS 日报。” | [`rss-ai-digest`](./skills/rss-ai-digest/SKILL.md) | 导入 OPML、抓取 RSS/Atom、筛选、评分、去重。 | 带选择理由的 Markdown 或 JSON digest。 |
+| “做一份 AI/技术 RSS 日报。” | [`rss-ai-digest`](./skills/rss-ai-digest/SKILL.md) | 导入 OPML、抓取 RSS/Atom、筛选、评分、去重。 | 聚焦资讯内容的快速 Markdown 或 JSON digest。 |
 | “监控某个主题的新文章。” | [`rss-ai-digest`](./skills/rss-ai-digest/SKILL.md) | 用明确的 state 路径运行 `check-new`。 | 新增匹配条目，并按策略更新 seen-state。 |
 | “检查或清理订阅源。” | [`rss-source-curator`](./skills/rss-source-curator/SKILL.md) | 评估源健康并生成可审阅 patch。 | keep/watch/disable/remove 建议。 |
-| “基于订阅信息写研究日报。” | [`subscription-research-agent`](./skills/subscription-research-agent/SKILL.md) | 将 evidence 归档到本地 workspace，并生成 evidence brief。 | 带来源边界和后续问题的 Agent 写作日报。 |
+| “基于订阅信息写深度研究 memo。” | [`subscription-research-agent`](./skills/subscription-research-agent/SKILL.md) | 将 evidence 归档到本地 workspace，并生成 evidence brief。 | 带证据、边界和后续问题的 Agent 研究综合。 |
 
 ## Agent 工作流
 
 1. 加载匹配的 Skill 入口：`skills/<skill-name>/SKILL.md`。
-2. 只读取当前任务需要的 reference，例如 feed schema、评分规则、源治理、evidence brief 或日报契约。
+2. 只读取当前任务需要的 reference，例如 feed schema、评分规则、digest 输出、源治理、evidence brief 或研究报告契约。
 3. 使用明确的 registry、seen-state、source-health、workspace、output 和 patch 路径。
 4. 把 CLI 输出当作 evidence 和状态，不把它伪装成最终研究判断。
 5. 按用户要求的语言和格式写最终产物。
@@ -30,12 +30,13 @@
 
 ### rss-ai-digest
 
-用于内容发现和监控。覆盖 RSS 2.0、Atom、OPML 导入、关键词/日期/作者/分类/语言筛选、评分、主题分组、seen-state 去重，以及 Markdown 或 JSON digest 输出。
+用于内容发现、日报、重点资讯和监控。覆盖 RSS 2.0、Atom、OPML 导入、关键词/日期/作者/分类/语言筛选、评分、主题分组、seen-state 去重，以及 Markdown 或 JSON digest 输出。
 
 主要 references：
 
 - [Feed registry](./skills/rss-ai-digest/references/feed-registry.md)
 - [评分规则](./skills/rss-ai-digest/references/scoring.md)
+- [Digest 输出契约](./skills/rss-ai-digest/references/digest-report.md)
 - [自动化参考](./skills/rss-ai-digest/references/automation.md)
 - [基础 OPML](./skills/rss-ai-digest/references/base-feeds.opml)
 
@@ -50,30 +51,23 @@
 
 ### subscription-research-agent
 
-用于围绕订阅 evidence 的本地研究工作流。确定性工具准备 workspace 数据和 evidence brief；最终 memo 或日报由 Agent 写作。
+用于围绕订阅 evidence 的深度研究工作流。确定性工具准备 workspace 数据和 evidence brief；最终 memo 或研究综合由 Agent 写作。普通日报应留在 `rss-ai-digest`。
 
 主要 references：
 
 - [Research workspace](./skills/subscription-research-agent/references/research-workspace.md)
 - [Evidence brief](./skills/subscription-research-agent/references/evidence-brief.md)
-- [日报契约](./skills/subscription-research-agent/references/daily-report.md)
+- [研究日报或 memo](./skills/subscription-research-agent/references/daily-report.md)
 
 ## 确定性 Runtime
 
 共享 runtime 是 [`packages/research-cli`](./packages/research-cli/README.md) 中的 Node/TypeScript `subscription-research` CLI。它保持文件化，方便不同 Agent runtime 调用同一套 Skill 契约。
 
-常用命令：
+按职责划分的常用命令：
 
-- `subscription-research rss import-opml`
-- `subscription-research rss digest`
-- `subscription-research rss check-new`
-- `subscription-research rss evaluate-sources`
-- `subscription-research rss curate-sources`
-- `subscription-research rss apply-source-patch`
-- `subscription-research init`
-- `subscription-research ingest rss`
-- `subscription-research brief evidence`
-- `subscription-research source-health`
+- Digest 与监控：`subscription-research rss import-opml`、`subscription-research rss digest`、`subscription-research rss check-new`
+- 源维护：`subscription-research rss evaluate-sources`、`subscription-research rss curate-sources`、`subscription-research rss apply-source-patch`、`subscription-research source-health`
+- 深度研究：`subscription-research init`、`subscription-research ingest rss`、`subscription-research brief evidence`
 
 Prompt 级示例见 [examples/README.md](./examples/README.md)。CLI 细节应放在 Skill references 和 package README 中，不放在项目首页里。
 

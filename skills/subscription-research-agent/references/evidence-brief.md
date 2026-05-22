@@ -37,14 +37,14 @@ Each evidence item should include:
 
 ## Daily Report Guidance Fields
 
-When the brief is used for a daily report, it should include:
+When the brief is used for a research daily or memo, it should include:
 
 - `priority_buckets`: lead, supporting, and watch candidate titles.
 - `merge_hints`: repeated release notes, reposts, or same-event commentary that should be merged before writing.
 - `style_notes`: writing rules for the final report.
 - `quality_checklist`: readiness checks for source coverage, attribution, duplicate merging, noise filtering, Chinese readability, and follow-up quality.
 
-Selection criteria should record whether `must_keywords` were interpreted as `any` or `all`. Daily-report workflows should usually use `any` so a broad AI topic list does not require every term to appear in the same article. Use `all` only for narrow research questions such as `llm,evals`.
+Selection criteria should record whether `must_keywords` were interpreted as `any` or `all`. Broad research-daily workflows should usually use `any` so a broad AI topic list does not require every term to appear in the same article. Use `all` only for narrow research questions such as `llm,evals`.
 
 ## Agent Responsibilities
 
@@ -56,5 +56,5 @@ When writing a memo from the brief:
 - Call out stale, missing, or weak evidence.
 - Avoid treating score as truth; use it as a ranking signal.
 - Keep speculation separate from the evidence summary.
-- For daily reports, follow `daily-report.md` after the evidence brief is generated or reviewed.
-- Before delivering a daily report, apply `daily-report-quality.md`.
+- For research dailies or memos, follow `daily-report.md` after the evidence brief is generated or reviewed.
+- Before delivering a research daily or memo, apply `daily-report-quality.md`.

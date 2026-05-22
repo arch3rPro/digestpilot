@@ -1,6 +1,8 @@
 # Daily Report Quality Checklist
 
-Use this checklist before delivering an Agent-written subscription daily report. The deterministic CLI prepares evidence; the Agent is responsible for judging, merging, citing, and writing clearly.
+Use this checklist before delivering an Agent-written research daily or source-backed memo. The deterministic CLI prepares evidence; the Agent is responsible for judging, merging, citing, and writing clearly.
+
+Do not use this checklist for ordinary RSS daily news, key information, or quick reading digests. Those belong to `rss-ai-digest`.
 
 ## Checklist
 
@@ -31,7 +33,7 @@ Use this checklist before delivering an Agent-written subscription daily report.
 
 ## Pass Criteria
 
-A daily report is ready when:
+A research daily or memo is ready when:
 
 - The lead section contains synthesis, not just sorted links.
 - Related items are merged into stories.

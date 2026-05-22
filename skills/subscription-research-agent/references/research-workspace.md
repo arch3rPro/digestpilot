@@ -33,7 +33,7 @@ Do not assume Obsidian or any single notes app. Markdown output should remain st
 - `seen.json`: dedupe state for subscription entries.
 - `config/*.json`: local workspace rules for entities, topics, and research selection.
 - `notes/briefs/*.md`: human-readable evidence briefs.
-- `notes/daily/*.md`: Agent-written daily research reports synthesized from evidence briefs.
+- `notes/daily/*.md`: Agent-written research dailies synthesized from evidence briefs.
 - `exports/json/*.json`: automation-friendly evidence brief exports.
 
 ## Research Runs
@@ -51,7 +51,7 @@ For RSS ingest runs, rows use `run_type = rss_ingest` and include:
 
 For evidence brief runs, rows use the default `run_type = evidence` and include output Markdown and JSON paths.
 
-Use `subscription-research source-health` to summarize repeated observations into `keep`, `watch`, `lower_priority`, and `disable_candidate` recommendations. The summary includes `consecutive_failures`, `last_success_at`, `last_failure_at`, and `maintenance_priority` so daily-report agents can mention persistent source issues briefly without turning the report into a source-governance memo.
+Use `subscription-research source-health` to summarize repeated observations into `keep`, `watch`, `lower_priority`, and `disable_candidate` recommendations. Treat this as source-governance context, not ordinary digest content. Route source maintenance output to `rss-source-curator`.
 
 ## Article Attribution
 

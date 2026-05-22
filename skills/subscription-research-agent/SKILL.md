@@ -1,6 +1,6 @@
 ---
 name: subscription-research-agent
-description: Use when an agent needs to run local-first research workflows from subscription sources, initialize a research workspace, archive evidence, generate evidence briefs, or prepare source-backed context for a research memo.
+description: Use when an agent needs deep research from subscription sources, local research workspaces, archived evidence, evidence briefs, source-backed research memos, hypothesis tracking, or multi-step synthesis.
 ---
 
 # Subscription Research Agent
@@ -11,13 +11,13 @@ Use this skill to orchestrate local-first research workflows around subscription
 
 ## Workflow Selection
 
-- For RSS article discovery or digest generation, use `rss-ai-digest`.
+- For RSS article discovery, daily news, key information, or quick digest generation, use `rss-ai-digest`.
 - For source quality and registry maintenance, use `rss-source-curator`.
 - For local research workspace setup, run `subscription-research init`.
 - For archiving RSS results into the research workspace, run `subscription-research ingest rss`.
 - For source-backed research context, run `subscription-research brief evidence`.
-- For historical source health review across ingest runs, run `subscription-research source-health`.
-- For a daily research report or subscription daily, generate or read an evidence brief first, then follow `references/daily-report.md`.
+- For historical source health review, failed-feed analysis, or registry maintenance, use `rss-source-curator`.
+- For a research daily, deep-dive memo, or source-backed synthesis, generate or read an evidence brief first, then follow `references/daily-report.md`.
 - For workspace structure, read `references/research-workspace.md`.
 - For evidence brief fields, read `references/evidence-brief.md`.
 - For daily report structure, read `references/daily-report.md`.
@@ -56,19 +56,14 @@ subscription-research brief evidence \
   --should-keywords "benchmark,reliability,agent"
 ```
 
-For broad daily reports, prefer topic words as `--should-keywords` or use `--must-keyword-mode any` so the brief does not require every AI keyword to appear in one article.
+For broad research dailies, prefer topic words as `--should-keywords` or use `--must-keyword-mode any` so the brief does not require every AI keyword to appear in one article.
 
-Review source health history:
-
-```bash
-subscription-research source-health \
-  --workspace research-workspace \
-  --min-observations 2 \
-  --format markdown
-```
+Source-health history can be used as research context only when it materially changes evidence confidence. For source maintenance reports or failed-feed triage, route to `rss-source-curator`.
 
 ## Boundaries
 
 This skill does not promise a final research conclusion from deterministic tooling alone. Treat generated briefs as evidence packages. The Agent should cite evidence items when writing a memo or report.
 
-Daily reports are Agent-written synthesis artifacts. The CLI prepares evidence; the Agent owns judgment, recommended reading order, and follow-up questions. Keep source-health details concise in daily reports; use `rss-source-curator` for feed maintenance output.
+Research dailies and memos are Agent-written synthesis artifacts. The CLI prepares evidence; the Agent owns judgment, recommended reading order, and follow-up questions.
+
+Do not use this skill for ordinary RSS daily news or quick key-information lookups. Those should stay in `rss-ai-digest`. Use `rss-source-curator` for feed maintenance output.

@@ -1,16 +1,18 @@
 # Daily Research Report
 
-A daily research report is the Agent-written synthesis layer on top of an evidence brief. The deterministic CLI prepares source-backed evidence; the Agent writes the report, makes judgments explicit, and keeps citations attached to the evidence.
+A research daily is the Agent-written synthesis layer on top of an evidence brief. The deterministic CLI prepares source-backed evidence; the Agent writes the report, makes judgments explicit, and keeps citations attached to the evidence.
 
 ## When To Use
 
-Use this contract when the user asks for:
+Use this contract when the user asks for a research-oriented report, for example:
 
 - a daily research report
-- a subscription daily
-- an AI or technology daily
-- a Chinese daily summary from subscription sources
+- a source-backed research memo
+- a deep-dive subscription synthesis
+- a research-oriented Chinese synthesis from subscription sources
 - a memo based on today's RSS or subscription evidence
+
+Do not use this contract for ordinary "日报", "重点资讯", "今日资讯", or quick reading requests. Those belong to `rss-ai-digest` and should follow its quick digest output contract.
 
 Do not use this contract as a replacement for evidence gathering. Generate or read an evidence brief first unless the user has already provided the evidence.
 

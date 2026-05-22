@@ -8,7 +8,7 @@ User request:
 
 ```text
 Use rss-ai-digest to prepare today's AI and engineering reading digest from my RSS feeds.
-Return a concise Markdown report with title, source, score, link, and why each item was selected.
+Return a concise Markdown report with today's key points, top items, quick scan items, and recommended reading order.
 ```
 
 Agent behavior:
@@ -16,7 +16,9 @@ Agent behavior:
 - Use `skills/rss-ai-digest/SKILL.md` as the workflow entrypoint.
 - Use a feed registry, seen-state file, and source-health file supplied by the caller or workspace.
 - Prefer `digest` with `--preset ai-strict`.
-- Mention failed feeds separately from article results.
+- Follow `skills/rss-ai-digest/references/digest-report.md`.
+- Keep the report focused on subscribed article content.
+- Do not include source maintenance, failed-feed lists, or research follow-up questions unless the user asks for them.
 - Mark only reported entries as seen.
 
 ## Topic Monitor
@@ -65,13 +67,13 @@ Agent behavior:
 - Use `curate-sources` when the user needs reviewable maintenance actions.
 - Do not apply registry patches until the user reviews the recommendations.
 
-## Subscription Research Daily
+## Subscription Research Memo
 
 User request:
 
 ```text
-Use subscription-research-agent to prepare today's AI technology research daily from local subscription evidence.
-Write it in Chinese with core judgments, top items, source health, and follow-up questions.
+Use subscription-research-agent to prepare a source-backed research memo about today's AI technology evidence.
+Write it in Chinese with core judgments, cited evidence, caveats, and follow-up questions.
 ```
 
 Agent behavior:
@@ -79,9 +81,9 @@ Agent behavior:
 - Use `skills/subscription-research-agent/SKILL.md` as the workflow entrypoint.
 - Initialize or reuse a local research workspace.
 - Ingest RSS evidence first, or read the latest evidence brief if one already exists for the requested window.
-- Generate or review an evidence brief before writing the final daily report.
+- Generate or review an evidence brief before writing the final research memo.
 - Follow `skills/subscription-research-agent/references/daily-report.md`.
-- Keep the daily report in standard Markdown and do not publish it externally unless the user requests a channel.
+- Keep the memo in standard Markdown and do not publish it externally unless the user requests a channel.
 
 ## Apply Reviewed Source Patch
 
@@ -110,7 +112,7 @@ Return Markdown and do not modify the registry.
 
 Agent behavior:
 
-- Use `subscription-research-agent` when the workspace owns the source-health history.
+- Use `rss-source-curator` for source-health history and maintenance decisions.
 - Run `subscription-research source-health --workspace research-workspace --min-observations 2 --format markdown`.
 - Treat `disable_candidate` as a review signal, not permission to delete or disable a source.
-- Use `rss-source-curator` for any later reviewed registry patch workflow.
+- Keep this output separate from ordinary article digests.

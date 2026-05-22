@@ -1,6 +1,6 @@
 ---
 name: rss-ai-digest
-description: Use when an agent needs to import OPML, parse RSS or Atom feeds, monitor new AI or technical articles, filter entries by keyword/date/author/category/language, score article quality, dedupe seen items, or evaluate RSS source quality for high-signal technology content discovery.
+description: Use when an agent needs quick RSS or Atom subscription digests, daily news, key information, OPML import, new AI or technical article discovery, keyword/date/author/category/language filtering, scoring, or seen-item dedupe.
 ---
 
 # RSS AI Digest
@@ -11,29 +11,14 @@ Use this skill to turn RSS/Atom feeds and OPML files into high-signal AI and tec
 
 ## Workflow Selection
 
-- For a daily or weekly reading report inside a research workspace, prefer `subscription-research ingest rss` followed by `subscription-research brief evidence`.
-- For direct Skill-level digest output without a research workspace, run `subscription-research rss digest`.
+- For daily news, key information, quick reading, or "今日/本周重点资讯", run `subscription-research rss digest` and follow `references/digest-report.md`.
+- For source cleanup, failed-feed review, source quality, or registry maintenance, use `rss-source-curator` instead of including source-maintenance details in the digest.
+- For deep research, evidence briefs, research memos, long-form synthesis, or multi-step investigation, use `subscription-research-agent`.
 - For keyword, author, project, or topic monitoring, run `subscription-research rss check-new`.
-- For OPML import, run `subscription-research rss import-opml`, then evaluate the resulting registry.
-- For source cleanup or feed quality review, prefer `rss-source-curator`.
-- For reviewable source governance actions, run `subscription-research rss curate-sources`.
-- For safely applying reviewed source governance patches, run `subscription-research rss apply-source-patch`.
+- For OPML import, run `subscription-research rss import-opml`, then use the resulting registry for digest or monitoring.
 - For scheduled checks, read `references/automation.md` and provide a platform-neutral recipe.
 
 ## Core Commands
-
-Archive RSS evidence into a local research workspace with the Node runtime:
-
-```bash
-subscription-research ingest rss \
-  --workspace research-workspace \
-  --registry feeds.json \
-  --since 24h \
-  --keywords "llm,agent,rag,evals,inference" \
-  --should-keywords "benchmark,reliability,architecture" \
-  --exclude-keywords "webinar,coupon,sponsor,hiring,job,press release" \
-  --min-score 7
-```
 
 Import OPML into a registry:
 
@@ -74,37 +59,13 @@ subscription-research rss check-new \
   --format json
 ```
 
-Evaluate feed quality:
-
-```bash
-subscription-research rss evaluate-sources \
-  --registry feeds.json \
-  --health source-health.json
-```
-
-Generate source curation actions without changing the registry:
-
-```bash
-subscription-research rss curate-sources \
-  --registry feeds.json \
-  --health source-health.json \
-  --format markdown
-```
-
-Apply reviewed source curation patches to a new registry file:
-
-```bash
-subscription-research rss apply-source-patch \
-  --registry feeds.json \
-  --patch source-curation.json \
-  --output feeds.curated.json \
-  --apply \
-  --format markdown
-```
-
 ## Output Guidance
 
-For user-facing answers, summarize the ranked entries instead of dumping raw feed data. Include title, link, source, score, and the reason the entry was selected. Mention failed feeds separately so source problems are visible.
+For user-facing daily digests, summarize the ranked entries instead of dumping raw feed data. Include title, source, link, short summary, and why it matters. Keep it focused on the subscribed information itself.
+
+Do not add source maintenance sections, failed-feed lists, registry repair advice, or source-health recommendations to ordinary daily digests. Mention coverage only as a short caveat when failures materially affect the news selection.
+
+Do not add research follow-up questions to ordinary daily digests unless the user asks for deep research or tracking questions. Route research follow-up to `subscription-research-agent`.
 
 For automation, prefer `--format json` and pass the result envelope to the next tool or notification adapter. Digest JSON contains `entries`, `failures`, `health`, `stats`, and `generated_at`. Do not assume a specific notification channel unless the user asks for one.
 
@@ -120,14 +81,13 @@ For higher-quality digests, use presets such as `ai-research`, `engineering-deep
 
 Markdown digests are grouped by deterministic topics. JSON entries include `topic` for downstream routing.
 
-Use `curate-sources` to produce source maintenance recommendations. It returns reviewable actions and registry patch hints, but it must not be treated as permission to delete or disable feeds automatically.
-
-Use `apply-source-patch` only after reviewing a curation result. The command defaults to dry-run mode and writes a registry only when `--apply` and `--output` are both provided.
+Use `rss-source-curator` for source maintenance recommendations, registry patch review, failed-feed triage, and source-health governance.
 
 ## References
 
-- Read `references/feed-registry.md` when creating or modifying registry, seen-state, or source-health files.
-- Read `references/scoring.md` when tuning article scores or source quality recommendations.
+- Read `references/feed-registry.md` when creating registry, seen-state, or source-health files for digest and monitoring runs.
+- Read `references/scoring.md` when tuning article scores.
+- Read `references/digest-report.md` when writing user-facing daily news, key information, or quick reading digests.
 - Read `references/automation.md` when setting up cron, GitHub Actions, Codex automation, Claude plugin wrappers, n8n, or another scheduler.
 - Use `references/base-feeds.opml` as the curated starter OPML for AI, engineering, security, product, and general technical sources.
 - Use `references/source-metadata.json` with `import-opml --metadata` when the registry should start with curated source priors.

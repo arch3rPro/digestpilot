@@ -7,6 +7,7 @@ All notable project changes are recorded here.
 ### Changed
 
 - Reframed README files around Agent routing and Skill workflow contracts instead of developer-first CLI usage.
+- Clarified Skill boundaries: `rss-ai-digest` owns quick daily news and key information, `rss-source-curator` owns source maintenance, and `subscription-research-agent` owns deep research synthesis.
 - Improved evidence brief output for Agent-written daily reports with source diversification, daily-report priority buckets, duplicate story merge hints, attribution labels, and low-confidence markers.
 - Added a structured daily-report quality checklist to evidence brief output and `subscription-research-agent` references.
 - Refined `subscription-research source-health` recommendations with `lower_priority`, consecutive failure counts, recent success/failure timestamps, and maintenance priority.
