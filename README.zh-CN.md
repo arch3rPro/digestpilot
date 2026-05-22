@@ -156,13 +156,13 @@ Agent 和 wrapper 应优先使用 `subscription-research` CLI 运行研究工作
 
 | 命令 | 用途 |
 | --- | --- |
-| `import-opml` | 将 OPML 转换为 feed registry JSON。 |
-| `fetch` | 抓取启用的源并输出标准化 entries。 |
-| `digest` | 抓取、筛选、评分、去重并生成阅读摘要。 |
-| `check-new` | 为监控流程报告新增匹配条目。 |
-| `evaluate-sources` | 基于 registry 和 health 数据评估源质量。 |
-| `curate-sources` | 生成可审阅源治理动作。 |
-| `apply-source-patch` | dry-run 或将已审阅 patch 写入明确的输出 registry。 |
+| `rss import-opml` | 将 OPML 转换为 feed registry JSON。 |
+| `rss fetch` | 抓取启用的源并输出标准化 entries。 |
+| `rss digest` | 抓取、筛选、评分、去重并生成阅读摘要。 |
+| `rss check-new` | 为监控流程报告新增匹配条目。 |
+| `rss evaluate-sources` | 基于 registry 和 health 数据评估源质量。 |
+| `rss curate-sources` | 生成可审阅源治理动作。 |
+| `rss apply-source-patch` | dry-run 或将已审阅 patch 写入明确的输出 registry。 |
 
 `subscription-research` CLI 契约提供本地 research workspace 命令：
 

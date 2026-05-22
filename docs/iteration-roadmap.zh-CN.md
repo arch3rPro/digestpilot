@@ -33,7 +33,7 @@
 - OPML 导入，并保留 OPML outline 分组为 feed category。
 - 基础 OPML：`skills/rss-ai-digest/references/base-feeds.opml`，包含 AI、工程、安全、产品和通用技术源。
 - 通过 `source-metadata.json` 应用源先验，例如 `base_score`、`language` 和 `tags`。
-- `import-opml`、`fetch`、`digest`、`check-new`、`evaluate-sources`、`curate-sources`、`apply-source-patch` 等命令。
+- `subscription-research rss import-opml`、`fetch`、`digest`、`check-new`、`evaluate-sources`、`curate-sources`、`apply-source-patch` 等 Node 命令。
 - Markdown 和 JSON 输出；JSON 使用 envelope，便于 Agent 或自动化系统消费。
 
 内容筛选已支持：

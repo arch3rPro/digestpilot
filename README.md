@@ -170,13 +170,13 @@ The CLI contract is intentionally file-based. Callers pass explicit registry, st
 
 | Command | Purpose |
 | --- | --- |
-| `import-opml` | Convert an OPML file into a feed registry JSON file. |
-| `fetch` | Fetch enabled feeds and output normalized entries. |
-| `digest` | Fetch, filter, score, dedupe, and render a reading digest. |
-| `check-new` | Report new matching entries for monitoring workflows. |
-| `evaluate-sources` | Score source quality from registry and health data. |
-| `curate-sources` | Generate reviewable source governance actions. |
-| `apply-source-patch` | Dry-run or apply reviewed registry patches to an explicit output file. |
+| `rss import-opml` | Convert an OPML file into a feed registry JSON file. |
+| `rss fetch` | Fetch enabled feeds and output normalized entries. |
+| `rss digest` | Fetch, filter, score, dedupe, and render a reading digest. |
+| `rss check-new` | Report new matching entries for monitoring workflows. |
+| `rss evaluate-sources` | Score source quality from registry and health data. |
+| `rss curate-sources` | Generate reviewable source governance actions. |
+| `rss apply-source-patch` | Dry-run or apply reviewed registry patches to an explicit output file. |
 
 The `subscription-research` CLI contract adds local research workspace commands:
 
@@ -233,7 +233,7 @@ subscription-research ingest rss \
 Source governance loop:
 
 ```bash
-python3 skills/rss-ai-digest/scripts/rss_monitor.py curate-sources \
+subscription-research rss curate-sources \
   --registry feeds.json \
   --health source-health.json \
   --format json
@@ -252,7 +252,7 @@ subscription-research ingest rss \
 ```
 
 ```bash
-python3 skills/rss-ai-digest/scripts/rss_monitor.py apply-source-patch \
+subscription-research rss apply-source-patch \
   --registry feeds.json \
   --patch source-curation.json \
   --output feeds.curated.json \

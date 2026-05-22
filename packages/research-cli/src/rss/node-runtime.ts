@@ -3,39 +3,41 @@ import { dirname } from "node:path";
 import { mkdir } from "node:fs/promises";
 import { filterEntries, parseKeywordCsv, parseSince } from "./filter.js";
 import { parseDate, parseFeedXml } from "./feed-parser.js";
+import { loadRssRegistry } from "./registry.js";
 import { scoreEntries, sortScoredEntries } from "./scoring.js";
 import { isSeen, loadSeenState, markSeen, saveSeenState } from "./state.js";
 import type { FeedFetcher, NodeDigestEnvelope, NodeDigestOptions, RssEntry, RssFeed, RssRegistry, SourceHealthMap } from "./types.js";
 
 export async function runNodeRssDigest(options: NodeDigestOptions): Promise<NodeDigestEnvelope> {
+  const effectiveOptions = applyDigestPreset(options);
   const now = options.now ?? (() => new Date());
-  const registry = await loadRegistry(options.registry);
-  const state = await loadSeenState(options.state);
+  const registry = await loadRssRegistry(effectiveOptions.registry);
+  const state = await loadSeenState(effectiveOptions.state);
   const { entries, health: currentHealth } = await fetchRegistryEntries(registry, {
-    fetcher: options.fetcher,
-    timeoutMs: options.timeoutMs,
+    fetcher: effectiveOptions.fetcher,
+    timeoutMs: effectiveOptions.timeoutMs,
     now
   });
-  const health = options.health ? await mergeAndPersistHealth(options.health, currentHealth) : currentHealth;
+  const health = effectiveOptions.health ? await mergeAndPersistHealth(effectiveOptions.health, currentHealth) : currentHealth;
   const feedLookup = Object.fromEntries(registry.feeds.map((feed) => [feed.id, feed]));
   const filtered = filterEntries(entries, {
-    keywords: parseKeywordCsv(options.keywords),
-    mustKeywords: parseKeywordCsv(options.mustKeywords),
-    shouldKeywords: parseKeywordCsv(options.shouldKeywords),
-    excludeKeywords: parseKeywordCsv(options.excludeKeywords),
-    keywordMode: options.keywordMode ?? "any",
-    requireAnyTitleKeyword: options.requireAnyTitleKeyword,
-    author: options.author,
-    since: parseSince(options.since, now()),
-    category: options.category,
-    language: options.language,
+    keywords: parseKeywordCsv(effectiveOptions.keywords),
+    mustKeywords: parseKeywordCsv(effectiveOptions.mustKeywords),
+    shouldKeywords: parseKeywordCsv(effectiveOptions.shouldKeywords),
+    excludeKeywords: parseKeywordCsv(effectiveOptions.excludeKeywords),
+    keywordMode: effectiveOptions.keywordMode ?? "any",
+    requireAnyTitleKeyword: effectiveOptions.requireAnyTitleKeyword,
+    author: effectiveOptions.author,
+    since: parseSince(effectiveOptions.since, now()),
+    category: effectiveOptions.category,
+    language: effectiveOptions.language,
     feedLookup
   });
   const newEntries = filtered.filter((entry) => !isSeen(state, entry));
-  const scored = sortScoredEntries(scoreEntries(newEntries, registry).filter((entry) => (entry.score ?? 0) >= (options.minScore ?? 0)));
-  const entriesToMark = selectEntriesToMark(newEntries, scored, options.markSeen ?? "reported-only");
+  const scored = sortScoredEntries(scoreEntries(newEntries, registry).filter((entry) => (entry.score ?? 0) >= (effectiveOptions.minScore ?? 0)));
+  const entriesToMark = selectEntriesToMark(newEntries, scored, effectiveOptions.markSeen ?? "reported-only");
   markSeen(state, entriesToMark, now());
-  await saveSeenState(options.state, state);
+  await saveSeenState(effectiveOptions.state, state);
   return {
     entries: scored,
     failures: buildFailures(currentHealth, registry),
@@ -99,11 +101,6 @@ async function fetchOneFeed(
       }
     };
   }
-}
-
-async function loadRegistry(path: string): Promise<RssRegistry> {
-  const parsed = JSON.parse(await readFile(path, "utf8")) as Partial<RssRegistry>;
-  return { feeds: parsed.feeds ?? [] };
 }
 
 async function mergeAndPersistHealth(path: string, current: SourceHealthMap): Promise<SourceHealthMap> {
@@ -196,4 +193,70 @@ function selectEntriesToMark(newEntries: RssEntry[], reportedEntries: RssEntry[]
   if (policy === "all-filtered") return newEntries;
   if (policy === "reported-only") return reportedEntries;
   throw new Error(`Unsupported mark-seen policy: ${policy}`);
+}
+
+const DIGEST_PRESETS: Record<
+  Exclude<NodeDigestOptions["preset"], undefined | "none">,
+  {
+    keywords: string[];
+    mustKeywords: string[];
+    shouldKeywords: string[];
+    excludeKeywords: string[];
+    requireAnyTitleKeyword: boolean;
+    minScore?: number;
+  }
+> = {
+  "ai-strict": {
+    keywords: ["agent", "llm", "rag", "ai", "model", "inference", "evals", "benchmark"],
+    mustKeywords: [],
+    shouldKeywords: [],
+    excludeKeywords: ["webinar", "coupon", "sponsor", "sponsored", "hiring", "job", "press release"],
+    requireAnyTitleKeyword: true
+  },
+  "ai-research": {
+    keywords: [],
+    mustKeywords: ["llm", "model", "reasoning", "evals"],
+    shouldKeywords: ["benchmark", "inference", "agent", "rag", "alignment", "research"],
+    excludeKeywords: ["webinar", "coupon", "sponsor", "sponsored", "hiring", "job", "press release"],
+    requireAnyTitleKeyword: true,
+    minScore: 8
+  },
+  "engineering-deep-dive": {
+    keywords: [],
+    mustKeywords: ["engineering", "systems", "debugging", "infrastructure"],
+    shouldKeywords: ["architecture", "reliability", "scaling", "production", "performance"],
+    excludeKeywords: ["webinar", "coupon", "sponsor", "sponsored", "hiring", "job", "press release"],
+    requireAnyTitleKeyword: false,
+    minScore: 7
+  },
+  "security-risk": {
+    keywords: [],
+    mustKeywords: ["security", "breach", "vulnerability", "malware", "risk"],
+    shouldKeywords: ["incident", "exploit", "privacy", "supply chain"],
+    excludeKeywords: ["webinar", "coupon", "sponsor", "sponsored", "hiring", "job", "press release"],
+    requireAnyTitleKeyword: false,
+    minScore: 7
+  },
+  "product-tech": {
+    keywords: [],
+    mustKeywords: ["product", "platform", "startup", "business", "strategy"],
+    shouldKeywords: ["ai", "developer", "pricing", "market", "workflow"],
+    excludeKeywords: ["webinar", "coupon", "sponsor", "sponsored", "hiring", "job", "press release"],
+    requireAnyTitleKeyword: false,
+    minScore: 6
+  }
+};
+
+function applyDigestPreset(options: NodeDigestOptions): NodeDigestOptions {
+  if (!options.preset || options.preset === "none") return options;
+  const preset = DIGEST_PRESETS[options.preset];
+  return {
+    ...options,
+    keywords: options.keywords || preset.keywords.join(","),
+    mustKeywords: options.mustKeywords || preset.mustKeywords.join(","),
+    shouldKeywords: options.shouldKeywords || preset.shouldKeywords.join(","),
+    excludeKeywords: options.excludeKeywords || preset.excludeKeywords.join(","),
+    requireAnyTitleKeyword: preset.requireAnyTitleKeyword || options.requireAnyTitleKeyword,
+    minScore: preset.minScore !== undefined && (options.minScore ?? 0) === 0 ? preset.minScore : options.minScore
+  };
 }

@@ -4,6 +4,15 @@ import { createEvidenceBrief } from "./commands/brief-evidence.js";
 import { ingestRss } from "./commands/ingest-rss.js";
 import { initWorkspace } from "./commands/init.js";
 import {
+  applySourceRegistryPatch,
+  curateSourceRegistry,
+  digestRss,
+  evaluateSourceRegistry,
+  fetchRss,
+  importOpml
+} from "./commands/rss.js";
+import { renderJson, renderMarkdownDigest, renderMarkdownDigestResult, renderMarkdownSourceCuration, renderMarkdownSourcePatchResult } from "./rss/render.js";
+import {
   createSourceHealthRegistryPatch,
   renderSourceHealthMarkdown,
   summarizeSourceHealthHistory
@@ -123,6 +132,132 @@ program
     }
   });
 
+const rss = program.command("rss").description("Run direct RSS registry workflows with the Node runtime.");
+
+rss
+  .command("import-opml")
+  .description("Import OPML subscriptions into a registry JSON file.")
+  .requiredOption("--opml <path>", "OPML input file")
+  .requiredOption("--registry <path>", "Registry output JSON file")
+  .option("--metadata <path>", "Optional source metadata JSON")
+  .action(async (options: Record<string, string | number | undefined>) => {
+    const result = await importOpml({
+      opml: requiredString(options.opml, "opml"),
+      registry: requiredString(options.registry, "registry"),
+      metadata: optionalString(options.metadata)
+    });
+    process.stdout.write(renderJson(result));
+  });
+
+rss
+  .command("fetch")
+  .description("Fetch enabled feeds and output normalized entries.")
+  .requiredOption("--registry <path>", "RSS feed registry JSON file")
+  .option("--format <format>", "Output format: json or markdown", "json")
+  .option("--timeout <seconds>", "Per-feed timeout in seconds", parseInteger, 20)
+  .action(async (options: Record<string, string | number | undefined>) => {
+    const result = await fetchRss({
+      registry: requiredString(options.registry, "registry"),
+      timeout: optionalNumber(options.timeout)
+    });
+    const format = outputFormat(optionalString(options.format) ?? "json");
+    process.stdout.write(format === "markdown" ? renderMarkdownDigest(result.entries, "Fetched RSS Entries") : renderJson(result));
+  });
+
+rss
+  .command("digest")
+  .description("Fetch, filter, score, dedupe, and render a digest.")
+  .requiredOption("--registry <path>", "RSS feed registry JSON file")
+  .requiredOption("--state <path>", "Seen-state JSON file")
+  .option("--health <path>", "Source health JSON file")
+  .option("--since <window>", "Relative or absolute time window", "24h")
+  .option("--preset <preset>", "Digest preset", "none")
+  .option("--keywords <csv>", "Keyword CSV")
+  .option("--must-keywords <csv>", "Required keyword CSV")
+  .option("--should-keywords <csv>", "Optional boost keyword CSV")
+  .option("--exclude-keywords <csv>", "Excluded keyword CSV")
+  .option("--keyword-mode <mode>", "Keyword mode: any or all", "any")
+  .option("--require-any-title-keyword", "Require at least one title keyword match")
+  .option("--author <text>", "Author filter")
+  .option("--category <text>", "Feed category filter")
+  .option("--language <text>", "Feed language filter")
+  .option("--format <format>", "Output format: json or markdown", "markdown")
+  .option("--mark-seen <policy>", "Seen-state policy: reported-only, all-filtered, or none", "reported-only")
+  .option("--timeout <seconds>", "Per-feed timeout in seconds", parseInteger, 20)
+  .option("--min-score <number>", "Minimum score", parseInteger, 7)
+  .action(async (options: Record<string, string | number | boolean | undefined>) => {
+    const result = await digestRss(digestOptions(options, 7));
+    const format = outputFormat(optionalString(options.format) ?? "markdown");
+    process.stdout.write(format === "json" ? renderJson(result) : renderMarkdownDigestResult(result));
+  });
+
+rss
+  .command("check-new")
+  .description("Fetch and report new matching entries.")
+  .requiredOption("--registry <path>", "RSS feed registry JSON file")
+  .requiredOption("--state <path>", "Seen-state JSON file")
+  .option("--health <path>", "Source health JSON file")
+  .option("--since <window>", "Relative or absolute time window", "24h")
+  .option("--preset <preset>", "Digest preset", "none")
+  .option("--keywords <csv>", "Keyword CSV")
+  .option("--must-keywords <csv>", "Required keyword CSV")
+  .option("--should-keywords <csv>", "Optional boost keyword CSV")
+  .option("--exclude-keywords <csv>", "Excluded keyword CSV")
+  .option("--keyword-mode <mode>", "Keyword mode: any or all", "any")
+  .option("--require-any-title-keyword", "Require at least one title keyword match")
+  .option("--author <text>", "Author filter")
+  .option("--category <text>", "Feed category filter")
+  .option("--language <text>", "Feed language filter")
+  .option("--format <format>", "Output format: json or markdown", "markdown")
+  .option("--mark-seen <policy>", "Seen-state policy: reported-only, all-filtered, or none", "reported-only")
+  .option("--timeout <seconds>", "Per-feed timeout in seconds", parseInteger, 20)
+  .option("--min-score <number>", "Minimum score", parseInteger, 0)
+  .action(async (options: Record<string, string | number | boolean | undefined>) => {
+    const result = await digestRss(digestOptions(options, 0));
+    const format = outputFormat(optionalString(options.format) ?? "markdown");
+    process.stdout.write(format === "json" ? renderJson(result) : renderMarkdownDigestResult(result));
+  });
+
+rss
+  .command("evaluate-sources")
+  .description("Evaluate source quality from registry and health JSON.")
+  .requiredOption("--registry <path>", "RSS feed registry JSON file")
+  .option("--health <path>", "Source health JSON file")
+  .action(async (options: Record<string, string | number | undefined>) => {
+    process.stdout.write(renderJson(await evaluateSourceRegistry(sourceRegistryOptions(options))));
+  });
+
+rss
+  .command("curate-sources")
+  .description("Generate reviewable source curation actions without modifying the registry.")
+  .requiredOption("--registry <path>", "RSS feed registry JSON file")
+  .option("--health <path>", "Source health JSON file")
+  .option("--format <format>", "Output format: json or markdown", "markdown")
+  .action(async (options: Record<string, string | number | undefined>) => {
+    const result = await curateSourceRegistry(sourceRegistryOptions(options));
+    const format = outputFormat(optionalString(options.format) ?? "markdown");
+    process.stdout.write(format === "json" ? renderJson(result) : renderMarkdownSourceCuration(result));
+  });
+
+rss
+  .command("apply-source-patch")
+  .description("Dry-run or apply reviewable source registry patches to an explicit output file.")
+  .requiredOption("--registry <path>", "RSS feed registry JSON file")
+  .requiredOption("--patch <path>", "Source patch JSON file")
+  .option("--output <path>", "Registry output file when applying")
+  .option("--apply", "Apply the patch instead of dry-run")
+  .option("--format <format>", "Output format: json or markdown", "markdown")
+  .action(async (options: Record<string, string | number | boolean | undefined>) => {
+    const result = await applySourceRegistryPatch({
+      registry: requiredString(options.registry, "registry"),
+      patch: requiredString(options.patch, "patch"),
+      output: optionalString(options.output),
+      apply: options.apply === true
+    });
+    const format = outputFormat(optionalString(options.format) ?? "markdown");
+    process.stdout.write(format === "json" ? renderJson(result) : renderMarkdownSourcePatchResult(result));
+  });
+
 await program.parseAsync(process.argv);
 
 function parseInteger(value: string): number {
@@ -133,18 +268,18 @@ function parseInteger(value: string): number {
   return parsed;
 }
 
-function requiredString(value: string | number | undefined, name: string): string {
+function requiredString(value: string | number | boolean | undefined, name: string): string {
   if (typeof value !== "string" || value.length === 0) {
     throw new Error(`Missing required option: ${name}`);
   }
   return value;
 }
 
-function optionalString(value: string | number | undefined): string | undefined {
+function optionalString(value: string | number | boolean | undefined): string | undefined {
   return typeof value === "string" && value.length > 0 ? value : undefined;
 }
 
-function optionalNumber(value: string | number | undefined): number | undefined {
+function optionalNumber(value: string | number | boolean | undefined): number | undefined {
   return typeof value === "number" ? value : undefined;
 }
 
@@ -156,4 +291,57 @@ function keywordMode(value: string): "any" | "all" {
 function rssRuntime(value: string): "node" | "python" {
   if (value === "node" || value === "python") return value;
   throw new Error(`Unsupported RSS runtime: ${value}`);
+}
+
+function digestOptions(options: Record<string, string | number | boolean | undefined>, defaultMinScore: number) {
+  return {
+    registry: requiredString(options.registry, "registry"),
+    state: requiredString(options.state, "state"),
+    health: optionalString(options.health),
+    since: optionalString(options.since),
+    preset: digestPreset(optionalString(options.preset) ?? "none"),
+    keywords: optionalString(options.keywords),
+    mustKeywords: optionalString(options.mustKeywords),
+    shouldKeywords: optionalString(options.shouldKeywords),
+    excludeKeywords: optionalString(options.excludeKeywords),
+    keywordMode: keywordMode(optionalString(options.keywordMode) ?? "any"),
+    requireAnyTitleKeyword: options.requireAnyTitleKeyword === true,
+    author: optionalString(options.author),
+    category: optionalString(options.category),
+    language: optionalString(options.language),
+    markSeen: markSeenPolicy(optionalString(options.markSeen) ?? "reported-only"),
+    timeout: optionalNumber(options.timeout),
+    minScore: optionalNumber(options.minScore) ?? defaultMinScore
+  };
+}
+
+function sourceRegistryOptions(options: Record<string, string | number | undefined>) {
+  return {
+    registry: requiredString(options.registry, "registry"),
+    health: optionalString(options.health)
+  };
+}
+
+function outputFormat(value: string): "json" | "markdown" {
+  if (value === "json" || value === "markdown") return value;
+  throw new Error(`Unsupported output format: ${value}`);
+}
+
+function markSeenPolicy(value: string): "reported-only" | "all-filtered" | "none" {
+  if (value === "reported-only" || value === "all-filtered" || value === "none") return value;
+  throw new Error(`Unsupported mark-seen policy: ${value}`);
+}
+
+function digestPreset(value: string): "none" | "ai-strict" | "ai-research" | "engineering-deep-dive" | "security-risk" | "product-tech" {
+  if (
+    value === "none" ||
+    value === "ai-strict" ||
+    value === "ai-research" ||
+    value === "engineering-deep-dive" ||
+    value === "security-risk" ||
+    value === "product-tech"
+  ) {
+    return value;
+  }
+  throw new Error(`Unsupported digest preset: ${value}`);
 }
