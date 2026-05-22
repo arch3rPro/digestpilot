@@ -206,7 +206,12 @@
 - 无人工审阅的自动禁用失败源。
 - 无人工审阅的自动删除低质量源。
 - 生成 OPML patch。
-- 基于历史观察自动生成 registry patch 的 cleanup command。
+
+已实现基础能力：
+
+- `subscription-research source-health --format patch` 可基于历史观察生成可审阅 registry patch。
+
+后续仍需增强连续失败次数、最近成功时间、源优先级和 `lower-priority` 等更细粒度治理策略。
 
 ### RSS 源发现
 
