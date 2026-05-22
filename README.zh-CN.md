@@ -14,7 +14,7 @@
 | --- | --- |
 | Skills | `rss-ai-digest`、`rss-source-curator`、`subscription-research-agent` |
 | 运行契约 | 标准 Skill 结构 + 确定性本地 CLI |
-| 依赖模型 | RSS primitives 使用 Python 标准库；research workspace tooling 使用 Node/TypeScript |
+| 依赖模型 | Node/TypeScript research CLI 内置 RSS runtime |
 | 平台支持 | 运行时中立，可被不同 Agent 或调度器包装 |
 
 ## Agent 适用场景
@@ -65,13 +65,12 @@
 skills/rss-ai-digest/
 ├── SKILL.md
 ├── agents/openai.yaml
-├── references/
-│   ├── automation.md
-│   ├── base-feeds.opml
-│   ├── feed-registry.md
-│   ├── scoring.md
-│   └── source-metadata.json
-└── scripts/rss_monitor.py
+└── references/
+    ├── automation.md
+    ├── base-feeds.opml
+    ├── feed-registry.md
+    ├── scoring.md
+    └── source-metadata.json
 
 skills/rss-source-curator/
 ├── SKILL.md
@@ -89,7 +88,7 @@ skills/subscription-research-agent/
     └── research-workspace.md
 ```
 
-每个 `SKILL.md` 都是 Agent 入口。Python 脚本是多个 Skills 背后的共享确定性实现，不是项目的主要产品界面。
+每个 `SKILL.md` 都是 Agent 入口。`subscription-research` CLI 是本地工作流和 RSS 操作的共享确定性 runtime。
 
 ## 仓库结构
 
@@ -122,7 +121,7 @@ skills/subscription-research-agent/
 
 ## Research CLI
 
-`packages/research-cli/` 是本地优先 `subscription-research` CLI 的 package 位置。它负责 research workspace、SQLite schema、RSS evidence ingest、ingest-run metadata、per-source health history、entity extraction 和 evidence brief 生成。它当前继续调用现有 Python RSS worker 处理 RSS 解析和 digest 生成。最终研究日报仍由 Agent 基于 evidence brief 写作，并遵循 Skill reference 契约。
+`packages/research-cli/` 是本地优先 `subscription-research` CLI 的 package 位置。它负责 research workspace、SQLite schema、RSS evidence ingest、ingest-run metadata、per-source health history、entity extraction 和 evidence brief 生成。RSS ingest 和直接 RSS 命令统一使用 Node/TypeScript runtime。最终研究日报仍由 Agent 基于 evidence brief 写作，并遵循 Skill reference 契约。
 
 ## 能力概览
 
@@ -152,24 +151,24 @@ skills/subscription-research-agent/
 
 ## CLI 契约
 
-Agent 和 wrapper 可以通过 `scripts/rss_monitor.py` 调用确定性实现。这里的 CLI 是实现契约，不应取代 Skill 入口。
+Agent 和 wrapper 应使用 `subscription-research` CLI 运行研究工作流和直接的 Skill 级 RSS 操作。
 
 | 命令 | 用途 |
 | --- | --- |
-| `import-opml` | 将 OPML 转换为 feed registry JSON。 |
-| `fetch` | 抓取启用的源并输出标准化 entries。 |
-| `digest` | 抓取、筛选、评分、去重并生成阅读摘要。 |
-| `check-new` | 为监控流程报告新增匹配条目。 |
-| `evaluate-sources` | 基于 registry 和 health 数据评估源质量。 |
-| `curate-sources` | 生成可审阅源治理动作。 |
-| `apply-source-patch` | dry-run 或将已审阅 patch 写入明确的输出 registry。 |
+| `rss import-opml` | 将 OPML 转换为 feed registry JSON。 |
+| `rss fetch` | 抓取启用的源并输出标准化 entries。 |
+| `rss digest` | 抓取、筛选、评分、去重并生成阅读摘要。 |
+| `rss check-new` | 为监控流程报告新增匹配条目。 |
+| `rss evaluate-sources` | 基于 registry 和 health 数据评估源质量。 |
+| `rss curate-sources` | 生成可审阅源治理动作。 |
+| `rss apply-source-patch` | dry-run 或将已审阅 patch 写入明确的输出 registry。 |
 
 `subscription-research` CLI 契约提供本地 research workspace 命令：
 
 | 命令 | 用途 |
 | --- | --- |
 | `init` | 初始化本地 research workspace。 |
-| `ingest rss` | 将 RSS evidence 归档到 research workspace。 |
+| `ingest rss` | 抓取、筛选、评分、去重并将 RSS evidence 归档到 research workspace，默认使用 Node RSS runtime。 |
 | `brief evidence` | 基于本地 workspace 数据生成带来源依据的 evidence brief。 |
 | `source-health` | 汇总多次 ingest 形成的历史源健康观察。 |
 
@@ -200,23 +199,21 @@ subscription-research source-health \
 最小初始化：
 
 ```bash
-python3 skills/rss-ai-digest/scripts/rss_monitor.py import-opml \
-  --opml skills/rss-ai-digest/references/base-feeds.opml \
-  --metadata skills/rss-ai-digest/references/source-metadata.json \
-  --registry feeds.json
+subscription-research init --workspace research-workspace
 ```
 
 典型 AI digest：
 
 ```bash
-python3 skills/rss-ai-digest/scripts/rss_monitor.py digest \
+subscription-research ingest rss \
+  --workspace research-workspace \
   --registry feeds.json \
-  --state seen.json \
-  --health source-health.json \
   --since 24h \
-  --preset ai-strict \
-  --min-score 7 \
-  --format markdown
+  --keywords "llm,agent,rag,evals,inference" \
+  --should-keywords "benchmark,reliability,architecture" \
+  --exclude-keywords "webinar,coupon,sponsor,hiring,job,press release" \
+  --max-workers 8 \
+  --min-score 7
 ```
 
 更多 Agent 级调用示例见 [examples/README.md](./examples/README.md)。
@@ -263,8 +260,8 @@ python3 skills/rss-ai-digest/scripts/rss_monitor.py digest \
 运行测试：
 
 ```bash
-python3 -m unittest tests/test_rss_monitor.py -v
 cd packages/research-cli && npm test
+cd packages/research-cli && npm run typecheck
 ```
 
 检查 whitespace：

@@ -26,15 +26,14 @@
 - CLI 生成 evidence brief，不直接生成最终研究报告。
 - 研究日报由 Agent 基于 evidence brief 写作，遵循稳定章节、来源边界、阅读顺序和后续问题契约。
 - Node/TypeScript `subscription-research` CLI 是 `v0.3` 的本地执行层，用于 workspace 初始化、RSS evidence ingest、entity extraction 和 evidence brief generation。
-- RSS ingest run 已写入 SQLite `research_runs`，记录筛选条件、RSS worker stats、source health 摘要、归档数量和实体链接数量。
+- RSS ingest run 已写入 SQLite `research_runs`，记录筛选条件、RSS runtime stats、source health 摘要、归档数量和实体链接数量。
 - article archive 和 evidence brief 已支持保守来源归因字段：`commentary_source`、`original_source` 和 `original_url`。
 - RSS ingest 会写入每个源的历史健康观察，`subscription-research source-health` 可按多次观察输出 `keep`、`watch`、`disable_candidate` 建议。
 
 ### 项目与 Skill 基础
 
 - 已建立标准 Skill 结构：`skills/rss-ai-digest/SKILL.md`、`skills/rss-source-curator/SKILL.md` 和 `skills/subscription-research-agent/SKILL.md`。
-- 已提供平台中立的 CLI 实现：`skills/rss-ai-digest/scripts/rss_monitor.py`。
-- 已新增本地研究 CLI：`packages/research-cli/`。
+- 已提供本地研究 CLI：`packages/research-cli/`，其中 RSS ingest 和直接 RSS 命令统一使用 Node runtime。
 - 已提供 README、CHANGELOG、AGENTS.md、CLAUDE.md 和设计/验证文档。
 - 已保持核心行为与具体运行时解耦，不依赖 Codex、Claude 或特定插件市场。
 - 已提供 OpenAI/Codex 风格的可选 UI metadata：`skills/rss-ai-digest/agents/openai.yaml`。
@@ -54,12 +53,12 @@
 
 已实现以下命令：
 
-- `import-opml`：将 OPML 导入为 feed registry。
+- `subscription-research rss import-opml`：将 OPML 导入为 feed registry。
 - `fetch`：抓取启用的订阅源并输出标准化 entries。
 - `digest`：抓取、筛选、评分、去重并输出阅读摘要。
 - `check-new`：检查新增匹配条目，适合监控类工作流。
 - `evaluate-sources`：根据 registry 和 health 数据评估源质量。
-- `curate-sources`：生成可审阅源治理动作和 registry patch 建议，不直接修改源文件。
+- `subscription-research rss curate-sources`：生成可审阅源治理动作和 registry patch 建议，不直接修改源文件。
 - `apply-source-patch`：对已审阅的源治理 patch 做 dry-run 或写入新的 registry 文件。
 - `subscription-research source-health`：汇总多次 ingest 形成的历史源健康观察。
 
@@ -142,21 +141,22 @@
 
 ### 测试与验证
 
-- 已有 Python 单元测试覆盖：
-  - OPML 导入。
-  - RSS 和 Atom 解析。
+- 当前 Node research CLI 单元测试覆盖：
+  - workspace 初始化。
+  - RSS ingest 和 direct RSS commands。
+  - OPML、RSS 和 Atom fixture 解析。
   - 关键词、作者、日期筛选。
   - token-aware keyword matching。
   - phrase matching。
   - 评分逻辑。
   - seen-state 去重。
-  - health 持久化。
+  - health 持久化和 source health 历史。
   - failed feeds 输出。
   - 并发抓取。
   - deterministic ordering。
-  - source evaluation。
-- 当前 Python RSS monitor 测试数量：44 个。
-- 当前 Node research CLI 测试数量：14 个。
+  - source evaluation 和 source patch。
+  - entity extraction、article attribution 和 evidence brief。
+- 当前 Node research CLI 测试数量：35 个。
 - Skill validator 已通过。
 - 已有 post-optimization validation 文档记录真实性能和输出表现。
 
@@ -206,7 +206,12 @@
 - 无人工审阅的自动禁用失败源。
 - 无人工审阅的自动删除低质量源。
 - 生成 OPML patch。
-- 基于历史观察自动生成 registry patch 的 cleanup command。
+
+已实现基础能力：
+
+- `subscription-research source-health --format patch` 可基于历史观察生成可审阅 registry patch。
+
+后续仍需增强连续失败次数、最近成功时间、源优先级和 `lower-priority` 等更细粒度治理策略。
 
 ### RSS 源发现
 

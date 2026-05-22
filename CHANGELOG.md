@@ -15,6 +15,11 @@ All notable project changes are recorded here.
 - Added conservative article source attribution for commentary and original sources in the research CLI archive and evidence brief output.
 - Added per-source health observation history and `subscription-research source-health` summaries for repeated source failure review.
 - Added `subscription-research source-health --format patch` to generate reviewable registry patch envelopes from repeated source-health observations.
+- Added a Node/TypeScript RSS runtime for RSS 2.0, Atom, filtering, scoring, seen-state dedupe, source health, and digest envelope generation.
+- Added compact RSS/Atom parser snapshot fixtures for Node runtime regression coverage.
+- Added npm packaging metadata and package-level README for the `subscription-research` CLI.
+- Added direct Node RSS registry commands under `subscription-research rss`: `import-opml`, `fetch`, `digest`, `check-new`, `evaluate-sources`, `curate-sources`, and `apply-source-patch`.
+- Added `--max-workers` concurrency control to Node RSS fetch, digest, and check-new workflows.
 - Improved evidence brief quality with cleaned summaries, configurable must-keyword matching, quieter source-health daily report guidance, and safer source-health disable thresholds.
 - Added the `packages/research-cli` Node/TypeScript CLI package for local workspace initialization, SQLite-backed evidence archive, RSS evidence ingest, entity extraction, and evidence brief generation.
 - Added public documentation for the v0.3 local-first subscription research Agent direction.
@@ -27,6 +32,15 @@ All notable project changes are recorded here.
 - Advanced the research workspace schema to version 2 with migration support for RSS ingest run metadata.
 - Advanced the research workspace schema to version 3 with migration support for article attribution metadata.
 - Advanced the research workspace schema to version 4 with per-source health observation history.
+- Made the Node/TypeScript RSS runtime the single current RSS command implementation.
+- Updated Skill guidance to use `subscription-research rss ...` for RSS workflows.
+- Updated source-curator and automation references to use Node RSS commands for current workflows.
+
+### Removed
+
+- Removed the legacy Python RSS worker and its CLI compatibility path.
+- Removed `--rss-runtime python`, `--script-path`, and `--python` ingest options.
+- Removed Python RSS monitor unit tests after moving parser and command coverage to Node tests.
 
 ## v0.2.0 - Unreleased
 

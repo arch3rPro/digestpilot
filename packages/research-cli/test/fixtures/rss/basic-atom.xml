@@ -1,0 +1,11 @@
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Atom Feed</title>
+  <entry>
+    <title>Agent architecture</title>
+    <id>tag:example.com,2026:agent-architecture</id>
+    <link rel="alternate" href="https://example.com/agent-architecture"/>
+    <author><name>Alex</name></author>
+    <updated>2026-05-21T09:00:00Z</updated>
+    <summary>Architecture notes for agent workflows.</summary>
+  </entry>
+</feed>

@@ -11,21 +11,34 @@ Use this skill to turn RSS/Atom feeds and OPML files into high-signal AI and tec
 
 ## Workflow Selection
 
-- For a daily or weekly reading report, run `scripts/rss_monitor.py digest`.
-- For keyword, author, project, or topic monitoring, run `scripts/rss_monitor.py check-new`.
-- For OPML import, run `scripts/rss_monitor.py import-opml`, then evaluate the resulting registry.
+- For a daily or weekly reading report inside a research workspace, prefer `subscription-research ingest rss` followed by `subscription-research brief evidence`.
+- For direct Skill-level digest output without a research workspace, run `subscription-research rss digest`.
+- For keyword, author, project, or topic monitoring, run `subscription-research rss check-new`.
+- For OPML import, run `subscription-research rss import-opml`, then evaluate the resulting registry.
 - For source cleanup or feed quality review, prefer `rss-source-curator`.
-- For backwards compatibility, source-governance commands remain available through `scripts/rss_monitor.py`.
-- For reviewable source governance actions, run `scripts/rss_monitor.py curate-sources`.
-- For safely applying reviewed source governance patches, run `scripts/rss_monitor.py apply-source-patch`.
+- For reviewable source governance actions, run `subscription-research rss curate-sources`.
+- For safely applying reviewed source governance patches, run `subscription-research rss apply-source-patch`.
 - For scheduled checks, read `references/automation.md` and provide a platform-neutral recipe.
 
 ## Core Commands
 
+Archive RSS evidence into a local research workspace with the Node runtime:
+
+```bash
+subscription-research ingest rss \
+  --workspace research-workspace \
+  --registry feeds.json \
+  --since 24h \
+  --keywords "llm,agent,rag,evals,inference" \
+  --should-keywords "benchmark,reliability,architecture" \
+  --exclude-keywords "webinar,coupon,sponsor,hiring,job,press release" \
+  --min-score 7
+```
+
 Import OPML into a registry:
 
 ```bash
-python3 skills/rss-ai-digest/scripts/rss_monitor.py import-opml \
+subscription-research rss import-opml \
   --opml feeds.opml \
   --metadata skills/rss-ai-digest/references/source-metadata.json \
   --registry feeds.json
@@ -34,7 +47,7 @@ python3 skills/rss-ai-digest/scripts/rss_monitor.py import-opml \
 Create a digest of new high-quality AI/technical entries:
 
 ```bash
-python3 skills/rss-ai-digest/scripts/rss_monitor.py digest \
+subscription-research rss digest \
   --registry feeds.json \
   --state seen.json \
   --health source-health.json \
@@ -50,7 +63,7 @@ python3 skills/rss-ai-digest/scripts/rss_monitor.py digest \
 Check for new matching entries without a minimum score gate:
 
 ```bash
-python3 skills/rss-ai-digest/scripts/rss_monitor.py check-new \
+subscription-research rss check-new \
   --registry feeds.json \
   --state seen.json \
   --health source-health.json \
@@ -64,7 +77,7 @@ python3 skills/rss-ai-digest/scripts/rss_monitor.py check-new \
 Evaluate feed quality:
 
 ```bash
-python3 skills/rss-ai-digest/scripts/rss_monitor.py evaluate-sources \
+subscription-research rss evaluate-sources \
   --registry feeds.json \
   --health source-health.json
 ```
@@ -72,7 +85,7 @@ python3 skills/rss-ai-digest/scripts/rss_monitor.py evaluate-sources \
 Generate source curation actions without changing the registry:
 
 ```bash
-python3 skills/rss-ai-digest/scripts/rss_monitor.py curate-sources \
+subscription-research rss curate-sources \
   --registry feeds.json \
   --health source-health.json \
   --format markdown
@@ -81,7 +94,7 @@ python3 skills/rss-ai-digest/scripts/rss_monitor.py curate-sources \
 Apply reviewed source curation patches to a new registry file:
 
 ```bash
-python3 skills/rss-ai-digest/scripts/rss_monitor.py apply-source-patch \
+subscription-research rss apply-source-patch \
   --registry feeds.json \
   --patch source-curation.json \
   --output feeds.curated.json \

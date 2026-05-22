@@ -7,7 +7,7 @@ For the full registry and health schema, see `skills/rss-ai-digest/references/fe
 ## Review Report
 
 ```bash
-python3 skills/rss-ai-digest/scripts/rss_monitor.py curate-sources \
+subscription-research rss curate-sources \
   --registry feeds.json \
   --health source-health.json \
   --format markdown
@@ -16,7 +16,7 @@ python3 skills/rss-ai-digest/scripts/rss_monitor.py curate-sources \
 ## Machine Patch
 
 ```bash
-python3 skills/rss-ai-digest/scripts/rss_monitor.py curate-sources \
+subscription-research rss curate-sources \
   --registry feeds.json \
   --health source-health.json \
   --format json > source-curation.json
@@ -37,7 +37,7 @@ The patch output follows the same `actions[].registry_patch` shape accepted by `
 ## Dry Run
 
 ```bash
-python3 skills/rss-ai-digest/scripts/rss_monitor.py apply-source-patch \
+subscription-research rss apply-source-patch \
   --registry feeds.json \
   --patch source-curation.json \
   --format markdown
@@ -46,7 +46,7 @@ python3 skills/rss-ai-digest/scripts/rss_monitor.py apply-source-patch \
 ## Apply To A New File
 
 ```bash
-python3 skills/rss-ai-digest/scripts/rss_monitor.py apply-source-patch \
+subscription-research rss apply-source-patch \
   --registry feeds.json \
   --patch source-curation.json \
   --output feeds.curated.json \

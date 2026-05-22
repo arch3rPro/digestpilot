@@ -9,7 +9,8 @@ Use this checklist before publishing a stable release, especially before splitti
 - Run tests:
 
 ```bash
-python3 -m unittest tests/test_rss_monitor.py -v
+cd packages/research-cli && npm test
+cd packages/research-cli && npm run typecheck
 ```
 
 - Check whitespace:
@@ -22,6 +23,8 @@ git diff --check
 
 ```bash
 python3 /path/to/skill-creator/scripts/quick_validate.py skills/rss-ai-digest
+python3 /path/to/skill-creator/scripts/quick_validate.py skills/rss-source-curator
+python3 /path/to/skill-creator/scripts/quick_validate.py skills/subscription-research-agent
 ```
 
 ## Versioning

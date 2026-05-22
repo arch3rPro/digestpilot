@@ -1,11 +1,9 @@
 import { randomUUID } from "node:crypto";
-import { existsSync } from "node:fs";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
 import type { RssDigestEnvelope, SourceHealthSummary } from "../types.js";
 import { archiveEntries, type ArchiveResult } from "../articles/archive.js";
 import { loadEntityConfig } from "../entities/config.js";
-import { runRssDigest } from "../rss/python-worker.js";
+import { runNodeRssDigest } from "../rss/node-runtime.js";
+import type { FeedFetcher } from "../rss/types.js";
 import { openResearchDb } from "../workspace/db.js";
 import { getWorkspacePaths } from "../workspace/paths.js";
 
@@ -21,14 +19,13 @@ export interface IngestRssEnvelopeOptions {
 export interface IngestRssCommandOptions {
   workspace: string;
   registry: string;
-  scriptPath?: string;
-  python?: string;
   since?: string;
   keywords?: string;
   mustKeywords?: string;
   shouldKeywords?: string;
   excludeKeywords?: string;
   minScore?: number;
+  fetcher?: FeedFetcher;
 }
 
 export interface IngestRunCriteria {
@@ -68,9 +65,7 @@ export async function ingestRssEnvelope(options: IngestRssEnvelopeOptions): Prom
 export async function ingestRss(options: IngestRssCommandOptions): Promise<ArchiveResult> {
   const paths = getWorkspacePaths(options.workspace);
   const startedAt = new Date().toISOString();
-  const envelope = await runRssDigest({
-    python: options.python,
-    scriptPath: options.scriptPath ?? defaultRssMonitorPath(),
+  const envelope = await runNodeRssDigest({
     registry: options.registry,
     state: paths.seenPath,
     health: paths.sourceHealthPath,
@@ -79,7 +74,8 @@ export async function ingestRss(options: IngestRssCommandOptions): Promise<Archi
     mustKeywords: options.mustKeywords,
     shouldKeywords: options.shouldKeywords,
     excludeKeywords: options.excludeKeywords,
-    minScore: options.minScore
+    minScore: options.minScore,
+    fetcher: options.fetcher
   });
   return ingestRssEnvelope({
     workspace: options.workspace,
@@ -97,20 +93,6 @@ export async function ingestRss(options: IngestRssCommandOptions): Promise<Archi
     startedAt,
     timeWindow: options.since
   });
-}
-
-export function defaultRssMonitorPath(): string {
-  let current = dirname(fileURLToPath(import.meta.url));
-  for (let depth = 0; depth < 8; depth += 1) {
-    const candidate = resolve(current, "skills/rss-ai-digest/scripts/rss_monitor.py");
-    if (existsSync(candidate)) {
-      return candidate;
-    }
-    const parent = dirname(current);
-    if (parent === current) break;
-    current = parent;
-  }
-  return resolve(dirname(fileURLToPath(import.meta.url)), "../../../../skills/rss-ai-digest/scripts/rss_monitor.py");
 }
 
 function persistIngestRun(
