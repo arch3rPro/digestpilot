@@ -105,6 +105,23 @@
 
 ## 当前能力边界
 
+### 当前实现快照
+
+截至 2026-05-22，仓库已形成 3 个正式 Skills 和 1 个共享 Node/TypeScript runtime：
+
+- `rss-ai-digest`：普通 RSS/Atom 日报、重点资讯、快速查询、OPML 导入、筛选、评分、去重和 `check-new` 监控入口。
+- `rss-source-curator`：源质量评估、健康历史、失败源治理、registry patch 生成和人工审阅后应用。
+- `subscription-research-agent`：本地优先深度研究工作流，归档订阅 evidence，生成 evidence brief，由 Agent 写最终研究日报或 memo。
+- `packages/research-cli`：共享 deterministic runtime，当前承载 RSS runtime、SQLite workspace、正文 enrichment、feed discovery、source health 和 evidence brief。
+
+已落地的 P2 基础能力：
+
+- `subscription-research content fetch`：可选正文抓取、Readability extraction、`article_content` SQLite 表和 `data/content-cache/`。
+- `subscription-research rss discover --url ...`：从网页 alternate links 发现 RSS/Atom feed。
+- `subscription-research rss discover --input candidate-pages.md`：从 URL/Markdown 列表批量发现源并跨页面去重。
+- `subscription-research rss discover --validate`：校验候选 feed 可解析性，并生成可审阅 `registry_patches`。
+- `subscription-research rss apply-source-patch`：可将审阅后的 discovery patch 新增到 registry，仍默认 dry-run。
+
 已经具备：
 
 - 通用 Agent 可调用的 RSS/AI 技术内容发现 MVP。
@@ -112,14 +129,15 @@
 - 本地优先订阅研究 workspace foundation。
 - Agent 写作研究日报所需的 evidence brief 和日报契约。
 - 文件化、可迁移、平台中立的 CLI contract。
+- 正文 enrichment 和 feed discovery 的第一阶段能力。
 
 尚未具备：
 
 - 内置 scheduler、daemon 或后台服务。
 - 通知渠道集成，例如 Email、飞书、Slack、Webhook、Obsidian。
-- 自动 feed discovery。
+- 无审阅的全自动源发现、评分和合入。
 - 自动无审阅源清理。
-- 全文抓取、HTML 清洗和 readability extraction。
+- 将全文分析作为普通日报的强依赖。
 - deterministic CLI 自动生成最终研究日报。
 - 语义去重、相似文章合并、LLM rerank。
 - 插件市场 packaging、Claude plugin packaging 或多 runtime 安装器。
@@ -142,6 +160,29 @@
 - 将实时抓取作为 fallback，而不是默认查询路径。
 
 ## 后续迭代任务
+
+### P2：多源信息摄取（当前优先）
+
+目标：把项目从 RSS-only ingestion 扩展为多源订阅信息摄取底座，同时继续保持本地优先、平台中立和 Agent 可调用。
+
+扩展方向：
+
+- 借鉴插件分类、metadata-driven registration、Agent interop、人工审阅优先和本地 archive 中心化等通用设计思路，但不把外部参考项目作为公开路线图依赖。
+
+优先范围：
+
+- 定义 Node CLI 内部的 `SourceIngestAdapter` 或等价接口。
+- 将当前 RSS ingest 包装为第一个 adapter，而不是重写 RSS runtime。
+- 建立跨来源 normalized evidence record，支持 RSS、Web、GitHub、paper、newsletter、file 等后续来源进入同一 archive/evidence brief 管道。
+- 保持 `subscription-research ingest rss` 兼容，同时预留 `subscription-research ingest <source-type> --config ...` 的通用形态。
+- 优先补一个低风险第二来源，例如 `file` 或 `web-url-list`，用于验证多源 contract，测试不依赖网络。
+
+暂缓范围：
+
+- 发布器和通知 adapter。
+- Web UI、后台 daemon 和复杂 scheduler。
+- 需要外部账号或敏感 token 的 social/search API adapter。
+- 插件市场 packaging。
 
 ### P0：版本与发布卫生（已完成）
 
@@ -276,10 +317,10 @@
 
 建议按以下顺序推进：
 
-1. 优先完成 P1 普通日报查询性能优化，把常用日报改成 archive-first。
-2. 然后进入 P2 正文获取与内容质量过滤，补齐全文 evidence 能力。
-3. 或进入 P2 `rss-feed-discovery`，降低优质源扩展成本，尤其补齐产品经理方向源池。
-4. 或规划 P2 `rss-alert-monitor`，将日报和监控拆成不同 Skill。
-5. 暂缓 publisher 和插件市场 packaging，直到 P2 数据契约更稳定。
+1. 优先完成 P2 多源信息摄取 foundation：定义 adapter contract，并把当前 RSS ingest 包装为第一个 adapter。
+2. 增加一个低风险第二来源，例如 `file` 或 `web-url-list`，验证 normalized evidence record 和 archive 写入。
+3. 回到 P1 普通日报查询性能优化，把常用日报改成 archive-first。
+4. 继续 P2 feed discovery：增加候选源主题推断、初始评分、category/tag 生成和 OPML 输出。
+5. 暂缓 publisher、通知 adapter 和插件市场 packaging，直到多源 ingestion 数据契约更稳定。
 
-研究日报与源治理 P1 已完成。普通日报性能 P1 是当前新增的高优先级收尾任务，完成后再进入 P2 主线。
+研究日报与源治理 P1 已完成。P2 正文 enrichment 与 feed discovery 已完成第一阶段；当前优先级切换为多源信息摄取 foundation，普通日报性能 P1 随后继续收尾。

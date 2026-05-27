@@ -168,8 +168,10 @@
   - 并发抓取。
   - deterministic ordering。
   - source evaluation 和 source patch。
+  - content enrichment 和 readability extraction。
+  - feed discovery、feed validation 和 discovery patch 合入。
   - entity extraction、article attribution、evidence brief 和 daily-report guidance。
-- 当前 Node research CLI 测试数量：37 个。
+- 当前 Node research CLI 测试数量：49 个。
 - Skill validator 已通过。
 - 已有 post-optimization validation 与 P1 daily-report regression 文档记录真实性能和输出表现。
 - P1 本地研究日报主线已完成 3 次真实回归，并验证多次 source-health observations。
@@ -342,10 +344,10 @@ RSS digest 侧仍使用 JSON 文件作为轻量状态层。`subscription-researc
 
 优先级最高的方向：
 
-1. 完成普通日报 archive-first 查询，解决每次临时全量抓取导致的慢体验。
-2. 继续增强普通 RSS 日报质量：更好的重复合并、噪声过滤和快速阅读结构。
-3. 规划 feed discovery 和 alert monitor 的拆分边界。
-4. 进入 P2 正文抓取、readability extraction 和正文级 evidence。
-5. 后续再规划 `rss-digest-publisher`、插件包装和多 runtime 分发。
+1. 优先完成多源信息摄取 foundation：定义 source ingest adapter contract，并将当前 RSS ingest 包装为第一个 adapter。
+2. 增加一个低风险第二来源，例如 `file` 或 `web-url-list`，验证 normalized evidence record、SQLite archive 和 evidence brief 管道。
+3. 完成普通日报 archive-first 查询，解决每次临时全量抓取导致的慢体验。
+4. 继续 feed discovery：候选源主题推断、初始评分、category/tag 生成和 OPML 输出。
+5. 后续再规划 `rss-digest-publisher`、通知 adapter、插件包装和多 runtime 分发。
 
 如果目标是继续扩展 RSS Skills 套件，应优先保持共享数据结构、CLI 契约和文档入口一致。

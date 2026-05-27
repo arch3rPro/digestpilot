@@ -13,6 +13,8 @@ All notable project changes are recorded here.
 
 - Reframed README files around Agent routing and Skill workflow contracts instead of developer-first CLI usage.
 - Clarified Skill boundaries: `rss-ai-digest` owns quick daily news and key information, `rss-source-curator` owns source maintenance, and `subscription-research-agent` owns deep research synthesis.
+- Archived the current implemented Skills, remaining gaps, and optimization priorities in the Chinese roadmap and status documents.
+- Shifted the near-term roadmap priority to multi-source information ingestion and removed public tracking for private planning notes.
 - Evidence briefs now prefer enriched full-text excerpts when available and fall back to RSS summaries otherwise.
 - Recorded the next `rss-ai-digest` priority: archive-first daily digest queries so ordinary daily reports do not require repeated full-feed fetches.
 - Improved evidence brief output for Agent-written daily reports with source diversification, daily-report priority buckets, duplicate story merge hints, attribution labels, and low-confidence markers.
@@ -142,8 +144,8 @@ This checkpoint was not released as a separate tag. Its scope was carried forwar
 ### Documentation
 
 - Added `docs/project-status.zh-CN.md` summarizing implemented capabilities, missing features, maturity, and recommended next steps.
-- Added `docs/superpowers/plans/2026-05-20-rss-ai-digest-remaining-optimizations.md`.
-- Added `docs/superpowers/specs/2026-05-20-rss-ai-digest-post-optimization-validation.md` with full-feed runtime, health, and ranking validation notes.
+- Added private planning notes for remaining RSS digest optimizations.
+- Added private post-optimization validation notes with full-feed runtime, health, and ranking validation findings.
 - Updated README and Skill references for source metadata, fetch controls, keyword matching, and source governance fields.
 - Removed the stale public-doc reference to the local test retrospective file.
 
@@ -157,7 +159,7 @@ This checkpoint was not released as a separate tag. Its scope was carried forwar
 
 ### Added
 
-- Added `docs/superpowers/specs/2026-05-20-rss-ai-digest-optimization-design.md`, a detailed optimization design based on the daily digest test retrospective.
+- Added a private optimization design based on the daily digest test retrospective.
 
 ### Documentation
 
@@ -193,7 +195,7 @@ This checkpoint was not released as a separate tag. Its scope was carried forwar
   - Markdown and JSON output
 - Added `base-feeds.opml` as the curated starter OPML with 92 AI, engineering, security, product, and general technical sources.
 - Added reference documentation for feed registry structure, scoring, and automation recipes.
-- Added design and implementation planning documents under `docs/superpowers/`.
+- Added private design and implementation planning documents.
 - Added regression tests for the RSS monitor script.
 
 ### Changed

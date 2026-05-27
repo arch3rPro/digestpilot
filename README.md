@@ -80,8 +80,8 @@ Current non-goals:
 - Hosted research service.
 - Built-in daemon, scheduler, or notification center.
 - Email, Feishu, Slack, Webhook, or Obsidian publisher.
-- Automatic feed discovery.
-- Full-text fetching and readability extraction.
+- Fully automated source discovery and scoring without review.
+- Full-text analysis as a hard dependency for ordinary daily digests.
 - Deterministic CLI generation of final research conclusions.
 - Claude/OpenAI/OpenClaw plugin packaging.
 
@@ -96,7 +96,6 @@ packages/
   research-cli/
 docs/
   releases/
-  superpowers/
 examples/
 ```
 
@@ -111,8 +110,6 @@ Runtime outputs such as `feeds.json`, `seen.json`, `source-health.json`, `digest
 - [Contributing](./CONTRIBUTING.md)
 - [Agent instructions](./AGENTS.md)
 - [Claude Code instructions](./CLAUDE.md)
-
-Design history lives under [`docs/superpowers/`](./docs/superpowers/). Treat it as an archive, not the usage guide.
 
 ## Maintainers
 
