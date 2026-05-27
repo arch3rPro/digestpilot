@@ -14,6 +14,7 @@ This repository is designed for agents, not as a standalone RSS app. An agent sh
 | --- | --- | --- | --- |
 | "Prepare an AI/technical RSS digest." | [`rss-ai-digest`](./skills/rss-ai-digest/SKILL.md) | Import OPML, fetch RSS/Atom, filter, score, dedupe. | Quick Markdown or JSON digest focused on article content. |
 | "Monitor new posts for a topic." | [`rss-ai-digest`](./skills/rss-ai-digest/SKILL.md) | Run `check-new` with explicit state paths. | New matching entries, with seen-state updated according to policy. |
+| "Find public AI or product trends." | [`public-trend-radar`](./skills/public-trend-radar/SKILL.md) | Scan public channels and generate trend cards. | Reviewable trend cards with evidence and downstream suggestions. |
 | "Review or clean up my sources." | [`rss-source-curator`](./skills/rss-source-curator/SKILL.md) | Evaluate source health and generate reviewable patches. | Keep/watch/disable/remove recommendations. |
 | "Create a subscription-backed research memo." | [`subscription-research-agent`](./skills/subscription-research-agent/SKILL.md) | Ingest evidence into a local workspace and generate an evidence brief. | Agent-written research synthesis with evidence, caveats, and follow-up questions. |
 
@@ -49,6 +50,10 @@ Primary references:
 - [Source governance](./skills/rss-source-curator/references/source-governance.md)
 - [Registry maintenance](./skills/rss-source-curator/references/registry-maintenance.md)
 
+### public-trend-radar
+
+Use for public-channel trend discovery. It produces trend cards for `ai-tech` and `product-business` profiles and keeps trend discovery separate from daily reports, source governance, publishing, and final research synthesis.
+
 ### subscription-research-agent
 
 Use for deep research workflows around subscription evidence. Deterministic tooling prepares workspace data and evidence briefs; the agent writes the final memo or research synthesis. Ordinary daily digests should stay in `rss-ai-digest`.
@@ -66,6 +71,7 @@ The shared runtime is the Node/TypeScript `subscription-research` CLI in [`packa
 Common commands by responsibility:
 
 - Digest and monitoring: `subscription-research rss import-opml`, `subscription-research rss digest`, `subscription-research rss check-new`
+- Public trend radar: `subscription-research trend scan`
 - Feed discovery: `subscription-research rss discover`
 - Source maintenance: `subscription-research rss evaluate-sources`, `subscription-research rss curate-sources`, `subscription-research rss apply-source-patch`, `subscription-research source-health`
 - Deep research: `subscription-research init`, `subscription-research ingest rss`, `subscription-research content fetch`, `subscription-research brief evidence`
@@ -90,6 +96,7 @@ Current non-goals:
 ```text
 skills/
   rss-ai-digest/
+  public-trend-radar/
   rss-source-curator/
   subscription-research-agent/
 packages/
@@ -123,6 +130,7 @@ Skill validation, when the local validator is available:
 
 ```bash
 python3 /path/to/skill-creator/scripts/quick_validate.py skills/rss-ai-digest
+python3 /path/to/skill-creator/scripts/quick_validate.py skills/public-trend-radar
 python3 /path/to/skill-creator/scripts/quick_validate.py skills/rss-source-curator
 python3 /path/to/skill-creator/scripts/quick_validate.py skills/subscription-research-agent
 ```

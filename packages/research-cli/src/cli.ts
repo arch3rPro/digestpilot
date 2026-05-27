@@ -5,6 +5,7 @@ import { createEvidenceBrief } from "./commands/brief-evidence.js";
 import { enrichArticleContent } from "./commands/enrich-content.js";
 import { ingestRss } from "./commands/ingest-rss.js";
 import { initWorkspace } from "./commands/init.js";
+import { scanPublicTrends } from "./commands/trend-scan.js";
 import {
   applySourceRegistryPatch,
   curateSourceRegistry,
@@ -128,6 +129,35 @@ program
       }
     } finally {
       db.close();
+    }
+  });
+
+const trend = program.command("trend").description("Discover public trend signals and render trend cards.");
+
+trend
+  .command("scan")
+  .description("Scan public channels and generate trend cards.")
+  .requiredOption("--profile <profile>", "Trend profile: ai-tech or product-business")
+  .option("--window <window>", "Trend window", "7d")
+  .option("--web-url-list <path>", "Markdown or text file containing public URLs")
+  .option("--hacker-news-items <path>", "JSON file containing public Hacker News item records")
+  .option("--github-releases <path>", "JSON file containing { repo, releases } from public GitHub releases")
+  .option("--format <format>", "Output format: json or markdown", "json")
+  .action(async (options: Record<string, string | number | boolean | undefined>) => {
+    const result = await scanPublicTrends({
+      profile: requiredString(options.profile, "profile"),
+      window: optionalString(options.window),
+      webUrlList: optionalString(options.webUrlList),
+      hackerNewsItems: optionalString(options.hackerNewsItems),
+      githubReleases: optionalString(options.githubReleases)
+    });
+    const format = optionalString(options.format) ?? "json";
+    if (format === "markdown") {
+      process.stdout.write(result.markdown);
+    } else if (format === "json") {
+      process.stdout.write(JSON.stringify(result, null, 2));
+    } else {
+      throw new Error(`Unsupported trend scan format: ${format}`);
     }
   });
 

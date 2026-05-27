@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-`rss-agent-skills` is a portable collection of RSS-related Skills and local-first subscription research workflows for agent ecosystems. The current suite includes `rss-ai-digest` for AI/technical content discovery, `rss-source-curator` for source governance and registry maintenance, and `subscription-research-agent` for research evidence orchestration.
+`rss-agent-skills` is a portable collection of RSS-related Skills, public trend discovery workflows, and local-first subscription research workflows for agent ecosystems. The current suite includes `rss-ai-digest` for AI/technical content discovery, `public-trend-radar` for public-channel trend cards, `rss-source-curator` for source governance and registry maintenance, and `subscription-research-agent` for research evidence orchestration.
 
 Keep the repository platform-neutral. Do not make core behavior depend on Codex, Claude, Cursor, OpenClaw, n8n, GitHub Actions, or any single runtime.
 
@@ -10,6 +10,7 @@ Keep the repository platform-neutral. Do not make core behavior depend on Codex,
 
 - `skills/rss-ai-digest/SKILL.md`: main Skill entrypoint and workflow routing.
 - `skills/rss-ai-digest/references/`: feed registry, scoring, automation, and base OPML references.
+- `skills/public-trend-radar/SKILL.md`: public trend discovery Skill entrypoint.
 - `skills/rss-source-curator/SKILL.md`: source governance Skill entrypoint.
 - `skills/rss-source-curator/references/`: source governance and registry maintenance references.
 - `skills/subscription-research-agent/SKILL.md`: local-first research orchestration Skill entrypoint.
@@ -23,7 +24,6 @@ Keep the repository platform-neutral. Do not make core behavior depend on Codex,
 - `CHANGELOG.md`: project change log.
 - `docs/release-checklist.md`: release preparation checklist.
 - `docs/releases/`: release notes.
-- `docs/superpowers/`: design and implementation planning artifacts.
 
 ## Development Commands
 
@@ -38,6 +38,7 @@ Validate the Skill package when the local skill validator is available:
 
 ```bash
 python3 /path/to/skill-creator/scripts/quick_validate.py skills/rss-ai-digest
+python3 /path/to/skill-creator/scripts/quick_validate.py skills/public-trend-radar
 python3 /path/to/skill-creator/scripts/quick_validate.py skills/rss-source-curator
 python3 /path/to/skill-creator/scripts/quick_validate.py skills/subscription-research-agent
 ```

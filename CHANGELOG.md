@@ -8,13 +8,14 @@ All notable project changes are recorded here.
 
 - Added optional full-text article enrichment with `subscription-research content fetch`, `article_content` SQLite storage, local `data/content-cache/`, and readability extraction via `@mozilla/readability` and `jsdom`.
 - Added RSS feed discovery with `subscription-research rss discover --url ...` and `--input ...` for RSS/Atom alternate link detection, optional feed validation, URL/Markdown candidate lists, and reviewable registry patch candidates that can be applied through `apply-source-patch`.
+- Added the first `public-trend-radar` Skill and CLI slice with profile-aware trend cards from public URL lists, Hacker News item JSON, and GitHub release JSON.
 
 ### Changed
 
 - Reframed README files around Agent routing and Skill workflow contracts instead of developer-first CLI usage.
 - Clarified Skill boundaries: `rss-ai-digest` owns quick daily news and key information, `rss-source-curator` owns source maintenance, and `subscription-research-agent` owns deep research synthesis.
 - Archived the current implemented Skills, remaining gaps, and optimization priorities in the Chinese roadmap and status documents.
-- Shifted the near-term roadmap priority to multi-source information ingestion and removed public tracking for private planning notes.
+- Shifted the near-term roadmap priority to a public-channel trend radar with separate AI/technical and product/business profiles.
 - Evidence briefs now prefer enriched full-text excerpts when available and fall back to RSS summaries otherwise.
 - Recorded the next `rss-ai-digest` priority: archive-first daily digest queries so ordinary daily reports do not require repeated full-feed fetches.
 - Improved evidence brief output for Agent-written daily reports with source diversification, daily-report priority buckets, duplicate story merge hints, attribution labels, and low-confidence markers.

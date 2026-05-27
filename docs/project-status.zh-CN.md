@@ -1,10 +1,10 @@
 # RSS Agent Skills 项目状态
 
-日期：2026-05-22
+日期：2026-05-27
 
 ## 当前定位
 
-`rss-agent-skills` 是一个面向通用 agent 生态的 RSS Skills 与本地优先订阅研究工作流仓库。当前已落地的正式 Skills 是 `rss-ai-digest`、`rss-source-curator` 和 `subscription-research-agent`。`rss-ai-digest` 用于 AI 与技术内容发现、订阅源聚合、条目筛选、评分和去重；`rss-source-curator` 用于源质量治理和 registry 维护；`subscription-research-agent` 用于围绕订阅来源编排 evidence brief。
+`rss-agent-skills` 是一个面向通用 agent 生态的 RSS Skills、公开趋势发现与本地优先订阅研究工作流仓库。当前已落地的正式 Skills 是 `rss-ai-digest`、`public-trend-radar`、`rss-source-curator` 和 `subscription-research-agent`。`rss-ai-digest` 用于 AI 与技术内容发现、订阅源聚合、条目筛选、评分和去重；`public-trend-radar` 用于公开渠道趋势卡片；`rss-source-curator` 用于源质量治理和 registry 维护；`subscription-research-agent` 用于围绕订阅来源编排 evidence brief。
 
 项目当前不是完整 RSS 阅读器，也不是独立 SaaS 产品或托管研究平台。它更接近一个可被不同 agent/runtime 包装调用的可移植 RSS 与订阅研究工作流组件。
 
@@ -16,6 +16,7 @@
 - Phase 2 已引入第二个正式 Skill：`rss-source-curator`。
 - `v0.2.0` 的 RSS Skills suite 范围已并入 `v0.3.0`。
 - `rss-ai-digest` 继续负责内容发现和日报。
+- `public-trend-radar` 负责公开渠道趋势发现，不负责日报正文、源治理或发布。
 - `rss-source-curator` 负责源质量治理和 registry 维护。
 
 ### Local-first Subscription Research Agent
@@ -36,7 +37,7 @@
 
 ### 项目与 Skill 基础
 
-- 已建立标准 Skill 结构：`skills/rss-ai-digest/SKILL.md`、`skills/rss-source-curator/SKILL.md` 和 `skills/subscription-research-agent/SKILL.md`。
+- 已建立标准 Skill 结构：`skills/rss-ai-digest/SKILL.md`、`skills/public-trend-radar/SKILL.md`、`skills/rss-source-curator/SKILL.md` 和 `skills/subscription-research-agent/SKILL.md`。
 - 已提供本地研究 CLI：`packages/research-cli/`，其中 RSS ingest 和直接 RSS 命令统一使用 Node runtime。
 - 已提供 README、CHANGELOG、AGENTS.md、CLAUDE.md 和设计/验证文档。
 - 已保持核心行为与具体运行时解耦，不依赖 Codex、Claude 或特定插件市场。
@@ -65,6 +66,7 @@
 - `subscription-research rss curate-sources`：生成可审阅源治理动作和 registry patch 建议，不直接修改源文件。
 - `apply-source-patch`：对已审阅的源治理 patch 做 dry-run 或写入新的 registry 文件。
 - `subscription-research source-health`：汇总多次 ingest 形成的历史源健康观察。
+- `subscription-research trend scan`：公开趋势雷达 MVP，用于从公开 URL 列表、HN item JSON 和 GitHub release JSON 生成 profile-aware trend cards。
 - `subscription-research content fetch`：对 research workspace 中已归档文章进行可选正文抓取、readability extraction、SQLite 写入和本地 cache。
 - `subscription-research rss discover`：从网页 HTML 中发现 RSS/Atom alternate feed 候选。
 
@@ -170,8 +172,9 @@
   - source evaluation 和 source patch。
   - content enrichment 和 readability extraction。
   - feed discovery、feed validation 和 discovery patch 合入。
+  - public trend profiles、public signal adapters、trend clustering、trend scoring 和 trend cards。
   - entity extraction、article attribution、evidence brief 和 daily-report guidance。
-- 当前 Node research CLI 测试数量：49 个。
+- 当前 Node research CLI 测试数量：59 个。
 - Skill validator 已通过。
 - 已有 post-optimization validation 与 P1 daily-report regression 文档记录真实性能和输出表现。
 - P1 本地研究日报主线已完成 3 次真实回归，并验证多次 source-health observations。
@@ -344,10 +347,10 @@ RSS digest 侧仍使用 JSON 文件作为轻量状态层。`subscription-researc
 
 优先级最高的方向：
 
-1. 优先完成多源信息摄取 foundation：定义 source ingest adapter contract，并将当前 RSS ingest 包装为第一个 adapter。
-2. 增加一个低风险第二来源，例如 `file` 或 `web-url-list`，验证 normalized evidence record、SQLite archive 和 evidence brief 管道。
-3. 完成普通日报 archive-first 查询，解决每次临时全量抓取导致的慢体验。
-4. 继续 feed discovery：候选源主题推断、初始评分、category/tag 生成和 OPML 输出。
+1. 继续完善 `public-trend-radar`：当前 MVP 已支持 profile-aware trend cards 和 `web-url-list` 输入，下一步补 GitHub/HN/arXiv 或 Hugging Face papers。
+2. 强化两个 profile：`ai-tech` 和 `product-business` 继续共享趋势聚类、评分和输出结构，但分开渠道权重和判断标准。
+3. 首批公开渠道继续控制在 GitHub、HN、web-url-list、arXiv 或 Hugging Face papers；暂缓私有渠道和高权限社交渠道。
+4. 完成普通日报 archive-first 查询，解决每次临时全量抓取导致的慢体验，并允许日报消费 trend cards。
 5. 后续再规划 `rss-digest-publisher`、通知 adapter、插件包装和多 runtime 分发。
 
 如果目标是继续扩展 RSS Skills 套件，应优先保持共享数据结构、CLI 契约和文档入口一致。

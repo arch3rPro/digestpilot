@@ -1,6 +1,6 @@
 # RSS Agent Skills 功能汇总与迭代路线图
 
-日期：2026-05-22
+日期：2026-05-27
 
 代码基线：`main`
 
@@ -9,6 +9,7 @@
 `rss-agent-skills` 已经从单一 RSS digest Skill 演进为一组面向通用 Agent 生态的订阅信息处理能力：
 
 - `rss-ai-digest`：负责 RSS/Atom/OPML 导入、内容筛选、评分、去重、日报和重点资讯快速输出。
+- `public-trend-radar`：负责公开渠道趋势发现，生成 `ai-tech` 和 `product-business` profiles 下的 trend cards。
 - `rss-source-curator`：负责订阅源健康评估、源治理建议和 registry 维护。
 - `subscription-research-agent`：负责围绕订阅来源组织本地优先深度研究工作流，生成 evidence brief，并指导 Agent 写作研究日报或研究 memo。
 - `packages/research-cli`：提供本地 research workspace、SQLite 持久化、RSS evidence ingest、实体抽取和 evidence brief 生成。
@@ -97,7 +98,7 @@
 
 ### 5. 测试、验证与发布基础
 
-- Node research CLI 测试已覆盖 workspace 初始化、RSS ingest、direct RSS commands、OPML/RSS/Atom fixtures、筛选、评分、去重、health、源评估、source patch、entity extraction、evidence brief 和 source health。
+- Node research CLI 测试已覆盖 workspace 初始化、RSS ingest、direct RSS commands、OPML/RSS/Atom fixtures、筛选、评分、去重、health、源评估、source patch、public trend profiles、public signal adapters、trend cards、entity extraction、evidence brief 和 source health。
 - 已完成真实 RSS 全量回归验证，92-feed digest 优化后约 14-16 秒完成。
 - 已通过 Skill validator 验证 3 个 Skill 包。
 - 已发布 `v0.1.0` 稳定检查点。
@@ -107,9 +108,10 @@
 
 ### 当前实现快照
 
-截至 2026-05-22，仓库已形成 3 个正式 Skills 和 1 个共享 Node/TypeScript runtime：
+截至 2026-05-27，仓库已形成 4 个正式 Skills 和 1 个共享 Node/TypeScript runtime：
 
 - `rss-ai-digest`：普通 RSS/Atom 日报、重点资讯、快速查询、OPML 导入、筛选、评分、去重和 `check-new` 监控入口。
+- `public-trend-radar`：公开渠道趋势发现，输出 `ai-tech` 和 `product-business` profiles 下的 trend cards。
 - `rss-source-curator`：源质量评估、健康历史、失败源治理、registry patch 生成和人工审阅后应用。
 - `subscription-research-agent`：本地优先深度研究工作流，归档订阅 evidence，生成 evidence brief，由 Agent 写最终研究日报或 memo。
 - `packages/research-cli`：共享 deterministic runtime，当前承载 RSS runtime、SQLite workspace、正文 enrichment、feed discovery、source health 和 evidence brief。
@@ -121,6 +123,7 @@
 - `subscription-research rss discover --input candidate-pages.md`：从 URL/Markdown 列表批量发现源并跨页面去重。
 - `subscription-research rss discover --validate`：校验候选 feed 可解析性，并生成可审阅 `registry_patches`。
 - `subscription-research rss apply-source-patch`：可将审阅后的 discovery patch 新增到 registry，仍默认 dry-run。
+- `subscription-research trend scan`：从公开 URL 列表、HN item JSON 和 GitHub release JSON 生成 profile-aware trend cards。
 
 已经具备：
 
@@ -161,27 +164,31 @@
 
 ## 后续迭代任务
 
-### P2：多源信息摄取（当前优先）
+### P2：公开趋势雷达（当前优先）
 
-目标：把项目从 RSS-only ingestion 扩展为多源订阅信息摄取底座，同时继续保持本地优先、平台中立和 Agent 可调用。
+目标：把项目从 RSS-only 信息源扩展为公开渠道趋势发现模块，作为信息流 Agent 的上游感知层。它负责发现趋势、聚合证据和输出 trend cards；日报只是它的下游消费者之一。
 
 扩展方向：
 
-- 借鉴插件分类、metadata-driven registration、Agent interop、人工审阅优先和本地 archive 中心化等通用设计思路，但不把外部参考项目作为公开路线图依赖。
+- 使用独立模块或 Skill：`public-trend-radar`。
+- 采用一个共享趋势雷达框架，但用 profile 分开判断逻辑：`ai-tech` 和 `product-business`。
+- 渠道接入以公开渠道为边界，不纳入私有群聊、邮箱、浏览器历史或需要复杂账号权限的来源。
+- 输出趋势卡片，而不是直接生成日报正文。
 
 优先范围：
 
-- 定义 Node CLI 内部的 `SourceIngestAdapter` 或等价接口。
-- 将当前 RSS ingest 包装为第一个 adapter，而不是重写 RSS runtime。
-- 建立跨来源 normalized evidence record，支持 RSS、Web、GitHub、paper、newsletter、file 等后续来源进入同一 archive/evidence brief 管道。
-- 保持 `subscription-research ingest rss` 兼容，同时预留 `subscription-research ingest <source-type> --config ...` 的通用形态。
-- 优先补一个低风险第二来源，例如 `file` 或 `web-url-list`，用于验证多源 contract，测试不依赖网络。
+- `ai-tech` profile：优先 GitHub、HN、arXiv/Hugging Face papers、官方工程博客和 package registry。
+- `product-business` profile：优先官方 changelog、launch URL list、HN、公司博客、产品目录和公开定价/docs 页面。
+- 定义 trend card contract：趋势标题、profile、类型、分数、置信度、为什么升温、primary evidence、community signals、关联实体和 downstream 建议。
+- 建立趋势评分：freshness、velocity、cross-source、authority、discussion、relevance、novelty 和 evidence depth。
+- 保持趋势 discovery 与日报、源治理、发布器分离。
+- 已新增 `subscription-research trend scan` 的 MVP，支持 `ai-tech` 和 `product-business` profiles，并可从公开 URL 列表、HN item JSON 和 GitHub release JSON 生成 trend cards。
 
 暂缓范围：
 
+- Twitter/X、LinkedIn、私有 Slack/Discord/飞书群、邮箱和浏览器历史。
 - 发布器和通知 adapter。
 - Web UI、后台 daemon 和复杂 scheduler。
-- 需要外部账号或敏感 token 的 social/search API adapter。
 - 插件市场 packaging。
 
 ### P0：版本与发布卫生（已完成）
@@ -317,10 +324,10 @@
 
 建议按以下顺序推进：
 
-1. 优先完成 P2 多源信息摄取 foundation：定义 adapter contract，并把当前 RSS ingest 包装为第一个 adapter。
-2. 增加一个低风险第二来源，例如 `file` 或 `web-url-list`，验证 normalized evidence record 和 archive 写入。
-3. 回到 P1 普通日报查询性能优化，把常用日报改成 archive-first。
-4. 继续 P2 feed discovery：增加候选源主题推断、初始评分、category/tag 生成和 OPML 输出。
+1. 继续 P2 `public-trend-radar`：在已有 `trend scan` 和 `web-url-list` MVP 基础上补 GitHub/HN/arXiv 或 Hugging Face papers。
+2. 继续强化两个 profile：`ai-tech` 和 `product-business` 共享趋势聚类、评分和输出结构，但保持渠道权重和判断标准分离。
+3. 首批公开渠道继续控制在 GitHub/HN/web-url-list/arXiv 或 Hugging Face papers 这类低风险来源。
+4. 回到 P1 普通日报查询性能优化，把常用日报改成 archive-first，并允许日报消费 trend cards 作为一个信息源。
 5. 暂缓 publisher、通知 adapter 和插件市场 packaging，直到多源 ingestion 数据契约更稳定。
 
-研究日报与源治理 P1 已完成。P2 正文 enrichment 与 feed discovery 已完成第一阶段；当前优先级切换为多源信息摄取 foundation，普通日报性能 P1 随后继续收尾。
+研究日报与源治理 P1 已完成。P2 正文 enrichment 与 feed discovery 已完成第一阶段；当前优先级切换为公开趋势雷达，普通日报性能 P1 随后继续收尾。
