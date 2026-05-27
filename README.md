@@ -4,7 +4,7 @@
 
 [中文说明](./README.zh-CN.md) | [Agent Examples](./examples/README.md) | [Changelog](./CHANGELOG.md) | [v0.3.0](./docs/releases/v0.3.0.md)
 
-Portable RSS Skills and local-first subscription research workflows for agent ecosystems.
+Portable RSS Skills, public trend discovery, and local-first subscription research workflows for agent ecosystems.
 
 This repository is designed for agents, not as a standalone RSS app. An agent should load the relevant `SKILL.md`, use the bundled references and deterministic CLI where needed, then write the user-facing digest, source review, or research report from the prepared evidence.
 
@@ -14,7 +14,7 @@ This repository is designed for agents, not as a standalone RSS app. An agent sh
 | --- | --- | --- | --- |
 | "Prepare an AI/technical RSS digest." | [`rss-ai-digest`](./skills/rss-ai-digest/SKILL.md) | Import OPML, fetch RSS/Atom, filter, score, dedupe. | Quick Markdown or JSON digest focused on article content. |
 | "Monitor new posts for a topic." | [`rss-ai-digest`](./skills/rss-ai-digest/SKILL.md) | Run `check-new` with explicit state paths. | New matching entries, with seen-state updated according to policy. |
-| "Find public AI or product trends." | [`public-trend-radar`](./skills/public-trend-radar/SKILL.md) | Scan public channels and generate trend cards. | Reviewable trend cards with evidence and downstream suggestions. |
+| "Find public AI or product trends." | [`public-trend-radar`](./skills/public-trend-radar/SKILL.md) | Fetch public signals, then generate trend cards. | Reviewable trend cards with evidence and downstream suggestions. |
 | "Review or clean up my sources." | [`rss-source-curator`](./skills/rss-source-curator/SKILL.md) | Evaluate source health and generate reviewable patches. | Keep/watch/disable/remove recommendations. |
 | "Create a subscription-backed research memo." | [`subscription-research-agent`](./skills/subscription-research-agent/SKILL.md) | Ingest evidence into a local workspace and generate an evidence brief. | Agent-written research synthesis with evidence, caveats, and follow-up questions. |
 
@@ -54,6 +54,19 @@ Primary references:
 
 Use for public-channel trend discovery. It produces trend cards for `ai-tech` and `product-business` profiles and keeps trend discovery separate from daily reports, source governance, publishing, and final research synthesis.
 
+Typical flow:
+
+```bash
+subscription-research trend fetch-public --profile ai-tech --output-dir research-workspace/public-trend-radar/latest
+subscription-research trend scan \
+  --profile ai-tech \
+  --web-url-list research-workspace/public-trend-radar/latest/web-url-list.md \
+  --hacker-news-items research-workspace/public-trend-radar/latest/hn-items.json \
+  --github-releases research-workspace/public-trend-radar/latest/github-releases.json \
+  --format markdown \
+  --output research-workspace/public-trend-radar/latest/trend-cards.md
+```
+
 ### subscription-research-agent
 
 Use for deep research workflows around subscription evidence. Deterministic tooling prepares workspace data and evidence briefs; the agent writes the final memo or research synthesis. Ordinary daily digests should stay in `rss-ai-digest`.
@@ -71,7 +84,7 @@ The shared runtime is the Node/TypeScript `subscription-research` CLI in [`packa
 Common commands by responsibility:
 
 - Digest and monitoring: `subscription-research rss import-opml`, `subscription-research rss digest`, `subscription-research rss check-new`
-- Public trend radar: `subscription-research trend scan`
+- Public trend radar: `subscription-research trend fetch-public`, `subscription-research trend scan`
 - Feed discovery: `subscription-research rss discover`
 - Source maintenance: `subscription-research rss evaluate-sources`, `subscription-research rss curate-sources`, `subscription-research rss apply-source-patch`, `subscription-research source-health`
 - Deep research: `subscription-research init`, `subscription-research ingest rss`, `subscription-research content fetch`, `subscription-research brief evidence`

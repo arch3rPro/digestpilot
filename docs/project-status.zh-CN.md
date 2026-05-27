@@ -66,7 +66,8 @@
 - `subscription-research rss curate-sources`：生成可审阅源治理动作和 registry patch 建议，不直接修改源文件。
 - `apply-source-patch`：对已审阅的源治理 patch 做 dry-run 或写入新的 registry 文件。
 - `subscription-research source-health`：汇总多次 ingest 形成的历史源健康观察。
-- `subscription-research trend scan`：公开趋势雷达 MVP，用于从公开 URL 列表、HN item JSON 和 GitHub release JSON 生成 profile-aware trend cards。
+- `subscription-research trend fetch-public`：公开趋势输入采集，用于从 HN 和 GitHub releases 生成本地输入文件。
+- `subscription-research trend scan`：公开趋势雷达 MVP，用于从公开 URL 列表、HN item JSON 和 GitHub release JSON 生成 profile-aware trend cards，并支持 `--output` 直接落盘。
 - `subscription-research content fetch`：对 research workspace 中已归档文章进行可选正文抓取、readability extraction、SQLite 写入和本地 cache。
 - `subscription-research rss discover`：从网页 HTML 中发现 RSS/Atom alternate feed 候选。
 
@@ -172,9 +173,9 @@
   - source evaluation 和 source patch。
   - content enrichment 和 readability extraction。
   - feed discovery、feed validation 和 discovery patch 合入。
-  - public trend profiles、public signal adapters、trend clustering、trend scoring 和 trend cards。
+  - public trend profiles、public signal adapters、public trend fetch、trend clustering、trend scoring 和 trend cards。
   - entity extraction、article attribution、evidence brief 和 daily-report guidance。
-- 当前 Node research CLI 测试数量：59 个。
+- 当前 Node research CLI 测试数量：61 个。
 - Skill validator 已通过。
 - 已有 post-optimization validation 与 P1 daily-report regression 文档记录真实性能和输出表现。
 - P1 本地研究日报主线已完成 3 次真实回归，并验证多次 source-health observations。

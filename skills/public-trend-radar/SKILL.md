@@ -20,14 +20,25 @@ Use this skill to discover public-channel trend signals and produce trend cards.
 
 ## Core Command
 
-Generate trend cards from a public URL list:
+Fetch live public-channel inputs into a local workspace:
+
+```bash
+subscription-research trend fetch-public \
+  --profile ai-tech \
+  --output-dir research-workspace/public-trend-radar/latest
+```
+
+Generate trend cards from prepared public inputs:
 
 ```bash
 subscription-research trend scan \
   --profile ai-tech \
-  --web-url-list candidate-pages.md \
+  --web-url-list research-workspace/public-trend-radar/latest/web-url-list.md \
+  --hacker-news-items research-workspace/public-trend-radar/latest/hn-items.json \
+  --github-releases research-workspace/public-trend-radar/latest/github-releases.json \
   --window 7d \
-  --format markdown
+  --format markdown \
+  --output research-workspace/public-trend-radar/latest/trend-cards.md
 ```
 
 Generate product/business trend cards:
@@ -37,7 +48,8 @@ subscription-research trend scan \
   --profile product-business \
   --web-url-list launch-pages.md \
   --window 7d \
-  --format json
+  --format json \
+  --output trend-cards.json
 ```
 
 When fixture or exported public data is available, `trend scan` can also consume public Hacker News item JSON and GitHub release JSON:

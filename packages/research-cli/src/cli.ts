@@ -1,10 +1,11 @@
 #!/usr/bin/env node
-import { readFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import { Command } from "commander";
 import { createEvidenceBrief } from "./commands/brief-evidence.js";
 import { enrichArticleContent } from "./commands/enrich-content.js";
 import { ingestRss } from "./commands/ingest-rss.js";
 import { initWorkspace } from "./commands/init.js";
+import { fetchPublicTrendInputs } from "./commands/trend-fetch.js";
 import { scanPublicTrends } from "./commands/trend-scan.js";
 import {
   applySourceRegistryPatch,
@@ -135,6 +136,27 @@ program
 const trend = program.command("trend").description("Discover public trend signals and render trend cards.");
 
 trend
+  .command("fetch-public")
+  .description("Fetch public trend inputs from supported public channels.")
+  .requiredOption("--output-dir <path>", "Directory for generated public trend input files")
+  .option("--profile <profile>", "Trend profile: ai-tech or product-business", "ai-tech")
+  .option("--window-days <number>", "Lookback window in days", parseInteger, 7)
+  .option("--hacker-news-query <csv>", "Comma-separated Hacker News search queries")
+  .option("--github-repo <csv>", "Comma-separated public GitHub repositories")
+  .option("--limit <number>", "Maximum Hacker News items", parseInteger, 30)
+  .action(async (options: Record<string, string | number | boolean | undefined>) => {
+    const result = await fetchPublicTrendInputs({
+      outputDir: requiredString(options.outputDir, "output-dir"),
+      profile: optionalString(options.profile),
+      windowDays: optionalNumber(options.windowDays),
+      hackerNewsQueries: csvList(optionalString(options.hackerNewsQuery)),
+      githubRepos: csvList(optionalString(options.githubRepo)),
+      limit: optionalNumber(options.limit)
+    });
+    process.stdout.write(JSON.stringify(result, null, 2));
+  });
+
+trend
   .command("scan")
   .description("Scan public channels and generate trend cards.")
   .requiredOption("--profile <profile>", "Trend profile: ai-tech or product-business")
@@ -143,6 +165,7 @@ trend
   .option("--hacker-news-items <path>", "JSON file containing public Hacker News item records")
   .option("--github-releases <path>", "JSON file containing { repo, releases } from public GitHub releases")
   .option("--format <format>", "Output format: json or markdown", "json")
+  .option("--output <path>", "Optional output file path")
   .action(async (options: Record<string, string | number | boolean | undefined>) => {
     const result = await scanPublicTrends({
       profile: requiredString(options.profile, "profile"),
@@ -152,12 +175,19 @@ trend
       githubReleases: optionalString(options.githubReleases)
     });
     const format = optionalString(options.format) ?? "json";
+    const output = optionalString(options.output);
+    let rendered: string;
     if (format === "markdown") {
-      process.stdout.write(result.markdown);
+      rendered = result.markdown;
     } else if (format === "json") {
-      process.stdout.write(JSON.stringify(result, null, 2));
+      rendered = JSON.stringify(result, null, 2);
     } else {
       throw new Error(`Unsupported trend scan format: ${format}`);
+    }
+    if (output) {
+      await writeFile(output, rendered, "utf8");
+    } else {
+      process.stdout.write(rendered);
     }
   });
 
@@ -363,6 +393,14 @@ function optionalString(value: string | number | boolean | undefined): string | 
 
 function optionalNumber(value: string | number | boolean | undefined): number | undefined {
   return typeof value === "number" ? value : undefined;
+}
+
+function csvList(value: string | undefined): string[] | undefined {
+  if (!value) return undefined;
+  return value
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
 }
 
 function keywordMode(value: string): "any" | "all" {

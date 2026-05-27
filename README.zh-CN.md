@@ -4,7 +4,7 @@
 
 [English README](./README.md) | [Agent 示例](./examples/README.md) | [更新日志](./CHANGELOG.md) | [v0.3.0](./docs/releases/v0.3.0.md)
 
-面向 Agent 生态的可移植 RSS Skills 与本地优先订阅研究工作流。
+面向 Agent 生态的可移植 RSS Skills、公开趋势发现与本地优先订阅研究工作流。
 
 这个仓库不是独立 RSS 应用，而是给 Agent 使用的 Skill 套件。Agent 应先加载对应的 `SKILL.md`，按需读取 references，用确定性 CLI 准备内容、evidence 和状态，最后由 Agent 写出用户需要的 digest、源评估或研究综合。
 
@@ -14,7 +14,7 @@
 | --- | --- | --- | --- |
 | “做一份 AI/技术 RSS 日报。” | [`rss-ai-digest`](./skills/rss-ai-digest/SKILL.md) | 导入 OPML、抓取 RSS/Atom、筛选、评分、去重。 | 聚焦资讯内容的快速 Markdown 或 JSON digest。 |
 | “监控某个主题的新文章。” | [`rss-ai-digest`](./skills/rss-ai-digest/SKILL.md) | 用明确的 state 路径运行 `check-new`。 | 新增匹配条目，并按策略更新 seen-state。 |
-| “发现公开 AI 或产品趋势。” | [`public-trend-radar`](./skills/public-trend-radar/SKILL.md) | 扫描公开渠道并生成 trend cards。 | 带 evidence 和下游建议的可审阅趋势卡片。 |
+| “发现公开 AI 或产品趋势。” | [`public-trend-radar`](./skills/public-trend-radar/SKILL.md) | 抓取公开信号，再生成 trend cards。 | 带 evidence 和下游建议的可审阅趋势卡片。 |
 | “检查或清理订阅源。” | [`rss-source-curator`](./skills/rss-source-curator/SKILL.md) | 评估源健康并生成可审阅 patch。 | keep/watch/disable/remove 建议。 |
 | “基于订阅信息写深度研究 memo。” | [`subscription-research-agent`](./skills/subscription-research-agent/SKILL.md) | 将 evidence 归档到本地 workspace，并生成 evidence brief。 | 带证据、边界和后续问题的 Agent 研究综合。 |
 
@@ -54,6 +54,19 @@
 
 用于公开渠道趋势发现。它为 `ai-tech` 和 `product-business` profiles 生成 trend cards，并让趋势发现与日报、源治理、发布器和最终研究综合保持分离。
 
+典型流程：
+
+```bash
+subscription-research trend fetch-public --profile ai-tech --output-dir research-workspace/public-trend-radar/latest
+subscription-research trend scan \
+  --profile ai-tech \
+  --web-url-list research-workspace/public-trend-radar/latest/web-url-list.md \
+  --hacker-news-items research-workspace/public-trend-radar/latest/hn-items.json \
+  --github-releases research-workspace/public-trend-radar/latest/github-releases.json \
+  --format markdown \
+  --output research-workspace/public-trend-radar/latest/trend-cards.md
+```
+
 ### subscription-research-agent
 
 用于围绕订阅 evidence 的深度研究工作流。确定性工具准备 workspace 数据和 evidence brief；最终 memo 或研究综合由 Agent 写作。普通日报应留在 `rss-ai-digest`。
@@ -71,7 +84,7 @@
 按职责划分的常用命令：
 
 - Digest 与监控：`subscription-research rss import-opml`、`subscription-research rss digest`、`subscription-research rss check-new`
-- 公开趋势雷达：`subscription-research trend scan`
+- 公开趋势雷达：`subscription-research trend fetch-public`、`subscription-research trend scan`
 - Feed discovery：`subscription-research rss discover`
 - 源维护：`subscription-research rss evaluate-sources`、`subscription-research rss curate-sources`、`subscription-research rss apply-source-patch`、`subscription-research source-health`
 - 深度研究：`subscription-research init`、`subscription-research ingest rss`、`subscription-research content fetch`、`subscription-research brief evidence`

@@ -1,4 +1,5 @@
 import { readFile } from "node:fs/promises";
+import { basename } from "node:path";
 import { parseGithubReleaseSignals, type GithubReleaseItem } from "../trends/adapters/github-releases.js";
 import { parseHackerNewsSignals, type HackerNewsItem } from "../trends/adapters/hacker-news.js";
 import { parseWebUrlListSignals } from "../trends/adapters/web-url-list.js";
@@ -12,6 +13,7 @@ export interface ScanPublicTrendsOptions {
   profile: string;
   window?: string;
   webUrlList?: string;
+  webUrlListSource?: string;
   hackerNewsItems?: string;
   githubReleases?: string;
   now?: Date;
@@ -36,7 +38,8 @@ export async function scanPublicTrends(options: ScanPublicTrendsOptions): Promis
         text: await readFile(options.webUrlList, "utf8"),
         profile,
         now,
-        source: options.webUrlList
+        source: options.webUrlList,
+        sourceLabel: options.webUrlListSource ?? basename(options.webUrlList)
       })
     );
   }
@@ -49,17 +52,15 @@ export async function scanPublicTrends(options: ScanPublicTrendsOptions): Promis
     );
   }
   if (options.githubReleases) {
-    const payload = JSON.parse(await readFile(options.githubReleases, "utf8")) as {
-      repo?: string;
-      releases?: GithubReleaseItem[];
-    };
-    signals.push(
-      ...parseGithubReleaseSignals({
-        repo: payload.repo || "unknown/repo",
-        releases: payload.releases ?? [],
-        profile
-      })
-    );
+    for (const payload of parseGithubReleasePayloads(JSON.parse(await readFile(options.githubReleases, "utf8")))) {
+      signals.push(
+        ...parseGithubReleaseSignals({
+          repo: payload.repo || "unknown/repo",
+          releases: payload.releases ?? [],
+          profile
+        })
+      );
+    }
   }
 
   const candidates = clusterTrendSignals(signals);
@@ -70,4 +71,12 @@ export async function scanPublicTrends(options: ScanPublicTrendsOptions): Promis
     cards,
     markdown: renderTrendCardsMarkdown(cards)
   };
+}
+
+function parseGithubReleasePayloads(payload: unknown): Array<{ repo?: string; releases?: GithubReleaseItem[] }> {
+  if (Array.isArray(payload)) return payload as Array<{ repo?: string; releases?: GithubReleaseItem[] }>;
+  if (payload && typeof payload === "object" && Array.isArray((payload as { repos?: unknown }).repos)) {
+    return (payload as { repos: Array<{ repo?: string; releases?: GithubReleaseItem[] }> }).repos;
+  }
+  return [payload as { repo?: string; releases?: GithubReleaseItem[] }];
 }

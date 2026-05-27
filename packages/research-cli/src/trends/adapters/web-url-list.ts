@@ -6,7 +6,9 @@ export function parseWebUrlListSignals(options: {
   profile: TrendProfile;
   now: Date;
   source: string;
+  sourceLabel?: string;
 }): PublicTrendSignal[] {
+  const source = options.sourceLabel ?? options.source;
   return extractDiscoveryUrls(options.text).map((url, index) => ({
     id: `web-url-list:${options.profile.id}:${index}:${url}`,
     adapter: "web-url-list",
@@ -14,9 +16,9 @@ export function parseWebUrlListSignals(options: {
     type: options.profile.id === "product-business" ? "product" : "topic",
     title: url,
     url,
-    source: options.source,
+    source,
     published_at: options.now.toISOString(),
-    summary: `Public URL candidate from ${options.source}`,
+    summary: `Public URL candidate from ${source}`,
     entities: [],
     metrics: {},
     authority: "secondary",

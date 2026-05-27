@@ -98,7 +98,7 @@
 
 ### 5. 测试、验证与发布基础
 
-- Node research CLI 测试已覆盖 workspace 初始化、RSS ingest、direct RSS commands、OPML/RSS/Atom fixtures、筛选、评分、去重、health、源评估、source patch、public trend profiles、public signal adapters、trend cards、entity extraction、evidence brief 和 source health。
+- Node research CLI 测试已覆盖 workspace 初始化、RSS ingest、direct RSS commands、OPML/RSS/Atom fixtures、筛选、评分、去重、health、源评估、source patch、public trend profiles、public signal adapters、public trend fetch、trend cards、entity extraction、evidence brief 和 source health。
 - 已完成真实 RSS 全量回归验证，92-feed digest 优化后约 14-16 秒完成。
 - 已通过 Skill validator 验证 3 个 Skill 包。
 - 已发布 `v0.1.0` 稳定检查点。
@@ -123,6 +123,7 @@
 - `subscription-research rss discover --input candidate-pages.md`：从 URL/Markdown 列表批量发现源并跨页面去重。
 - `subscription-research rss discover --validate`：校验候选 feed 可解析性，并生成可审阅 `registry_patches`。
 - `subscription-research rss apply-source-patch`：可将审阅后的 discovery patch 新增到 registry，仍默认 dry-run。
+- `subscription-research trend fetch-public`：从 HN 和 GitHub releases 采集真实公开趋势输入。
 - `subscription-research trend scan`：从公开 URL 列表、HN item JSON 和 GitHub release JSON 生成 profile-aware trend cards。
 
 已经具备：
@@ -182,7 +183,7 @@
 - 定义 trend card contract：趋势标题、profile、类型、分数、置信度、为什么升温、primary evidence、community signals、关联实体和 downstream 建议。
 - 建立趋势评分：freshness、velocity、cross-source、authority、discussion、relevance、novelty 和 evidence depth。
 - 保持趋势 discovery 与日报、源治理、发布器分离。
-- 已新增 `subscription-research trend scan` 的 MVP，支持 `ai-tech` 和 `product-business` profiles，并可从公开 URL 列表、HN item JSON 和 GitHub release JSON 生成 trend cards。
+- 已新增 `subscription-research trend fetch-public` 和 `trend scan` 的 MVP，支持 `ai-tech` 和 `product-business` profiles，并可从 HN、GitHub releases、公开 URL 列表生成 trend cards。
 
 暂缓范围：
 
@@ -324,7 +325,7 @@
 
 建议按以下顺序推进：
 
-1. 继续 P2 `public-trend-radar`：在已有 `trend scan` 和 `web-url-list` MVP 基础上补 GitHub/HN/arXiv 或 Hugging Face papers。
+1. 继续 P2 `public-trend-radar`：在已有 `fetch-public` 和 `trend scan` 基础上补 arXiv、Hugging Face papers 或更多 GitHub repo presets。
 2. 继续强化两个 profile：`ai-tech` 和 `product-business` 共享趋势聚类、评分和输出结构，但保持渠道权重和判断标准分离。
 3. 首批公开渠道继续控制在 GitHub/HN/web-url-list/arXiv 或 Hugging Face papers 这类低风险来源。
 4. 回到 P1 普通日报查询性能优化，把常用日报改成 archive-first，并允许日报消费 trend cards 作为一个信息源。

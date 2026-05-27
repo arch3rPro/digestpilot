@@ -9,10 +9,12 @@ All notable project changes are recorded here.
 - Added optional full-text article enrichment with `subscription-research content fetch`, `article_content` SQLite storage, local `data/content-cache/`, and readability extraction via `@mozilla/readability` and `jsdom`.
 - Added RSS feed discovery with `subscription-research rss discover --url ...` and `--input ...` for RSS/Atom alternate link detection, optional feed validation, URL/Markdown candidate lists, and reviewable registry patch candidates that can be applied through `apply-source-patch`.
 - Added the first `public-trend-radar` Skill and CLI slice with profile-aware trend cards from public URL lists, Hacker News item JSON, and GitHub release JSON.
+- Added `subscription-research trend fetch-public` for real public-channel input collection, `trend scan --output` for direct artifact writing, multi-repo GitHub release payload support, and safer web URL source labels in trend-card JSON.
 
 ### Changed
 
 - Reframed README files around Agent routing and Skill workflow contracts instead of developer-first CLI usage.
+- Updated README files with the real public trend workflow: fetch public inputs first, then scan them into Markdown or JSON trend-card artifacts.
 - Clarified Skill boundaries: `rss-ai-digest` owns quick daily news and key information, `rss-source-curator` owns source maintenance, and `subscription-research-agent` owns deep research synthesis.
 - Archived the current implemented Skills, remaining gaps, and optimization priorities in the Chinese roadmap and status documents.
 - Shifted the near-term roadmap priority to a public-channel trend radar with separate AI/technical and product/business profiles.

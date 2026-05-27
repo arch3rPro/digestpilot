@@ -21,6 +21,57 @@ test("scanPublicTrends returns markdown and json trend cards", async () => {
     assert.equal(result.profile, "product-business");
     assert.ok(result.cards.length >= 1);
     assert.match(result.markdown, /Public Trend Radar/);
+    assert.equal(result.cards[0].primary_evidence[0].source, "urls.md");
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("scanPublicTrends accepts multi-repo GitHub release payloads", async () => {
+  const root = await mkdtemp(join(tmpdir(), "public-trend-radar-"));
+  try {
+    const releases = join(root, "github-releases.json");
+    await writeFile(
+      releases,
+      JSON.stringify({
+        repos: [
+          {
+            repo: "example/agent-runtime",
+            releases: [
+              {
+                html_url: "https://github.com/example/agent-runtime/releases/tag/v1",
+                tag_name: "v1",
+                name: "Agent workflow runtime v1",
+                published_at: "2026-05-27T00:00:00Z",
+                body: "Graph workflow execution"
+              }
+            ]
+          },
+          {
+            repo: "example/eval-suite",
+            releases: [
+              {
+                html_url: "https://github.com/example/eval-suite/releases/tag/v2",
+                tag_name: "v2",
+                name: "AI agent eval suite v2",
+                published_at: "2026-05-27T00:00:00Z",
+                body: "Adds coding agent benchmark traces"
+              }
+            ]
+          }
+        ]
+      }),
+      "utf8"
+    );
+
+    const result = await scanPublicTrends({
+      profile: "ai-tech",
+      githubReleases: releases,
+      now: new Date("2026-05-27T00:00:00Z")
+    });
+
+    assert.ok(result.cards.some((card) => card.related_entities.includes("example/agent-runtime")));
+    assert.ok(result.cards.some((card) => card.related_entities.includes("example/eval-suite")));
   } finally {
     await rm(root, { recursive: true, force: true });
   }
