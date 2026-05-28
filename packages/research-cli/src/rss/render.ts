@@ -18,14 +18,11 @@ export function renderMarkdownDigest(entries: RssEntry[], title = "RSS AI Digest
 
 export function renderMarkdownDigestResult(result: NodeDigestEnvelope, title = "RSS AI Digest"): string {
   const entries = sortScoredEntries(result.entries ?? []);
-  const failures = result.failures ?? [];
-  const stats = result.stats ?? {};
   const groups = groupEntriesByTopic(entries);
   const topTopics = TOPIC_ORDER.filter((topic) => (groups[topic] ?? []).length > 0).slice(0, 3);
   const lines = [titleLine(title), "", "### Overview", ""];
   lines.push(`- Reported entries: ${entries.length}`);
   lines.push(`- Top topics: ${topTopics.length ? topTopics.join(", ") : "None"}`);
-  lines.push(`- Failed feeds: ${failures.length}`);
   lines.push("", "### Top Picks", "");
   if (entries.length > 0) {
     entries.slice(0, 5).forEach((entry, index) => lines.push(...renderMarkdownEntryLines(index + 1, entry)));
@@ -40,24 +37,6 @@ export function renderMarkdownDigestResult(result: NodeDigestEnvelope, title = "
     topicEntries.forEach((entry, index) => lines.push(...renderMarkdownEntryLines(index + 1, entry)));
   }
 
-  if (failures.length > 0) {
-    lines.push("", "### Failed feeds", "");
-    for (const failure of failures) {
-      const label = String(failure.title || failure.id || "unknown");
-      const url = failure.url ? ` (${failure.url})` : "";
-      lines.push(`- ${label}${url}: ${failure.error ?? ""}`);
-    }
-  }
-  if (Object.keys(stats).length > 0) {
-    lines.push(
-      "",
-      "### Run stats",
-      "",
-      `- Feeds: ${stats.feeds_success ?? 0} succeeded, ${stats.feeds_failed ?? 0} failed, ${stats.feeds_enabled ?? stats.feeds_total ?? 0} enabled`,
-      `- Entries: ${stats.entries_fetched ?? 0} fetched, ${stats.entries_filtered ?? 0} filtered, ${stats.entries_reported ?? 0} reported`,
-      `- Seen state: ${stats.entries_marked_seen ?? 0} entries marked seen`
-    );
-  }
   return `${lines.join("\n")}\n`;
 }
 

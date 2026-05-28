@@ -70,7 +70,7 @@
 - `--health` 持久化源健康状态。
 - 单次运行失败不会中断整体 digest。
 - JSON digest 输出 `health`、`failures`、`stats` 和 `generated_at`。
-- Markdown digest 输出 run stats 和 failed feeds。
+- Markdown digest 保持内容优先，不输出 run stats、failed feeds 或源健康维护细节；这些信息保留在 JSON 和源维护工作流中。
 - `evaluate-sources` 输出源状态、分数、建议、失败次数、成功次数和最后错误。
 - 缺少 health 的源会被视为 `unknown/watch`，不会被误判为低质量源。
 - `curate-sources` 生成 `keep`、`watch`、`lower-priority`、`disable`、`remove` 等可审阅动作。

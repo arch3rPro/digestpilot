@@ -258,4 +258,4 @@ The command does not overwrite the input registry unless the caller explicitly u
 
 Each JSON entry includes `topic` for downstream routing. Topic values are deterministic: `AI / LLM`, `Engineering`, `Security`, `Product / Business`, or `Other`.
 
-Markdown digest output includes run stats and a `Failed feeds` section when any feed fails during the current run. Digest Markdown groups reported entries by deterministic topic.
+Markdown digest output is content-focused and groups reported entries by deterministic topic. It does not include failed-feed lists, run stats, or source-health maintenance details; use JSON output or `rss-source-curator` workflows when an agent needs operational source diagnostics.

@@ -117,7 +117,7 @@
 - `digest` 和 `check-new` 支持 `--health` 持久化源健康状态。
 - health 会合并历史记录，而不是每次只保留单次结果。
 - JSON digest 输出包含 `health`、`failures`、`stats` 和 `generated_at`。
-- Markdown digest 输出包含 run stats 和 failed feeds。
+- Markdown digest 保持内容优先，不输出 run stats、failed feeds 或源健康维护细节。
 - `evaluate-sources` 已支持输出：
   - `status`
   - `score`
@@ -127,7 +127,7 @@
   - `success_count`
   - `last_error`
 - 缺少 health 的源会被视为 `unknown/watch`，不会被误判为低质量。
-- 失败源会暴露错误信息，不再被隐藏成“没有匹配条目”。
+- 失败源错误信息保留在 JSON、health 文件和源维护命令中，不进入普通日报正文。
 - 可通过 `curate-sources` 生成 `keep`、`watch`、`lower-priority`、`disable`、`remove` 等源维护建议。
 - `curate-sources` 只输出建议，不会自动禁用或删除源。
 - 可通过 `apply-source-patch` 将已审阅 patch 安全应用到新的 registry 文件。
@@ -167,7 +167,7 @@
   - 评分逻辑。
   - seen-state 去重。
   - health 持久化和 source health 历史。
-  - failed feeds 输出。
+  - Markdown 日报隐藏 failed-feed 维护细节，JSON 仍保留 failures。
   - 并发抓取。
   - deterministic ordering。
   - source evaluation 和 source patch。

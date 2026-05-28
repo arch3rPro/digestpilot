@@ -27,6 +27,7 @@ All notable project changes are recorded here.
 - Refined `subscription-research source-health` recommendations with `lower_priority`, consecutive failure counts, recent success/failure timestamps, and maintenance priority.
 - Updated source governance and research workspace references for the expanded source-health history fields.
 - Added a P1 real RSS daily-report regression record covering three real local runs and updated daily report guidance to keep source maintenance details out of report bodies.
+- Kept Markdown RSS digests content-focused by removing failed-feed lists and run stats from the default daily digest renderer while preserving failures in JSON for automation and source maintenance.
 
 ## v0.3.0 - 2026-05-22
 
@@ -137,7 +138,7 @@ This checkpoint was not released as a separate tag. Its scope was carried forwar
 - Implemented Phase 1 observability for `rss-ai-digest`:
   - `digest` and `check-new` can persist source health with `--health`.
   - `digest --format json` now returns an envelope with `entries`, `failures`, `health`, `stats`, and `generated_at`.
-  - Markdown digests include run stats and failed feed reporting.
+  - Markdown digests expose grouped content output, while operational run stats and failed-feed details are kept in JSON/source-maintenance outputs.
   - Seen-state updates are configurable with `--mark-seen reported-only`, `--mark-seen all-filtered`, or `--mark-seen none`.
 
 ### Changed
