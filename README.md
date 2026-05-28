@@ -1,12 +1,12 @@
-# RSS Agent Skills
+# DigestPilot
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
 [中文说明](./README.zh-CN.md) | [Agent Examples](./examples/README.md) | [Changelog](./CHANGELOG.md) | [v0.3.0](./docs/releases/v0.3.0.md)
 
-Portable RSS Skills, public trend discovery, and local-first subscription research workflows for agent ecosystems.
+An AI agent toolkit that turns trusted information streams into daily briefs and research-ready evidence.
 
-This repository is designed for agents, not as a standalone RSS app. An agent should load the relevant `SKILL.md`, use the bundled references and deterministic CLI where needed, then write the user-facing digest, source review, or research report from the prepared evidence.
+DigestPilot is designed for agents, not as a standalone RSS app. An agent should load the relevant `SKILL.md`, use the bundled references and deterministic CLI where needed, then write the user-facing digest, source review, trend scan, or research report from the prepared evidence.
 
 ## Agent Routing
 
@@ -102,7 +102,7 @@ Current non-goals:
 - Fully automated source discovery and scoring without review.
 - Full-text analysis as a hard dependency for ordinary daily digests.
 - Deterministic CLI generation of final research conclusions.
-- Claude/OpenAI/OpenClaw plugin packaging.
+- Runtime-specific plugin packaging is planned as a distribution layer; core workflows should stay platform-neutral.
 
 ## Repository Map
 
@@ -126,6 +126,7 @@ Runtime outputs such as `feeds.json`, `seen.json`, `source-health.json`, `digest
 - [Agent examples](./examples/README.md)
 - [Project status](./docs/project-status.zh-CN.md)
 - [Implemented features and roadmap](./docs/iteration-roadmap.zh-CN.md)
+- [Plugin packaging roadmap](./docs/plugin-packaging-roadmap.md)
 - [Release checklist](./docs/release-checklist.md)
 - [Contributing](./CONTRIBUTING.md)
 - [Agent instructions](./AGENTS.md)

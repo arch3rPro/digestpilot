@@ -1,4 +1,4 @@
-# RSS Agent Skills 功能汇总与迭代路线图
+# DigestPilot 功能汇总与迭代路线图
 
 日期：2026-05-27
 
@@ -6,7 +6,7 @@
 
 ## 当前定位
 
-`rss-agent-skills` 已经从单一 RSS digest Skill 演进为一组面向通用 Agent 生态的订阅信息处理能力：
+`DigestPilot` 已经从单一 RSS digest Skill 演进为一组面向通用 Agent 生态的信息流聚合、日报生成与研究 evidence 能力：
 
 - `rss-ai-digest`：负责 RSS/Atom/OPML 导入、内容筛选、评分、去重、日报和重点资讯快速输出。
 - `public-trend-radar`：负责公开渠道趋势发现，生成 `ai-tech` 和 `product-business` profiles 下的 trend cards。
@@ -14,7 +14,7 @@
 - `subscription-research-agent`：负责围绕订阅来源组织本地优先深度研究工作流，生成 evidence brief，并指导 Agent 写作研究日报或研究 memo。
 - `packages/research-cli`：提供本地 research workspace、SQLite 持久化、RSS evidence ingest、实体抽取和 evidence brief 生成。
 
-当前项目不是完整 RSS 阅读器、托管研究平台、通知中心或插件市场包。它更像一套可被不同 Agent/runtime 包装调用的本地优先订阅研究底座。
+当前项目不是完整 RSS 阅读器、托管研究平台或通知中心。它更像一套可被不同 Agent/runtime 包装调用的本地优先信息流研究底座，后续会扩展为 Claude Code/Codex 插件分发形态。
 
 ## 已实现功能汇总
 
@@ -144,7 +144,7 @@
 - 将全文分析作为普通日报的强依赖。
 - deterministic CLI 自动生成最终研究日报。
 - 语义去重、相似文章合并、LLM rerank。
-- 插件市场 packaging、Claude plugin packaging 或多 runtime 安装器。
+- Claude Code/Codex 插件 packaging 和多 runtime 安装器尚未实现，但已进入分发层规划。
 - 多用户、多 workspace profile、长期趋势 dashboard 或 Web UI。
 
 ## 当前观察到的问题

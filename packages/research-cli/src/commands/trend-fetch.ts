@@ -203,13 +203,13 @@ async function fetchGithubReleases(options: {
 }
 
 async function fetchJson(url: string, fetcher: typeof fetch): Promise<unknown> {
-  const response = await fetcher(url, { headers: { "user-agent": "rss-agent-skills-public-trend-radar" } });
+  const response = await fetcher(url, { headers: { "user-agent": "DigestPilot/0.3 public-trend-radar" } });
   if (!response.ok) throw new Error(`${response.status} ${response.statusText}: ${url}`);
   return response.json();
 }
 
 async function fetchText(url: string, fetcher: typeof fetch): Promise<string> {
-  const response = await fetcher(url, { headers: { "user-agent": "rss-agent-skills-public-trend-radar" } });
+  const response = await fetcher(url, { headers: { "user-agent": "DigestPilot/0.3 public-trend-radar" } });
   if (!response.ok) throw new Error(`${response.status} ${response.statusText}: ${url}`);
   return response.text();
 }

@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-`rss-agent-skills` is a portable collection of RSS-related Skills, public trend discovery workflows, and local-first subscription research workflows for agent ecosystems. The current suite includes `rss-ai-digest` for AI/technical content discovery, `public-trend-radar` for public-channel trend cards, `rss-source-curator` for source governance and registry maintenance, and `subscription-research-agent` for research evidence orchestration.
+`DigestPilot` is an AI agent toolkit for turning trusted information streams into daily briefs and research-ready evidence. The current suite includes `rss-ai-digest` for AI/technical content discovery, `public-trend-radar` for public-channel trend cards, `rss-source-curator` for source governance and registry maintenance, and `subscription-research-agent` for research evidence orchestration.
 
 Keep the repository platform-neutral. Do not make core behavior depend on Codex, Claude, Cursor, OpenClaw, n8n, GitHub Actions, or any single runtime.
 
@@ -87,5 +87,5 @@ git diff --check
 - Keep commits focused and descriptive.
 - Before pushing, run the relevant tests and `git diff --check`.
 - Do not stage unrelated local files or generated runtime outputs.
-- If publishing repository metadata, keep naming and descriptions broad enough for multiple future RSS Skills.
-- Keep additional RSS Skills aligned with the published suite contract and avoid runtime-specific forks.
+- If publishing repository metadata, use the `DigestPilot` product name and keep descriptions broad enough for multiple future information-stream Skills.
+- Keep additional Skills aligned with the published suite contract and avoid runtime-specific forks.

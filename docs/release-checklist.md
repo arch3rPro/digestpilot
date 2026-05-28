@@ -1,6 +1,6 @@
 # Release Checklist
 
-Use this checklist before publishing a stable release, especially before splitting `rss-ai-digest` into separate RSS Skills.
+Use this checklist before publishing a stable DigestPilot release, especially before splitting or packaging Skills for multiple agent runtimes.
 
 ## Pre-Release Checks
 

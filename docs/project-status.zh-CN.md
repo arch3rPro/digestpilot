@@ -1,16 +1,16 @@
-# RSS Agent Skills 项目状态
+# DigestPilot 项目状态
 
 日期：2026-05-27
 
 ## 当前定位
 
-`rss-agent-skills` 是一个面向通用 agent 生态的 RSS Skills、公开趋势发现与本地优先订阅研究工作流仓库。当前已落地的正式 Skills 是 `rss-ai-digest`、`public-trend-radar`、`rss-source-curator` 和 `subscription-research-agent`。`rss-ai-digest` 用于 AI 与技术内容发现、订阅源聚合、条目筛选、评分和去重；`public-trend-radar` 用于公开渠道趋势卡片；`rss-source-curator` 用于源质量治理和 registry 维护；`subscription-research-agent` 用于围绕订阅来源编排 evidence brief。
+`DigestPilot` 是一个面向通用 agent 生态的信息流聚合、日报生成与研究 evidence 工作流仓库。当前已落地的正式 Skills 是 `rss-ai-digest`、`public-trend-radar`、`rss-source-curator` 和 `subscription-research-agent`。`rss-ai-digest` 用于 AI 与技术内容发现、订阅源聚合、条目筛选、评分和去重；`public-trend-radar` 用于公开渠道趋势卡片；`rss-source-curator` 用于源质量治理和 registry 维护；`subscription-research-agent` 用于围绕订阅来源编排 evidence brief。
 
 项目当前不是完整 RSS 阅读器，也不是独立 SaaS 产品或托管研究平台。它更接近一个可被不同 agent/runtime 包装调用的可移植 RSS 与订阅研究工作流组件。
 
 ## 已实现功能
 
-### RSS Skills Suite
+### DigestPilot Skills Suite
 
 - 已发布 `v0.1.0` 作为拆分前稳定检查点。
 - Phase 2 已引入第二个正式 Skill：`rss-source-curator`。
@@ -202,7 +202,7 @@
 
 ### 后续多 Skill 扩展
 
-当前已完成 RSS Skills Suite Phase 2 的主要文档与功能准备，正式 Skills 包括 `rss-ai-digest` 和 `rss-source-curator`。这部分能力已并入 `v0.3.0`。以下 Roadmap Skill 尚未实现：
+当前已完成早期 RSS Skills Suite Phase 2 的主要文档与功能准备，正式 Skills 包括 `rss-ai-digest` 和 `rss-source-curator`。这部分能力已并入 `v0.3.0`。以下 Roadmap Skill 尚未实现：
 
 - `rss-alert-monitor`：关键词、作者、项目、主题监控。
 - `rss-digest-publisher`：发布到邮件、飞书、Slack、Obsidian 或 webhook。
@@ -305,7 +305,7 @@
 
 当前仍是平台中立 Skill 包，尚未实现：
 
-- Claude plugin packaging。
+- Claude Code/Codex plugin packaging。
 - 插件市场 manifest。
 - 插件安装包。
 - 插件版本发布流程。
@@ -325,7 +325,7 @@ RSS digest 侧仍使用 JSON 文件作为轻量状态层。`subscription-researc
 
 ## 当前成熟度判断
 
-当前项目已经达到“通用 agent 可调用的 RSS/AI 技术内容发现 Skill MVP + 性能和可观测性优化”，并开始进入“本地优先订阅研究 Agent foundation”阶段。
+当前项目已经达到“通用 agent 可调用的信息流聚合、RSS/AI 技术内容发现、公开趋势雷达与本地研究 evidence foundation”阶段。
 
 它适合用于：
 
@@ -354,4 +354,4 @@ RSS digest 侧仍使用 JSON 文件作为轻量状态层。`subscription-researc
 4. 完成普通日报 archive-first 查询，解决每次临时全量抓取导致的慢体验，并允许日报消费 trend cards。
 5. 后续再规划 `rss-digest-publisher`、通知 adapter、插件包装和多 runtime 分发。
 
-如果目标是继续扩展 RSS Skills 套件，应优先保持共享数据结构、CLI 契约和文档入口一致。
+如果目标是继续扩展 DigestPilot Skills 套件，应优先保持共享数据结构、CLI 契约和文档入口一致。

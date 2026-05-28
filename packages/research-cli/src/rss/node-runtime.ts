@@ -90,7 +90,7 @@ async function fetchOneFeed(
     try {
       const response = await options.fetcher(feed.url, {
         signal: controller.signal,
-        headers: { "User-Agent": "rss-agent-skills/0.3" }
+        headers: { "User-Agent": "DigestPilot/0.3" }
       });
       const xml = await response.text();
       const entries = parseFeedXml(xml, feedId, feed.title ?? feedId);

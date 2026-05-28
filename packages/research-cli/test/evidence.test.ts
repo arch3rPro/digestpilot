@@ -22,7 +22,7 @@ test("createEvidenceBrief writes markdown and JSON evidence outputs", async () =
             link: "https://example.com/llm-evals",
             feed_id: "ai-feed",
             feed_title: "AI Feed",
-            published_at: "2026-05-21T00:00:00Z",
+            published_at: new Date().toISOString(),
             summary: "<p>Benchmark &amp; reliability notes.</p>",
             topic: "AI / LLM",
             score: 9,

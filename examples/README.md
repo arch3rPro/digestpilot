@@ -1,6 +1,6 @@
 # Examples
 
-These examples show how an agent should invoke the RSS Skills suite. They are written as reusable prompts and workflow recipes rather than as a long command manual.
+These examples show how an agent should invoke DigestPilot Skills. They are written as reusable prompts and workflow recipes rather than as a long command manual.
 
 ## Daily AI Digest
 

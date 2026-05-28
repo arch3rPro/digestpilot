@@ -13,6 +13,7 @@ All notable project changes are recorded here.
 
 ### Changed
 
+- Renamed the public product positioning to `DigestPilot` while keeping Skill directory names and the `subscription-research` CLI stable.
 - Reframed README files around Agent routing and Skill workflow contracts instead of developer-first CLI usage.
 - Updated README files with the real public trend workflow: fetch public inputs first, then scan them into Markdown or JSON trend-card artifacts.
 - Clarified Skill boundaries: `rss-ai-digest` owns quick daily news and key information, `rss-source-curator` owns source maintenance, and `subscription-research-agent` owns deep research synthesis.
