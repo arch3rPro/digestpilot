@@ -1,0 +1,20 @@
+{
+  "name": "digestpilot",
+  "interface": {
+    "displayName": "DigestPilot"
+  },
+  "plugins": [
+    {
+      "name": "digestpilot",
+      "source": {
+        "source": "local",
+        "path": "./plugins/digestpilot"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

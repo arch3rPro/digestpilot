@@ -1,0 +1,22 @@
+{
+  "name": "digestpilot",
+  "owner": {
+    "name": "arch3rPro"
+  },
+  "description": "DigestPilot plugin marketplace for local development.",
+  "plugins": [
+    {
+      "name": "digestpilot",
+      "displayName": "DigestPilot",
+      "source": "./plugins/digestpilot",
+      "description": "Daily briefs and research-ready evidence for AI agents.",
+      "category": "productivity",
+      "tags": [
+        "digest",
+        "rss",
+        "research",
+        "agent"
+      ]
+    }
+  ]
+}

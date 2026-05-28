@@ -1,0 +1,4 @@
+interface:
+  display_name: "Subscription Research Agent"
+  short_description: "Prepare local evidence briefs from subscriptions."
+  default_prompt: "Use $subscription-research-agent to prepare an evidence brief for my research question from local subscription sources."

@@ -91,6 +91,24 @@ Common commands by responsibility:
 
 Prompt-level examples are in [examples/README.md](./examples/README.md). CLI details belong in the Skill references and package README, not in this project overview.
 
+## Plugin Packaging
+
+DigestPilot now includes a generated Claude Code and Codex plugin package at [`plugins/digestpilot`](./plugins/digestpilot/README.md). The root [`skills/`](./skills) directory remains the source of truth.
+
+Regenerate the plugin package after changing Skills:
+
+```bash
+node scripts/build-plugin.mjs --target all
+node scripts/validate-plugin-package.mjs
+```
+
+Runtime manifests:
+
+- Claude Code: [`plugins/digestpilot/.claude-plugin/plugin.json`](./plugins/digestpilot/.claude-plugin/plugin.json)
+- Codex: [`plugins/digestpilot/.codex-plugin/plugin.json`](./plugins/digestpilot/.codex-plugin/plugin.json)
+- Claude marketplace: [`.claude-plugin/marketplace.json`](./.claude-plugin/marketplace.json)
+- Codex marketplace: [`.agents/plugins/marketplace.json`](./.agents/plugins/marketplace.json)
+
 ## Boundaries
 
 Current non-goals:
@@ -102,7 +120,7 @@ Current non-goals:
 - Fully automated source discovery and scoring without review.
 - Full-text analysis as a hard dependency for ordinary daily digests.
 - Deterministic CLI generation of final research conclusions.
-- Runtime-specific plugin packaging is planned as a distribution layer; core workflows should stay platform-neutral.
+- Runtime-specific behavior in the core CLI or Skill contracts.
 
 ## Repository Map
 
@@ -114,9 +132,14 @@ skills/
   subscription-research-agent/
 packages/
   research-cli/
+plugins/
+  digestpilot/
 docs/
   releases/
 examples/
+scripts/
+  build-plugin.mjs
+  validate-plugin-package.mjs
 ```
 
 Runtime outputs such as `feeds.json`, `seen.json`, `source-health.json`, `digest.md`, and `research-workspace/` should stay out of Git.
@@ -138,6 +161,8 @@ Runtime outputs such as `feeds.json`, `seen.json`, `source-health.json`, `digest
 cd packages/research-cli && npm test
 cd packages/research-cli && npm run typecheck
 git diff --check
+node scripts/build-plugin.mjs --target all
+node scripts/validate-plugin-package.mjs
 ```
 
 Skill validation, when the local validator is available:

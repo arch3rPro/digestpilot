@@ -1,0 +1,4 @@
+interface:
+  display_name: "RSS AI Digest"
+  short_description: "Rank high-signal AI and technical RSS updates."
+  default_prompt: "Use $rss-ai-digest to find high-quality new AI and technical articles from my RSS feeds."

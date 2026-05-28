@@ -1,0 +1,4 @@
+interface:
+  display_name: "Public Trend Radar"
+  short_description: "Discover public AI/technical and product/business trend signals."
+  default_prompt: "Use $public-trend-radar to scan public channels and produce trend cards for AI and product trends."

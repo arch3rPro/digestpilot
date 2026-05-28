@@ -16,6 +16,11 @@ Keep the repository platform-neutral. Do not make core behavior depend on Codex,
 - `skills/subscription-research-agent/SKILL.md`: local-first research orchestration Skill entrypoint.
 - `skills/subscription-research-agent/references/`: research workspace, evidence brief, and daily report contract references.
 - `packages/research-cli/`: Node/TypeScript CLI package for research workspace, SQLite, RSS runtime, ingestion archive, and evidence brief generation.
+- `plugins/digestpilot/`: generated Claude Code and Codex plugin package. Do not edit copied Skills here directly; regenerate from root `skills/`.
+- `.claude-plugin/marketplace.json`: Claude Code marketplace manifest for local/repo distribution.
+- `.agents/plugins/marketplace.json`: Codex marketplace manifest for local/repo distribution.
+- `scripts/build-plugin.mjs`: rebuilds plugin manifests and copied Skills from source.
+- `scripts/validate-plugin-package.mjs`: checks generated plugin package consistency.
 - `README.md`: human-facing project overview and quick start.
 - `README.zh-CN.md`: Chinese project overview.
 - `VERSION`: current release version.
@@ -47,6 +52,8 @@ Check basic Git whitespace issues:
 
 ```bash
 git diff --check
+node scripts/build-plugin.mjs --target all
+node scripts/validate-plugin-package.mjs
 ```
 
 ## Coding Guidelines
@@ -58,6 +65,7 @@ git diff --check
 - Use explicit file paths for registry, state, health, and output files.
 - Keep local runtime outputs out of Git. Examples: `feeds.json`, `seen.json`, `source-health.json`, `digest.md`, `latest.json`, `rss-output/`, `research-workspace/`.
 - Preserve the standard Skill layout: `skills/<skill-name>/SKILL.md`.
+- Keep root `skills/` as the source of truth. After Skill changes, regenerate `plugins/digestpilot/` with `node scripts/build-plugin.mjs --target all`.
 - Put repeatable deterministic behavior in `packages/research-cli/`; put schemas, scoring rules, and workflow references in `references/`.
 - Do not add runtime-specific entrypoints unless the project explicitly starts a plugin-packaging phase.
 

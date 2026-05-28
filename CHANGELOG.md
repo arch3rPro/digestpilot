@@ -10,6 +10,7 @@ All notable project changes are recorded here.
 - Added RSS feed discovery with `subscription-research rss discover --url ...` and `--input ...` for RSS/Atom alternate link detection, optional feed validation, URL/Markdown candidate lists, and reviewable registry patch candidates that can be applied through `apply-source-patch`.
 - Added the first `public-trend-radar` Skill and CLI slice with profile-aware trend cards from public URL lists, Hacker News item JSON, and GitHub release JSON.
 - Added `subscription-research trend fetch-public` for real public-channel input collection, `trend scan --output` for direct artifact writing, multi-repo GitHub release payload support, and safer web URL source labels in trend-card JSON.
+- Added the first generated `DigestPilot` plugin package for Claude Code and Codex, including runtime manifests, marketplace manifests, build tooling, and package consistency validation.
 
 ### Changed
 
