@@ -18,6 +18,15 @@ Use this skill to turn RSS/Atom feeds and OPML files into high-signal AI and tec
 - For OPML import, run `subscription-research rss import-opml`, then use the resulting registry for digest or monitoring.
 - For scheduled checks, read `references/automation.md` and provide a platform-neutral recipe.
 
+## Runtime Command
+
+Examples use the current development command `subscription-research`. Before running commands, resolve the runtime command:
+
+- Use `DIGESTPILOT_RUNTIME_CMD` when the environment provides a custom runtime command.
+- Use `subscription-research` when it is available on `PATH`.
+- From a repository checkout without a linked command, replace `subscription-research` with `node packages/research-cli/dist/src/cli.js`.
+- Run `node scripts/doctor.mjs` from the repository root to diagnose local runtime setup.
+
 ## Core Commands
 
 Import OPML into a registry:

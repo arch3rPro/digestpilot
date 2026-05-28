@@ -6,6 +6,7 @@ All notable project changes are recorded here.
 
 ### Added
 
+- Added `scripts/doctor.mjs` to diagnose local DigestPilot runtime setup, including Node version, linked development command, and repository-local CLI fallback.
 - Added optional full-text article enrichment with `subscription-research content fetch`, `article_content` SQLite storage, local `data/content-cache/`, and readability extraction via `@mozilla/readability` and `jsdom`.
 - Added RSS feed discovery with `subscription-research rss discover --url ...` and `--input ...` for RSS/Atom alternate link detection, optional feed validation, URL/Markdown candidate lists, and reviewable registry patch candidates that can be applied through `apply-source-patch`.
 - Added the first `public-trend-radar` Skill and CLI slice with profile-aware trend cards from public URL lists, Hacker News item JSON, and GitHub release JSON.
@@ -28,6 +29,7 @@ All notable project changes are recorded here.
 - Updated source governance and research workspace references for the expanded source-health history fields.
 - Added a P1 real RSS daily-report regression record covering three real local runs and updated daily report guidance to keep source maintenance details out of report bodies.
 - Kept Markdown RSS digests content-focused by removing failed-feed lists and run stats from the default daily digest renderer while preserving failures in JSON for automation and source maintenance.
+- Documented runtime command resolution for Skills and plugins so local workflows can fall back to `node packages/research-cli/dist/src/cli.js` or `DIGESTPILOT_RUNTIME_CMD` without treating the current command name as permanent.
 
 ## v0.3.0 - 2026-05-22
 

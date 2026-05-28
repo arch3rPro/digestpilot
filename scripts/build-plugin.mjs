@@ -112,18 +112,27 @@ DigestPilot turns trusted information streams into daily briefs and research-rea
 
 ## Runtime
 
-The deterministic runtime remains the \`subscription-research\` CLI from \`packages/research-cli\`.
+Plugin installation provides Skills only. The deterministic runtime remains the Node CLI from \`packages/research-cli\` and must be installed, linked, or invoked from a repository checkout.
 
-During local development, run CLI commands from the repository checkout:
+The current development command is \`subscription-research\`, but the command name is not a permanent product contract. Resolve the runtime command in this order:
+
+1. Use \`DIGESTPILOT_RUNTIME_CMD\` when it is set.
+2. Use \`subscription-research\` when it is available on \`PATH\`.
+3. From a repository checkout, use:
 
 \`\`\`bash
 node packages/research-cli/dist/src/cli.js --help
 \`\`\`
 
-After npm publication, prefer:
+For local development:
 
 \`\`\`bash
-npx @subscription-research/cli --help
+cd packages/research-cli
+npm install
+npm run build
+npm link
+cd ../..
+node scripts/doctor.mjs
 \`\`\`
 
 ## Claude Code

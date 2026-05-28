@@ -7,8 +7,8 @@ DigestPilot should remain platform-neutral at the core. Plugin packaging is a di
 - Product display name: `DigestPilot`
 - Plugin id: `digestpilot`
 - Repository name target: `digestpilot`
-- Existing CLI name: keep `subscription-research`
-- Existing npm package target: keep `@subscription-research/cli`
+- Existing CLI name: `subscription-research` remains a development command, not a permanent product contract.
+- Existing npm package target: defer until the runtime command/package name is finalized.
 - Existing Skill directory names: keep stable for now
 
 ## Packaging Targets
@@ -60,17 +60,26 @@ node scripts/build-plugin.mjs --target codex
 node scripts/build-plugin.mjs --target all
 ```
 
-## CLI Distribution
+## Runtime Distribution
 
-The deterministic runtime stays in `packages/research-cli` and remains callable as `subscription-research`.
+The deterministic runtime stays in `packages/research-cli`. During development it may be callable as `subscription-research`, but plugin guidance should not treat that command name as permanent.
 
-Preferred install path after packaging:
+Current local setup:
 
 ```bash
-npx @subscription-research/cli ...
+cd packages/research-cli
+npm install
+npm run build
+npm link
 ```
 
-Until the npm package is published, plugin guidance should document local development usage from the repository checkout.
+Runtime resolution order:
+
+1. `DIGESTPILOT_RUNTIME_CMD` if set.
+2. The linked development command when available on `PATH`.
+3. `node packages/research-cli/dist/src/cli.js` from a repository checkout.
+
+Use `node scripts/doctor.mjs` to diagnose local runtime setup. Defer npm-package guidance until the runtime/package name is finalized.
 
 ## First Plugin Scope
 
@@ -96,7 +105,7 @@ Defer:
 - Generated plugin package validates for Claude Code and Codex.
 - `DigestPilot` appears as the product/plugin display name.
 - Existing Skill names still work.
-- Existing `subscription-research` CLI commands still work.
+- Current runtime commands still work through the documented resolution order.
 - Public README explains the product as information-stream digest and research evidence tooling, not as an RSS-only Skill repository.
 
 ## Current Validation Commands

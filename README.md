@@ -79,7 +79,24 @@ Primary references:
 
 ## Deterministic Runtime
 
-The shared runtime is the Node/TypeScript `subscription-research` CLI in [`packages/research-cli`](./packages/research-cli/README.md). It is file-based so different agent runtimes can call it without changing the Skill contract.
+The shared runtime is the Node/TypeScript CLI in [`packages/research-cli`](./packages/research-cli/README.md). It is file-based so different agent runtimes can call it without changing the Skill contract.
+
+The current development command is `subscription-research`, but the command name is not a permanent product contract. Install or link the runtime before using the Skills:
+
+```bash
+cd packages/research-cli
+npm install
+npm run build
+npm link
+```
+
+Diagnose local setup from the repository root:
+
+```bash
+node scripts/doctor.mjs
+```
+
+If the linked command is unavailable, use the repository-local fallback `node packages/research-cli/dist/src/cli.js ...` or set `DIGESTPILOT_RUNTIME_CMD`. See [Runtime setup](./docs/runtime.md).
 
 Common commands by responsibility:
 

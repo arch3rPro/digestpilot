@@ -79,7 +79,24 @@ subscription-research trend scan \
 
 ## 确定性 Runtime
 
-共享 runtime 是 [`packages/research-cli`](./packages/research-cli/README.md) 中的 Node/TypeScript `subscription-research` CLI。它保持文件化，方便不同 Agent runtime 调用同一套 Skill 契约。
+共享 runtime 是 [`packages/research-cli`](./packages/research-cli/README.md) 中的 Node/TypeScript CLI。它保持文件化，方便不同 Agent runtime 调用同一套 Skill 契约。
+
+当前开发命令是 `subscription-research`，但这个命令名不是长期产品契约。使用 Skills 前需要先安装或链接 runtime：
+
+```bash
+cd packages/research-cli
+npm install
+npm run build
+npm link
+```
+
+从仓库根目录诊断本地环境：
+
+```bash
+node scripts/doctor.mjs
+```
+
+如果链接命令不可用，可以使用仓库内兜底命令 `node packages/research-cli/dist/src/cli.js ...`，或通过 `DIGESTPILOT_RUNTIME_CMD` 指定当前环境的 runtime。详见 [Runtime setup](./docs/runtime.md)。
 
 按职责划分的常用命令：
 

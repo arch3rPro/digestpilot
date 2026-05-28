@@ -20,6 +20,15 @@ Use this skill to review and maintain RSS source quality. Keep the workflow port
 - For source status semantics, read `references/source-governance.md`.
 - For safe registry maintenance, read `references/registry-maintenance.md`.
 
+## Runtime Command
+
+Examples use the current development command `subscription-research`. Before running commands, resolve the runtime command:
+
+- Use `DIGESTPILOT_RUNTIME_CMD` when the environment provides a custom runtime command.
+- Use `subscription-research` when it is available on `PATH`.
+- From a repository checkout without a linked command, replace `subscription-research` with `node packages/research-cli/dist/src/cli.js`.
+- Run `node scripts/doctor.mjs` from the repository root to diagnose local runtime setup.
+
 ## Core Commands
 
 Evaluate source quality:

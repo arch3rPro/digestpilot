@@ -24,6 +24,15 @@ Use this skill to orchestrate local-first research workflows around subscription
 - For daily report structure, read `references/daily-report.md`.
 - For the daily report quality gate, read `references/daily-report-quality.md`.
 
+## Runtime Command
+
+Examples use the current development command `subscription-research`. Before running commands, resolve the runtime command:
+
+- Use `DIGESTPILOT_RUNTIME_CMD` when the environment provides a custom runtime command.
+- Use `subscription-research` when it is available on `PATH`.
+- From a repository checkout without a linked command, replace `subscription-research` with `node packages/research-cli/dist/src/cli.js`.
+- Run `node scripts/doctor.mjs` from the repository root to diagnose local runtime setup.
+
 ## Core Commands
 
 Initialize a workspace:

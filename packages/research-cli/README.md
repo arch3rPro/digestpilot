@@ -2,6 +2,23 @@
 
 Local-first CLI for subscription research workspaces.
 
+## Local Development
+
+The current development binary is `subscription-research`. The command name may change before a stable package release, so Agent Skills should resolve the runtime command instead of treating the name as permanent.
+
+```bash
+npm install
+npm run build
+npm link
+subscription-research --version
+```
+
+Without a linked command, run the local entrypoint from the repository root:
+
+```bash
+node packages/research-cli/dist/src/cli.js --help
+```
+
 ## Commands
 
 ```bash

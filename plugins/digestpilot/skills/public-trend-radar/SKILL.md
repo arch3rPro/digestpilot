@@ -18,6 +18,15 @@ Use this skill to discover public-channel trend signals and produce trend cards.
 - For source quality and registry maintenance, use `rss-source-curator`.
 - For deep research synthesis from evidence, use `subscription-research-agent`.
 
+## Runtime Command
+
+Examples use the current development command `subscription-research`. Before running commands, resolve the runtime command:
+
+- Use `DIGESTPILOT_RUNTIME_CMD` when the environment provides a custom runtime command.
+- Use `subscription-research` when it is available on `PATH`.
+- From a repository checkout without a linked command, replace `subscription-research` with `node packages/research-cli/dist/src/cli.js`.
+- Run `node scripts/doctor.mjs` from the repository root to diagnose local runtime setup.
+
 ## Core Command
 
 Fetch live public-channel inputs into a local workspace:
